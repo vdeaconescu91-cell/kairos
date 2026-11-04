@@ -8,6 +8,10 @@ Rundown live pentru **Turneul Artiștilor · Charity Padel Cup** (15.11.2026, Pa
 - **Live.** Butonul *Start show* pornește cronometrul, iar *Următorul ▶* (sau tasta `N`) trece la segmentul următor. Aplicația arată:
   - timpul rămas din segment, galben în ultimul minut și roșu când segmentul a depășit timpul;
   - cât de în urmă sau de înainte e show-ul față de plan.
+
+  Comutatorul **Auto / Manual** decide ce se întâmplă când timerul ajunge la zero:
+  - **Auto:** se trece singur la segmentul următor, exact la ora planificată, deci întârzierile nu se adună.
+  - **Manual:** timerul trece pe minus și se face roșu până când regia apasă „Următorul”.
 - **Pop-up (tasta `P`).** E o fereastră mică, mereu deasupra celorlalte, cu:
   - momentul de acum: timerul mare și ce se spune;
   - jos, o bandă mică cu ce urmează și în cât timp.

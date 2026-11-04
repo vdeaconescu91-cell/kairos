@@ -68,6 +68,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); }
 .seg-btn { border: 0; background: transparent; padding: 6px 14px; border-radius: 999px; color: var(--muted); cursor: pointer; font-size: 13px; }
+.seg.adv:not(.show) { display: none; }
+.seg.adv .seg-btn[data-adv="auto"].on { background: rgba(52,211,153,.18); color: #b6f5dc; box-shadow: inset 0 0 0 1px rgba(52,211,153,.5); }
 .seg-btn.on { background: rgba(61,123,255,.22); color: var(--blue-ice); box-shadow: inset 0 0 0 1px rgba(61,123,255,.5); }
 
 .btn { border: 1px solid var(--line-2); background: var(--panel-2); padding: 8px 14px; border-radius: 999px;

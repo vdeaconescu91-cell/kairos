@@ -32,7 +32,7 @@
     const d = clone(window.TA_DEFAULT_RUNDOWN);
     d.items = d.items.map((it) => ({ id: uid(), type: it.type || "segment", title: "", min: 5, cat: "platforma",
       video: "", gfx: "", talk: "", who: "", ...it }));
-    d.mode = "plan";
+    d.mode = "plan"; d.advance = "manual";
     d.live = { running: false, idx: -1, itemStart: 0, showStart: 0 };
     return d;
   }
@@ -328,14 +328,34 @@
     save(); renderMode(); tick();
   }
   function renderMode() {
-    $$(".seg-btn").forEach((b) => b.classList.toggle("on", b.dataset.mode === state.mode));
+    $$(".seg-btn[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === state.mode));
+    $$(".seg-btn[data-adv]").forEach((b) => b.classList.toggle("on", b.dataset.adv === (state.advance || "manual")));
+    $("#advSeg").classList.toggle("show", state.mode === "live");
     const live = state.mode === "live";
     const running = live && state.live.running;
     $("#btnGo").textContent = !live ? "Treci pe Live" : running ? "Următorul ▶" : "Start show";
     $("#btnPrev").disabled = !running; $("#btnStop").disabled = !running;
     document.body.classList.toggle("live-on", running);
   }
-  $$(".seg-btn").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+  $$(".seg-btn[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+  $$(".seg-btn[data-adv]").forEach((b) => b.onclick = () => {
+    state.advance = b.dataset.adv; save(); renderMode(); tick();
+    toast(state.advance === "auto" ? "Auto: la zero trece singur la segmentul următor" : "Manual: la zero timerul devine roșu până apeși „Următorul”");
+  });
+
+  // Auto: segmentul următor pornește exact când trebuia să se termine cel curent, ca întârzierile să nu se adune
+  function autoAdvance(now) {
+    if (state.mode !== "live" || !state.live.running || state.advance !== "auto") return false;
+    const list = segs(); let moved = false;
+    while (state.live.idx < list.length - 1) {
+      const cur = list[state.live.idx];
+      const end = state.live.itemStart + (Number(cur.min) || 0) * 60000;
+      if (now < end) break;
+      state.live.idx++; state.live.itemStart = end; moved = true;
+    }
+    if (moved) { save(); setTimeout(scrollToCurrent, 50); }
+    return moved;
+  }
 
   function go() {
     if (state.mode !== "live") return setMode("live");
@@ -381,11 +401,12 @@
   function tick() {
     const now = new Date();
     $("#clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    autoAdvance(now.getTime());
     const pos = position(now.getTime());
     const nowCard = $(".now");
 
     if (pos.cur) {
-      $("#nowLabel").textContent = pos.mode === "live" ? "ACUM · LIVE" : "ACUM · DUPĂ PLAN";
+      $("#nowLabel").textContent = pos.mode === "live" ? `ACUM · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "ACUM · DUPĂ PLAN";
       $("#nowTitle").textContent = pos.cur.title || "—";
       $("#nowMeta").innerHTML = `${chip(pos.cur.cat)}<span>${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min</span>${pos.cur.who ? `<span>· ${esc(pos.cur.who)}</span>` : ""}`;
       $("#nowRemain").textContent = fmtDur(pos.remain);
@@ -394,7 +415,7 @@
       nowCard.classList.toggle("over", over);
       $("#nowProgress").style.width = Math.min(100, Math.max(0, (pos.elapsed / (pos.durMs || 1)) * 100)) + "%";
       const endAt = new Date(now.getTime() + Math.max(0, pos.remain));
-      $("#nowEnds").textContent = over ? `peste timp cu ${fmtDur(-pos.remain)}` : `se termină la ${pad(endAt.getHours())}:${pad(endAt.getMinutes())}`;
+      $("#nowEnds").textContent = over ? `peste timp cu ${fmtDur(-pos.remain)}` : `${pos.mode === "live" && state.advance === "auto" ? "trece automat la" : "se termină la"} ${pad(endAt.getHours())}:${pad(endAt.getMinutes())}`;
       if (pos.drift != null) {
         const d = pos.drift; const el = $("#drift");
         el.textContent = Math.abs(d) < 30000 ? "pe timp" : d > 0 ? `${fmtDur(d)} în urmă` : `${fmtDur(-d)} înainte`;
@@ -613,7 +634,7 @@
     d.body.style.setProperty("--nc", hexOf(pos.next));
     let text = "";
     if (pos.cur) {
-      g("pl").textContent = pos.mode === "live" ? "ACUM · LIVE" : "ACUM · DUPĂ PLAN";
+      g("pl").textContent = pos.mode === "live" ? `ACUM · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "ACUM · DUPĂ PLAN";
       g("pt").textContent = pos.cur.title;
       let meta = `${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min${pos.cur.who ? " · " + esc(pos.cur.who) : ""}`;
       if (pos.drift != null && Math.abs(pos.drift) >= 30000) meta += ` · <span class="drift ${pos.drift > 0 ? "late" : "early"}">${pos.drift > 0 ? fmtDur(pos.drift) + " în urmă" : fmtDur(-pos.drift) + " înainte"}</span>`;
