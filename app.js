@@ -432,11 +432,10 @@
 
   let lastCurKey = null;
   function playMorph(text) {
-    const m = $("#morph"); if (!m || !text) return;
-    $("#morphText").textContent = text.length > 42 ? text.slice(0, 40) + "…" : text;
-    m.classList.remove("play"); void m.offsetWidth; m.classList.add("play");
+    const n = $(".now"); if (!n || !text) return;
+    n.classList.remove("enter"); void n.offsetWidth; n.classList.add("enter");
+    setTimeout(() => n.classList.remove("enter"), 1100);
     const a = $(".now .aurora"); if (a) { a.classList.add("flash"); setTimeout(() => a.classList.remove("flash"), 1600); }
-    setTimeout(() => m.classList.remove("play"), 2200);
     if (popupWin && !popupWin.closed) { const b = popupWin.document.body; b.classList.remove("flip"); void b.offsetWidth; b.classList.add("flip"); }
   }
 
