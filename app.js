@@ -422,6 +422,11 @@
       $("#nextTitle").textContent = "—"; $("#nextCat").innerHTML = ""; $("#nextTalk").textContent = ""; $("#nextIn").textContent = ""; $("#afterNext").innerHTML = "";
     }
 
+    // culoarea luminilor = culoarea tipului de moment; roșu când segmentul a depășit timpul
+    const hexOf = (it) => (it && CAT_HEX[it.cat]) || "#3d7bff";
+    nowCard.style.setProperty("--ac", pos.cur && pos.remain < 0 ? "#ff4d5e" : hexOf(pos.cur));
+    $(".next").style.setProperty("--ac", hexOf(pos.next));
+
     const curKey = pos.cur ? pos.cur.id : pos.mode;
     if (lastCurKey !== null && curKey !== lastCurKey) playMorph(pos.cur ? pos.cur.title : pos.mode === "post" ? "Mulțumim!" : "");
     lastCurKey = curKey;
@@ -462,7 +467,7 @@
     body.flip>*{animation:pflip 1.1s cubic-bezier(.22,.8,.25,1)}
     @keyframes pflip{0%{opacity:0;filter:blur(14px);transform:scale(.97)}100%{opacity:1;filter:blur(0);transform:none}}`;
 
-  const CAT_HEX = { live: "#3d7bff", interviu: "#a78bfa", grafica: "#22d3ee", platforma: "#dfe5f2", caritabil: "#f472b6", ing: "#ff6200", donatii: "#e4f53b", giveaway: "#34d399", pauza: "#6b7280" };
+  const CAT_HEX = { live: "#3d7bff", interviu: "#a78bfa", grafica: "#22d3ee", platforma: "#c9d4ea", caritabil: "#f472b6", ing: "#ff6200", donatii: "#e4f53b", giveaway: "#34d399", pauza: "#8a93a6" };
 
   async function openPopup() {
     if (popupWin && !popupWin.closed) { try { popupWin.focus(); } catch (e) {} return; }
