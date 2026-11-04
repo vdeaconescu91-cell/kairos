@@ -30,7 +30,8 @@ service cloud.firestore {
       }
 
       match /comments/{commentId} {
-        allow read: if signedIn();
+        // fiecare își vede doar comentariile lui; editorii le văd pe toate
+        allow read: if isEditor() || (signedIn() && resource.data.uid == request.auth.uid);
         allow create: if signedIn()
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.text is string

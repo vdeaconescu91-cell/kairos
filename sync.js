@@ -79,8 +79,8 @@
       K.editors = (s.exists && Array.isArray(s.get("editors"))) ? s.get("editors") : [];
       const email = K.user.email;
       K.role = OWNERS.includes(email) ? "owner" : K.editors.includes(email) ? "editor" : "viewer";
-      emit("auth", K.user);
-    }, () => { K.role = OWNERS.includes(K.user.email) ? "owner" : "viewer"; emit("auth", K.user); }));
+      watchComments(); emit("auth", K.user);
+    }, () => { K.role = OWNERS.includes(K.user.email) ? "owner" : "viewer"; watchComments(); emit("auth", K.user); }));
 
     unsub.push(showRef.onSnapshot((s) => {
       if (s.metadata.hasPendingWrites) return;
@@ -98,11 +98,25 @@
       emit("live", s.data());
     }, () => {}));
 
-    unsub.push(commentsRef.orderBy("createdAt", "asc").onSnapshot((qs) => {
-      K.comments = qs.docs.map((d) => ({ id: d.id, ...d.data(), createdAt: d.get("createdAt") ? d.get("createdAt").toMillis() : Date.now() }));
-      emit("comments", K.comments);
-    }, () => {}));
   });
+
+  // editorii văd toate comentariile; ceilalți doar pe ale lor (așa cer și regulile din Firestore)
+  let commentsUnsub = null, commentsScope = "";
+  function watchComments() {
+    if (!K.user) return;
+    const all = K.role === "owner" || K.role === "editor";
+    const scope = (all ? "all:" : "own:") + K.user.uid;
+    if (scope === commentsScope) return;
+    if (commentsUnsub) commentsUnsub();
+    commentsScope = scope;
+    const q = all ? commentsRef : commentsRef.where("uid", "==", K.user.uid);
+    commentsUnsub = q.onSnapshot((qs) => {
+      K.comments = qs.docs.map((d) => ({ id: d.id, ...d.data(), createdAt: d.get("createdAt") ? d.get("createdAt").toMillis() : Date.now() }))
+        .sort((a, b) => a.createdAt - b.createdAt);
+      emit("comments", K.comments);
+    }, (e) => console.error(e));
+    unsub.push(() => { if (commentsUnsub) commentsUnsub(); commentsUnsub = null; commentsScope = ""; });
+  }
 
   /* ---------- scrieri ---------- */
   const canWrite = () => K.user && (K.role === "owner" || K.role === "editor");
