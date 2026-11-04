@@ -410,7 +410,7 @@
       $("#nowTitle").textContent = pos.cur.title || "—";
       $("#nowMeta").innerHTML = `${chip(pos.cur.cat)}<span>${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min</span>${pos.cur.who ? `<span>· ${esc(pos.cur.who)}</span>` : ""}`;
       $("#nowRemain").textContent = fmtDur(pos.remain);
-      const over = pos.remain < 0, warn = !over && pos.remain < 60000;
+      const over = pos.remain < 0, warn = false;
       $("#nowRemain").className = "big-time" + (over ? " over" : warn ? " warn" : "");
       nowCard.classList.toggle("over", over);
       $("#nowProgress").style.width = Math.min(100, Math.max(0, (pos.elapsed / (pos.durMs || 1)) * 100)) + "%";
@@ -446,7 +446,7 @@
 
     // culoarea luminilor = culoarea tipului de moment; roșu când segmentul a depășit timpul
     const hexOf = (it) => (it && CAT_HEX[it.cat]) || "#3d7bff";
-    nowCard.style.setProperty("--ac", pos.cur && pos.remain < 0 ? "#ff4d5e" : hexOf(pos.cur));
+    nowCard.style.setProperty("--ac", accentFor(pos));
     $(".next").style.setProperty("--ac", hexOf(pos.next));
 
     const curKey = pos.cur ? pos.cur.id : pos.mode;
@@ -455,6 +455,21 @@
 
     markRows(pos);
     renderPopup(pos);
+  }
+
+  // în ultimul minut culoarea momentului trece treptat în roșu; la zero e roșu de tot
+  const RED = "#ff4d5e";
+  function mixHex(a, b, t) {
+    const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const [x, y] = [p(a), p(b)];
+    return "#" + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, "0")).join("");
+  }
+  function accentFor(pos) {
+    const base = (pos.cur && CAT_HEX[pos.cur.cat]) || "#3d7bff";
+    if (!pos.cur) return base;
+    if (pos.remain <= 0) return RED;
+    if (pos.remain < 60000) return mixHex(base, RED, 1 - pos.remain / 60000);
+    return base;
   }
 
   let lastCurKey = null;
@@ -630,7 +645,7 @@
     const now = new Date();
     g("pc").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     const hexOf = (it) => (it && CAT_HEX[it.cat]) || "#3d7bff";
-    d.body.style.setProperty("--ac", pos.cur && pos.remain < 0 ? "#ff4d5e" : hexOf(pos.cur));
+    d.body.style.setProperty("--ac", accentFor(pos));
     d.body.style.setProperty("--nc", hexOf(pos.next));
     let text = "";
     if (pos.cur) {
@@ -640,7 +655,7 @@
       if (pos.drift != null && Math.abs(pos.drift) >= 30000) meta += ` · <span class="drift ${pos.drift > 0 ? "late" : "early"}">${pos.drift > 0 ? fmtDur(pos.drift) + " în urmă" : fmtDur(-pos.drift) + " înainte"}</span>`;
       g("pm").innerHTML = meta;
       g("pr").textContent = fmtDur(pos.remain);
-      g("pr").className = "time" + (pos.remain < 0 ? " over" : pos.remain < 60000 ? " warn" : "");
+      g("pr").className = "time" + (pos.remain < 0 ? " over" : "");
       g("pb").style.width = Math.min(100, Math.max(0, (pos.elapsed / (pos.durMs || 1)) * 100)) + "%";
       text = prompter.on ? ((pos.cur.script || "").trim() || pos.cur.talk || "") : (pos.cur.talk || "");
     } else {
