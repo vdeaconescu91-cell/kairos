@@ -1,4 +1,4 @@
-# TA Rundown
+# KAIROS · Rundown
 
 Rundown live pentru **Turneul Artiștilor · Charity Padel Cup** (15.11.2026, Padel One București), după modelul Rundown Studio, cu un design inspirat din AICA.
 

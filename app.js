@@ -526,11 +526,11 @@
       toast("Pop-up deschis. Pentru „mereu deasupra” folosește Chrome sau Edge.");
     }
     const d = w.document;
-    d.title = "TA · Acum";
+    d.title = "KAIROS · Acum";
     d.head.innerHTML = `<meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"><style>${POPUP_CSS}</style>`;
     d.body.innerHTML = `<div class="aur" id="paur"></div>
       <div class="main">
-        <div class="k"><span class="dot"></span><span id="pl">ACUM</span><span class="sp"></span><button class="tg" id="ptg" title="Prompter (T)">PROMPTER</button><span class="clock" id="pc"></span></div>
+        <div class="k"><svg viewBox="0 0 40 40" width="14" height="14" style="flex:none;filter:drop-shadow(0 0 5px rgba(61,123,255,.7))"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="3.4" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="3.4" fill="#fff"/></svg><span class="dot"></span><span id="pl">ACUM</span><span class="sp"></span><button class="tg" id="ptg" title="Prompter (T)">PROMPTER</button><span class="clock" id="pc"></span></div>
         <div><div class="t" id="pt">—</div><div class="meta" id="pm"></div></div>
         <div class="time" id="pr">--:--</div>
         <div class="bar"><i id="pb"></i></div>
