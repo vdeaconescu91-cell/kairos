@@ -32,7 +32,6 @@
     const c = S / 2, R = S * 0.42, r0 = R * 0.6;
     const cyc = low ? 0 : Math.floor(t / CYCLE), p = t - cyc * CYCLE, seed = cyc * 97.13 + 11;
     // logo-urile mici din bare nu dispar: semnul rămâne scris și doar se mișcă
-    const write = low ? 1 : easeOut(clamp(p / 2.4));       // 0 → 1: cerneala se întinde pe cerc
     const dis = low ? 0 : clamp((p - 6.1) / 2.6);          // 0 → 1: se dizolvă în fum
     g.clearRect(0, 0, S, S);
     g.globalCompositeOperation = "source-over";
@@ -40,41 +39,42 @@
     g.fillStyle = "#2b63f0";
     const dot = (x, y, r) => { if (r > 0.25) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); } };
 
-    const startA = rnd(seed + 1) * TAU;
-    const reach = write * Math.PI * 1.02;                   // cât s-a scris, de o parte și de alta a punctului de start
-    const angDist = (a) => Math.abs(((a - startA) % TAU + TAU * 1.5) % TAU - Math.PI);
-    const grow = (d) => clamp((reach - d) / 0.45);         // ce abia a fost atins e încă subțire
-    const swell = (n) => R * 0.13 * dis * n;               // la dizolvare, cerneala se umflă în afară
+    // intro: cerneala pornește ca o picătură în centru și se deschide spre cerc
+    // fiecare bucată ajunge cu o mică întârziere a ei, ca să pară lichid, nu un cerc care crește uniform
+    const arrive = (key) => low ? 1 : easeOut(clamp((p - 0.12 * rnd(seed + key)) / (1.9 + 0.5 * rnd(seed + key + 0.5))));
+    const swirl = rnd(seed + 9) > 0.5 ? 1 : -1;            // în ce sens se rotește puțin cât se deschide
+    const swell = (n) => R * 0.13 * dis * n;               // outro: cerneala se umflă în afară
 
     // inelul
     const N = low ? 120 : 320;
     for (let i = 0; i < N; i++) {
-      const a = (i / N) * TAU, d = angDist(a);
-      if (d > reach) continue;
+      const e = arrive(i * 0.731);
+      const a = (i / N) * TAU + swirl * (1 - e) * 0.9;
       const ca = Math.cos(a), sa = Math.sin(a);
-      const body = fbm(ca * 1.3 + seed, sa * 1.3 + seed * 0.7, t * 0.08);
-      const gap = fbm(ca * 0.8 + seed * 1.3, sa * 0.8 + 3, 0.5);
-      let w = R * (0.02 + 0.06 * Math.max(0, body + 0.35));
-      if (gap < -0.3) w *= Math.max(0, (gap + 0.46) / 0.16);
-      w *= 0.35 + 0.65 * grow(d);
+      const body = fbm(Math.cos((i / N) * TAU) * 1.3 + seed, Math.sin((i / N) * TAU) * 1.3 + seed * 0.7, t * 0.08);
+      const gap = fbm(Math.cos((i / N) * TAU) * 0.8 + seed * 1.3, Math.sin((i / N) * TAU) * 0.8 + 3, 0.5);
+      let w = R * (0.012 + 0.09 * Math.pow(Math.max(0, body + 0.3), 1.3));
+      if (gap < -0.2) w *= Math.max(0, (gap + 0.38) / 0.18);
+      w *= 1 + 1.6 * (1 - e);                                // la început petele se suprapun: o pată plină în centru
       const n = fbm(ca * 3 + seed, sa * 3, t * 0.4);
-      const rr = r0 + R * 0.05 * fbm(ca * 2 + seed, sa * 2 + 2, t * 0.06) + swell(n);
+      const target = r0 + R * 0.05 * fbm(ca * 2 + seed, sa * 2 + 2, t * 0.06);
+      const rr = target * e + R * 0.04 * (1 - e) * n + swell(n);
       dot(c + ca * rr, c + sa * rr, w * (1 + dis * 0.9));
     }
 
-    // perișorii: fire scurte care cresc din inel, în afară și înăuntru
+    // perișorii: cresc din inel abia după ce cerneala a ajuns la el
     const K = low ? 22 : 90;
     for (let k = 0; k < K; k++) {
-      const a0 = rnd(seed + k * 3.1) * TAU, d = angDist(a0);
-      if (d > reach) continue;
-      const sprout = grow(d - 0.15);
+      const e = arrive(k * 1.37 + 40);
+      const sprout = clamp((e - 0.55) / 0.45);
       if (sprout <= 0) continue;
+      const a0 = rnd(seed + k * 3.1) * TAU + swirl * (1 - e) * 0.9;
       const out = rnd(seed + k * 5.7) > 0.45 ? 1 : -1;
       const len = R * (0.035 + 0.15 * Math.pow(rnd(seed + k * 7.3), 2)) * sprout * (out > 0 ? 1 : 0.7);
       const curl = (rnd(seed + k * 9.9) - 0.5) * 0.9;
       const w0 = R * (0.01 + 0.02 * rnd(seed + k * 2.2));
       const steps = low ? 6 : 14;
-      const base = r0 + R * 0.05 * fbm(Math.cos(a0) * 2 + seed, Math.sin(a0) * 2 + 2, t * 0.06);
+      const base = (r0 + R * 0.05 * fbm(Math.cos(a0) * 2 + seed, Math.sin(a0) * 2 + 2, t * 0.06)) * e;
       for (let j = 1; j <= steps; j++) {
         const f = j / steps;
         const ang = a0 + curl * f * 0.35 + fbm(k * 0.37, f * 2, t * 0.4) * 0.12 * f;
@@ -83,25 +83,23 @@
       }
     }
 
-    // stropii din vârful care scrie
+    // picături aruncate din centru cât se deschide cerneala
+    const write = low ? 1 : easeOut(clamp(p / 2.2));
     if (write < 1 && !low) {
-      const flick = Math.floor(t * 24);
-      for (const side of [1, -1]) {
-        const af = startA + Math.PI + side * (Math.PI - reach);
-        for (let m = 0; m < 16; m++) {
-          const q = rnd(flick * 31 + m * 7 + side * 3);
-          const aa = af + side * (q * 0.35 - 0.05);
-          const rr = r0 + (rnd(flick * 17 + m) - 0.5) * R * 0.32;
-          dot(c + Math.cos(aa) * rr, c + Math.sin(aa) * rr, R * (0.004 + 0.016 * rnd(flick * 13 + m * 3)));
-        }
+      for (let m = 0; m < 40; m++) {
+        const e = arrive(m * 2.9 + 80);
+        const aa = rnd(seed + m * 4.1 + 7) * TAU + swirl * (1 - e) * 1.2;
+        const rr = (r0 + (rnd(seed + m * 6.3) - 0.35) * R * 0.45) * e;
+        dot(c + Math.cos(aa) * rr, c + Math.sin(aa) * rr, R * (0.005 + 0.018 * rnd(seed + m * 8.7)) * (1.6 - 0.6 * e));
       }
     }
 
     // stropi rămași în jurul semnului
     if (!low) {
       for (let m = 0; m < 34; m++) {
-        const a = rnd(seed + m + 100) * TAU, d = angDist(a);
-        if (d > reach - 0.2) continue;
+        const e = arrive(m * 3.3 + 120);
+        if (e < 0.85) continue;
+        const a = rnd(seed + m + 100) * TAU;
         const rr = r0 + (rnd(seed + m + 200) - 0.5) * R * 0.6 + swell(1);
         dot(c + Math.cos(a) * rr, c + Math.sin(a) * rr, R * (0.004 + 0.012 * rnd(seed + m + 300)) * (1 + dis));
       }
@@ -113,7 +111,7 @@
     sh.addColorStop(0, "#cfe0ff"); sh.addColorStop(0.35, "#6f9bff"); sh.addColorStop(0.7, "#2f66f2"); sh.addColorStop(1, "#1238b8");
     g.fillStyle = sh; g.fillRect(0, 0, S, S);
     g.globalCompositeOperation = "source-over";
-    return { dis, empty: false };
+    return { dis, empty: false, intro: low ? 0 : 1 - easeOut(clamp(p / 2.2)) };
   }
 
   /* ---------- sfera ---------- */
@@ -133,11 +131,12 @@
     // lichidul albastru: strălucire difuză, apoi miezul; la dizolvare se umflă în fum și se stinge
     const st = drawInk(inkCtx, S, t, low);
     if (!st.empty) {
-      const d = st.dis, sc = 1 + 0.07 * d;
+      const d = st.dis, it = st.intro, sc = 1 + 0.07 * d;
+      const soft = S * (0.0045 + 0.016 * it);                // cerneala nu e niciodată tăioasă; în intro e și mai moale
       const put = () => ctx.drawImage(ink, c - c * sc, c - c * sc, S * sc, S * sc);
-      if (!low) { ctx.globalAlpha = 0.55 * (1 - d * 0.6); ctx.filter = `blur(${S * (0.035 + 0.06 * d)}px)`; put(); }
-      ctx.globalAlpha = 0.6 * (1 - d); ctx.filter = `blur(${Math.max(1, S * (0.012 + 0.03 * d))}px)`; put();
-      ctx.globalAlpha = Math.pow(1 - d, 1.6); ctx.filter = low && d === 0 ? "none" : `blur(${Math.max(0.4, S * (0.0016 + 0.02 * d))}px)`; put();
+      if (!low) { ctx.globalAlpha = 0.55 * (1 - d * 0.6); ctx.filter = `blur(${S * (0.035 + 0.06 * d + 0.03 * it)}px)`; put(); }
+      ctx.globalAlpha = 0.6 * (1 - d); ctx.filter = `blur(${Math.max(1, S * (0.012 + 0.03 * d) + soft)}px)`; put();
+      ctx.globalAlpha = Math.pow(1 - d, 1.6) * (1 - 0.35 * it); ctx.filter = low ? `blur(${Math.max(0.3, S * 0.006)}px)` : `blur(${Math.max(0.6, soft + S * 0.02 * d)}px)`; put();
       ctx.filter = "none"; ctx.globalAlpha = 1;
     }
 
