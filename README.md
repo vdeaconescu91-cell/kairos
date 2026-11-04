@@ -9,8 +9,16 @@ Rundown live pentru **Turneul Artiștilor · Charity Padel Cup** (15.11.2026, Pa
   - timpul rămas din segment, galben în ultimul minut și roșu când segmentul a depășit timpul;
   - cât de în urmă sau de înainte e show-ul față de plan.
 - **Pop-up (tasta `P`).** E o fereastră mică, mereu deasupra celorlalte, cu:
-  - ce e acum și cât mai e din segment;
-  - ce urmează, în cât timp și ce se spune.
+  - momentul de acum: timerul mare și ce se spune;
+  - jos, o bandă mică cu ce urmează și în cât timp.
+
+  Pop-up-ul are și **prompter**, pornit din butonul PROMPTER sau tasta `T`. Prompterul derulează scriptul segmentului (câmpul „script pentru prompter” din tabel), iar dacă segmentul n-are script, derulează notițele. Comenzile din pop-up:
+  - `Space`: pornește sau oprește derularea;
+  - `↑` / `↓`: viteza;
+  - `+` / `−`: mărimea textului;
+  - `R`: înapoi la început;
+  - `M`: text oglindit, pentru ecran cu sticlă;
+  - `N`: segmentul următor.
 
   În Chrome și Edge rămâne deasupra oricărei aplicații (Document Picture-in-Picture). În alte browsere se deschide ca fereastră obișnuită.
 - **Filtre** pe tipuri de segment: meci live, interviu, grafică, platformă, caritabil, ING, donații, giveaway, pauză.
