@@ -25,7 +25,8 @@
   function drawInk(g, S, t, low) {
     const c = S / 2, R = S * 0.42, r0 = R * 0.6;
     g.clearRect(0, 0, S, S);
-    g.fillStyle = "#01040c";
+    g.globalCompositeOperation = "source-over";
+    g.fillStyle = "#2b63f0";
     const dot = (x, y, r) => { if (r > 0.25) { g.beginPath(); g.arc(x, y, r, 0, 6.2832); g.fill(); } };
 
     // inelul
@@ -71,6 +72,13 @@
         dot(c + Math.cos(a) * d, c + Math.sin(a) * d, R * 0.004 + R * 0.018 * (vis - 0.12) * rnd(m + 300) * 3);
       }
     }
+
+    // nuanțe pe lichid: mai deschis sus-stânga, mai adânc jos, ca un lichid luminat
+    g.globalCompositeOperation = "source-atop";
+    const sh = g.createRadialGradient(c - R * 0.35, c - R * 0.45, 0, c, c, R * 1.1);
+    sh.addColorStop(0, "#cfe0ff"); sh.addColorStop(0.35, "#6f9bff"); sh.addColorStop(0.7, "#2f66f2"); sh.addColorStop(1, "#1238b8");
+    g.fillStyle = sh; g.fillRect(0, 0, S, S);
+    g.globalCompositeOperation = "source-over";
   }
 
   /* ---------- sfera ---------- */
@@ -79,53 +87,40 @@
     const c = S / 2, R = S * 0.42;
     ctx.clearRect(0, 0, S, S);
 
-    // strălucirea din jur
-    ctx.save();
-    ctx.shadowColor = "rgba(61,123,255,.55)"; ctx.shadowBlur = S * 0.09;
-    ctx.fillStyle = "#06123a";
-    ctx.beginPath(); ctx.arc(c, c, R, 0, 6.2832); ctx.fill();
-    ctx.restore();
-
     ctx.save();
     ctx.beginPath(); ctx.arc(c, c, R, 0, 6.2832); ctx.clip();
 
-    // lumina din interior
-    let g = ctx.createRadialGradient(c, c + R * 0.18, 0, c, c + R * 0.1, R * 1.08);
-    g.addColorStop(0, "#e4edff"); g.addColorStop(0.32, "#8fb2ff"); g.addColorStop(0.66, "#2f62e6"); g.addColorStop(1, "#071645");
+    // sticla e transparentă: doar o urmă de volum pe margine (fresnel)
+    let g = ctx.createRadialGradient(c, c, R * 0.55, c, c, R);
+    g.addColorStop(0, "rgba(200,220,255,0)"); g.addColorStop(0.8, "rgba(200,220,255,.04)"); g.addColorStop(1, "rgba(200,220,255,.16)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
 
-    // cerneala: un halou difuz, ca în apă, și miezul dens
+    // lichidul albastru: o strălucire difuză în jur și miezul dens
     drawInk(inkCtx, S, t, low);
-    // fum gri în jurul cernelii, ca o picătură care se dizolvă în apă
-    if (!low) { ctx.globalAlpha = 0.3; ctx.filter = `blur(${S * 0.04}px)`; ctx.drawImage(ink, 0, 0); }
-    ctx.globalAlpha = 0.42; ctx.filter = `blur(${Math.max(1, S * 0.014)}px)`; ctx.drawImage(ink, 0, 0);
-    ctx.globalAlpha = low ? 0.95 : 0.9; ctx.filter = low ? "none" : `blur(${Math.max(0.4, S * 0.0018)}px)`; ctx.drawImage(ink, 0, 0);
-    ctx.filter = "none"; ctx.globalAlpha = 1;
-
-    // umbra de pe margine: dă volum sferei
-    g = ctx.createRadialGradient(c, c, R * 0.62, c, c, R);
-    g.addColorStop(0, "rgba(2,6,25,0)"); g.addColorStop(1, "rgba(2,6,25,.72)");
-    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+    if (!low) { ctx.globalAlpha = 0.55; ctx.filter = `blur(${S * 0.035}px)`; ctx.drawImage(ink, 0, 0); }
+    ctx.globalAlpha = 0.6; ctx.filter = `blur(${Math.max(1, S * 0.012)}px)`; ctx.drawImage(ink, 0, 0);
+    ctx.globalAlpha = 1; ctx.filter = low ? "none" : `blur(${Math.max(0.4, S * 0.0016)}px)`; ctx.drawImage(ink, 0, 0);
+    ctx.filter = "none";
 
     // reflexii pe sticlă
-    g = ctx.createRadialGradient(c - R * 0.38, c - R * 0.48, 0, c - R * 0.38, c - R * 0.48, R * 0.55);
-    g.addColorStop(0, "rgba(255,255,255,.55)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    g = ctx.createRadialGradient(c - R * 0.38, c - R * 0.48, 0, c - R * 0.38, c - R * 0.48, R * 0.5);
+    g.addColorStop(0, "rgba(255,255,255,.22)"); g.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
     ctx.save(); ctx.translate(c - R * 0.34, c - R * 0.56); ctx.rotate(-0.55);
     g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.2);
-    g.addColorStop(0, "rgba(255,255,255,.85)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    g.addColorStop(0, "rgba(255,255,255,.75)"); g.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = g; ctx.scale(1, 0.42); ctx.beginPath(); ctx.arc(0, 0, R * 0.2, 0, 6.2832); ctx.fill();
     ctx.restore();
-    // lumina de jos, prinsă în sticlă
-    ctx.lineWidth = Math.max(1, R * 0.022); ctx.lineCap = "round";
+    // o lumină subțire jos, prinsă în sticlă
+    ctx.lineWidth = Math.max(1, R * 0.018); ctx.lineCap = "round";
     g = ctx.createLinearGradient(c - R, 0, c + R, 0);
-    g.addColorStop(0, "rgba(214,228,255,0)"); g.addColorStop(0.5, "rgba(214,228,255,.26)"); g.addColorStop(1, "rgba(214,228,255,0)");
-    ctx.strokeStyle = g; ctx.beginPath(); ctx.arc(c, c, R * 0.93, Math.PI * 0.2, Math.PI * 0.8); ctx.stroke();
+    g.addColorStop(0, "rgba(214,228,255,0)"); g.addColorStop(0.5, "rgba(214,228,255,.3)"); g.addColorStop(1, "rgba(214,228,255,0)");
+    ctx.strokeStyle = g; ctx.beginPath(); ctx.arc(c, c, R * 0.93, Math.PI * 0.22, Math.PI * 0.78); ctx.stroke();
     ctx.restore();
 
     // marginea sferei
-    ctx.lineWidth = Math.max(0.75, S * 0.006);
-    ctx.strokeStyle = "rgba(214,228,255,.38)";
+    ctx.lineWidth = Math.max(0.75, S * 0.005);
+    ctx.strokeStyle = "rgba(214,228,255,.42)";
     ctx.beginPath(); ctx.arc(c, c, R - ctx.lineWidth / 2, 0, 6.2832); ctx.stroke();
   }
 

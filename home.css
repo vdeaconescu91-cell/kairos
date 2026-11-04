@@ -96,7 +96,7 @@ canvas.mark { width: 32px; height: 32px; filter: none; display: block; }
 .hero-grid .lead { padding-block: clamp(48px, 9vw, 110px); }
 .orb-wrap { position: relative; margin: 0; display: grid; justify-items: center; gap: 18px; padding-block: 24px; }
 /* linia timpului care trece prin spatele sferei: chronos curge, kairos e momentul de pe ea */
-.orb-wrap::before { content: ""; position: absolute; top: calc(50% - 22px); left: -40%; right: -30vw; height: 1px; z-index: 0;
+.orb-wrap::before { content: ""; position: absolute; top: 50%; left: -40%; right: -30vw; height: 1px; z-index: 0;
   background: linear-gradient(90deg, transparent 0%, rgba(214,228,255,.32) 35%, rgba(214,228,255,.32) 75%, transparent 100%); }
 .orb-hero { position: relative; z-index: 1; width: min(440px, 100%); aspect-ratio: 1; max-width: 100%; display: block; }
 .orb-wrap figcaption { position: relative; z-index: 1; font: 12px/1.5 var(--mono); color: #aab3c5; text-align: center; max-width: 36ch; text-shadow: 0 1px 12px rgba(0,0,0,.9); }
@@ -108,3 +108,6 @@ canvas.mark { width: 32px; height: 32px; filter: none; display: block; }
   .orb-hero { width: min(300px, 78vw); }
   .hero-grid .lead { padding-block: 24px 56px; }
 }
+
+#navUser { display: flex; align-items: center; gap: 8px; }
+#navUser .btn { line-height: 1; }
