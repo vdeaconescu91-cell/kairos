@@ -29,7 +29,7 @@
   const easeOut = (x) => 1 - Math.pow(1 - x, 3);
 
   function drawInk(g, S, t, low) {
-    const c = S / 2, R = S * 0.42, r0 = R * 0.6;
+    const c = S / 2, R = S * 0.42, r0 = R * 0.63;
     const cyc = low ? 0 : Math.floor(t / CYCLE), p = t - cyc * CYCLE, seed = cyc * 97.13 + 11;
     // logo-urile mici din bare nu dispar: semnul rămâne scris și doar se mișcă
     const dis = low ? 0 : clamp((p - 6.1) / 2.6);          // 0 → 1: se dizolvă în fum
@@ -53,7 +53,7 @@
       const ca = Math.cos(a), sa = Math.sin(a);
       const body = fbm(Math.cos((i / N) * TAU) * 1.3 + seed, Math.sin((i / N) * TAU) * 1.3 + seed * 0.7, t * 0.08);
       const gap = fbm(Math.cos((i / N) * TAU) * 0.8 + seed * 1.3, Math.sin((i / N) * TAU) * 0.8 + 3, 0.5);
-      let w = R * (0.012 + 0.09 * Math.pow(Math.max(0, body + 0.3), 1.3));
+      let w = R * (0.022 + 0.13 * Math.pow(Math.max(0, body + 0.3), 1.3));
       if (gap < -0.2) w *= Math.max(0, (gap + 0.38) / 0.18);
       w *= 1 + 1.6 * (1 - e);                                // la început petele se suprapun: o pată plină în centru
       const n = fbm(ca * 3 + seed, sa * 3, t * 0.4);
@@ -70,9 +70,9 @@
       if (sprout <= 0) continue;
       const a0 = rnd(seed + k * 3.1) * TAU + swirl * (1 - e) * 0.9;
       const out = rnd(seed + k * 5.7) > 0.45 ? 1 : -1;
-      const len = R * (0.035 + 0.15 * Math.pow(rnd(seed + k * 7.3), 2)) * sprout * (out > 0 ? 1 : 0.7);
+      const len = R * (0.045 + 0.17 * Math.pow(rnd(seed + k * 7.3), 2)) * sprout * (out > 0 ? 1 : 0.7);
       const curl = (rnd(seed + k * 9.9) - 0.5) * 0.9;
-      const w0 = R * (0.01 + 0.02 * rnd(seed + k * 2.2));
+      const w0 = R * (0.016 + 0.028 * rnd(seed + k * 2.2));
       const steps = low ? 6 : 14;
       const base = (r0 + R * 0.05 * fbm(Math.cos(a0) * 2 + seed, Math.sin(a0) * 2 + 2, t * 0.06)) * e;
       for (let j = 1; j <= steps; j++) {
@@ -80,28 +80,6 @@
         const ang = a0 + curl * f * 0.35 + fbm(k * 0.37, f * 2, t * 0.4) * 0.12 * f;
         const rad = base + out * len * f + swell(fbm(k, f, t * 0.4) + 0.4) * f;
         dot(c + Math.cos(ang) * rad, c + Math.sin(ang) * rad, (w0 * Math.pow(1 - f, 1.2) + R * 0.0018) * (1 + dis * 1.2));
-      }
-    }
-
-    // picături aruncate din centru cât se deschide cerneala
-    const write = low ? 1 : easeOut(clamp(p / 2.2));
-    if (write < 1 && !low) {
-      for (let m = 0; m < 40; m++) {
-        const e = arrive(m * 2.9 + 80);
-        const aa = rnd(seed + m * 4.1 + 7) * TAU + swirl * (1 - e) * 1.2;
-        const rr = (r0 + (rnd(seed + m * 6.3) - 0.35) * R * 0.45) * e;
-        dot(c + Math.cos(aa) * rr, c + Math.sin(aa) * rr, R * (0.005 + 0.018 * rnd(seed + m * 8.7)) * (1.6 - 0.6 * e));
-      }
-    }
-
-    // stropi rămași în jurul semnului
-    if (!low) {
-      for (let m = 0; m < 34; m++) {
-        const e = arrive(m * 3.3 + 120);
-        if (e < 0.85) continue;
-        const a = rnd(seed + m + 100) * TAU;
-        const rr = r0 + (rnd(seed + m + 200) - 0.5) * R * 0.6 + swell(1);
-        dot(c + Math.cos(a) * rr, c + Math.sin(a) * rr, R * (0.004 + 0.012 * rnd(seed + m + 300)) * (1 + dis));
       }
     }
 
