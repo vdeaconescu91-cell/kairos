@@ -140,26 +140,67 @@
       ctx.filter = "none"; ctx.globalAlpha = 1;
     }
 
-    // reflexii pe sticlă
-    g = ctx.createRadialGradient(c - R * 0.38, c - R * 0.48, 0, c - R * 0.38, c - R * 0.48, R * 0.5);
-    g.addColorStop(0, "rgba(255,255,255,.22)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    // ---- cristalul ----
+    const arcBand = (r1, r2, a1, a2) => { ctx.beginPath(); ctx.arc(c, c, r2, a1, a2); ctx.arc(c, c, r1, a2, a1, true); ctx.closePath(); };
+
+    // lumina mediului: sus puțin mai rece, jos o urmă de albastru
+    g = ctx.createLinearGradient(0, c - R, 0, c + R);
+    g.addColorStop(0, "rgba(220,232,255,.07)"); g.addColorStop(0.45, "rgba(220,232,255,0)"); g.addColorStop(1, "rgba(110,150,255,.1)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
-    ctx.save(); ctx.translate(c - R * 0.34, c - R * 0.56); ctx.rotate(-0.55);
-    g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.2);
-    g.addColorStop(0, "rgba(255,255,255,.75)"); g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = g; ctx.scale(1, 0.42); ctx.beginPath(); ctx.arc(0, 0, R * 0.2, 0, 6.2832); ctx.fill();
+
+    // lumina focalizată jos, înăuntru (caustica unui glob de cristal)
+    ctx.save(); ctx.globalCompositeOperation = "lighter";
+    ctx.translate(c, c + R * 0.74); ctx.scale(1, 0.32);
+    g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.62);
+    g.addColorStop(0, "rgba(170,200,255,.42)"); g.addColorStop(0.5, "rgba(110,150,255,.16)"); g.addColorStop(1, "rgba(110,150,255,0)");
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, TAU); ctx.fill();
     ctx.restore();
-    // o lumină subțire jos, prinsă în sticlă
-    ctx.lineWidth = Math.max(1, R * 0.018); ctx.lineCap = "round";
-    g = ctx.createLinearGradient(c - R, 0, c + R, 0);
-    g.addColorStop(0, "rgba(214,228,255,0)"); g.addColorStop(0.5, "rgba(214,228,255,.3)"); g.addColorStop(1, "rgba(214,228,255,0)");
-    ctx.strokeStyle = g; ctx.beginPath(); ctx.arc(c, c, R * 0.93, Math.PI * 0.22, Math.PI * 0.78); ctx.stroke();
+
+    // grosimea sticlei: margine luminoasă spre exterior, o bandă mai întunecată imediat în interior
+    g = ctx.createRadialGradient(c, c, R * 0.68, c, c, R);
+    g.addColorStop(0, "rgba(200,220,255,0)"); g.addColorStop(0.82, "rgba(200,220,255,.05)"); g.addColorStop(0.93, "rgba(4,10,30,.22)"); g.addColorStop(0.975, "rgba(225,236,255,.22)"); g.addColorStop(1, "rgba(240,246,255,.5)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+
+    // reflexia mare, curbă, ca o fereastră în sticlă
+    g = ctx.createLinearGradient(c - R * 0.8, c - R * 0.8, c - R * 0.1, c - R * 0.1);
+    g.addColorStop(0, "rgba(255,255,255,.42)"); g.addColorStop(0.55, "rgba(255,255,255,.1)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.filter = `blur(${Math.max(0.5, S * 0.007)}px)`;
+    ctx.fillStyle = g; arcBand(R * 0.73, R * 0.9, Math.PI * 1.08, Math.PI * 1.42); ctx.fill();
+    // un al doilea panou, mai subțire, lângă ea
+    ctx.fillStyle = "rgba(255,255,255,.1)"; arcBand(R * 0.66, R * 0.7, Math.PI * 1.12, Math.PI * 1.36); ctx.fill();
+    ctx.filter = "none";
+    // punctul de lumină
+    ctx.save(); ctx.translate(c - R * 0.42, c - R * 0.52); ctx.rotate(-0.7);
+    g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.13);
+    g.addColorStop(0, "rgba(255,255,255,.95)"); g.addColorStop(0.4, "rgba(255,255,255,.45)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g; ctx.scale(1, 0.5); ctx.beginPath(); ctx.arc(0, 0, R * 0.13, 0, TAU); ctx.fill();
+    ctx.restore();
+    // reflexia mică, opusă, jos-dreapta
+    ctx.lineCap = "round"; ctx.lineWidth = Math.max(1, R * 0.03);
+    g = ctx.createLinearGradient(c + R * 0.9, c, c, c + R * 0.9);
+    g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.5, "rgba(255,255,255,.32)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.strokeStyle = g; ctx.beginPath(); ctx.arc(c, c, R * 0.86, Math.PI * 0.08, Math.PI * 0.42); ctx.stroke();
+    ctx.restore();
+
+    // irizarea marginii: cyan sus-stânga, violet jos-dreapta
+    ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.lineWidth = Math.max(0.75, S * 0.004);
+    ctx.strokeStyle = "rgba(120,220,255,.35)"; ctx.beginPath(); ctx.arc(c - S * 0.002, c - S * 0.002, R - ctx.lineWidth, Math.PI * 0.85, Math.PI * 1.75); ctx.stroke();
+    ctx.strokeStyle = "rgba(170,130,255,.3)"; ctx.beginPath(); ctx.arc(c + S * 0.002, c + S * 0.002, R - ctx.lineWidth, Math.PI * -0.15, Math.PI * 0.75); ctx.stroke();
     ctx.restore();
 
     // marginea sferei
-    ctx.lineWidth = Math.max(0.75, S * 0.005);
-    ctx.strokeStyle = "rgba(214,228,255,.42)";
-    ctx.beginPath(); ctx.arc(c, c, R - ctx.lineWidth / 2, 0, 6.2832); ctx.stroke();
+    ctx.lineWidth = Math.max(0.75, S * 0.004);
+    ctx.strokeStyle = "rgba(225,236,255,.55)";
+    ctx.beginPath(); ctx.arc(c, c, R - ctx.lineWidth / 2, 0, TAU); ctx.stroke();
+
+    // lumina pe care globul o aruncă dedesubt
+    if (!low) {
+      ctx.save(); ctx.translate(c, c + R + S * 0.035); ctx.scale(1, 0.18);
+      g = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.7);
+      g.addColorStop(0, "rgba(120,160,255,.35)"); g.addColorStop(1, "rgba(120,160,255,0)");
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, R * 0.7, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
   }
 
   /* ---------- pornire ---------- */
