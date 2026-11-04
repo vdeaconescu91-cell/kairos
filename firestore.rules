@@ -1,0 +1,51 @@
+rules_version = '2';
+// KAIROS · cine ce poate face în baza de date.
+// Proprietarii (aceiași ca în sync.js) pot edita și pot alege editorii.
+// Editorii (lista din config/roles) editează rundown-ul și controlează Live-ul.
+// Oricine e conectat cu Google poate citi și poate lăsa comentarii.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function email() { return request.auth.token.email.lower(); }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
+    function isOwner() { return verified() && email() in ['vdeaconescu91@gmail.com', 'vlad@nexusclub.ro']; }
+    function isEditor() {
+      return isOwner() || (verified()
+        && exists(/databases/$(database)/documents/config/roles)
+        && email() in get(/databases/$(database)/documents/config/roles).data.editors);
+    }
+
+    match /config/roles {
+      allow read: if signedIn();
+      allow write: if isOwner();
+    }
+
+    match /shows/{showId} {
+      allow read: if signedIn();
+      allow write: if isEditor();
+
+      match /live/{doc} {
+        allow read: if signedIn();
+        allow write: if isEditor();
+      }
+
+      match /comments/{commentId} {
+        allow read: if signedIn();
+        allow create: if signedIn()
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 4000
+          && request.resource.data.resolved == false;
+        allow update: if isEditor()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resolved', 'resolvedBy']);
+        allow delete: if isEditor() || (signedIn() && resource.data.uid == request.auth.uid);
+      }
+    }
+
+    // fiecare își măsoară decalajul de ceas față de server
+    match /pings/{uid} {
+      allow read, write: if signedIn() && request.auth.uid == uid;
+    }
+  }
+}

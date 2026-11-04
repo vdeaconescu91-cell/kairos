@@ -22,6 +22,21 @@
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+  /* ---------------- sincronizare (sync.js) ---------------- */
+  const S = window.KSYNC || null;
+  const cloud = () => !!(S && S.user);
+  const canEdit = () => !S || S.canEdit();
+  const nowMs = () => (S ? S.now() : Date.now());
+  // câmpuri editate local, care încă n-au ajuns înapoi de la server: nu le suprascriem cu o versiune mai veche
+  const localDirty = new Map();
+  function pushItems() { if (cloud()) S.items(state.show, state.items); }
+  function pushLive() {
+    if (!cloud()) return;
+    const cur = segs()[state.live.idx];
+    S.live({ mode: state.mode, advance: state.advance || "manual", running: !!state.live.running, idx: state.live.idx,
+      curId: cur ? cur.id : null, itemStart: state.live.itemStart || 0, showStart: state.live.showStart || 0 });
+  }
+
   /* ---------------- stare ---------------- */
   let state = load();
   let hiddenCats = new Set();
@@ -66,7 +81,7 @@
     const prev = undoStack.pop();
     if (!prev) return toast("Nimic de anulat");
     state.items = JSON.parse(prev);
-    save(); renderTable(); tick();
+    save(); pushItems(); renderTable(); tick();
     toast("Anulat");
   }
 
@@ -119,7 +134,7 @@
   }
 
   // ce segment e acum: în Live după butoane, în Plan după ceas
-  function position(now = Date.now()) {
+  function position(now = nowMs()) {
     const list = segs(); const off = plannedOffsets();
     if (!list.length) return { cur: null, next: null, list, off };
 
@@ -187,7 +202,8 @@
         <td><textarea class="cell" data-f="talk" rows="1" aria-label="Ce se spune">${esc(it.talk)}</textarea>
           <textarea class="cell script-cell" data-f="script" rows="1" placeholder="+ script pentru prompter" aria-label="Script prompter">${esc(it.script)}</textarea></td>
         <td><textarea class="cell" data-f="who" rows="1" aria-label="Cine">${esc(it.who)}</textarea></td>
-        <td><div class="acts">
+        <td><button class="cmt-btn" data-a="cmt" title="Comentarii la acest moment"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg><span class="n"></span></button>
+          <div class="acts">
           <button class="icon jump" data-a="jump" title="Live: sari aici">▶</button>
           <button class="icon" data-a="add" title="Segment nou dedesubt">＋</button>
           <button class="icon" data-a="dup" title="Duplică">⧉</button>
@@ -196,6 +212,8 @@
     }).join("");
     $("#rows").innerHTML = html;
     $$("#rows textarea").forEach(autosize);
+    if (!canEdit()) $$("#rows .cell").forEach((c) => { c.readOnly = true; if (c.tagName === "SELECT") c.disabled = true; });
+    renderCommentBadges();
     applyFilters();
     updateTotals();
     markRows(position());
@@ -256,6 +274,7 @@
     if (f === "cat") tr.style.cssText = catStyle(it.cat);
     if (el.tagName === "TEXTAREA") autosize(el);
     save(); tick();
+    if (cloud()) { const v = f === "min" ? it.min : el.value; localDirty.set(`${it.id}.${f}`, v); S.field(it.id, f, v); }
   });
 
   $("#rows").addEventListener("click", (e) => {
@@ -263,6 +282,8 @@
     const tr = b.closest("tr"); const i = state.items.findIndex((x) => x.id === tr.dataset.id); if (i < 0) return;
     const a = b.dataset.a;
     if (a === "jump") return jumpTo(state.items[i].id);
+    if (a === "cmt") return openDrawer(state.items[i].id);
+    if (!canEdit()) return;
     snapshot();
     if (a === "del") {
       const it = state.items[i];
@@ -273,16 +294,16 @@
     } else if (a === "add") {
       state.items.splice(i + 1, 0, newSeg());
     }
-    save(); renderTable(); tick();
+    save(); pushItems(); renderTable(); tick();
     if (a === "add") focusRow(state.items[i + 1].id);
   });
 
   function newSeg() { return { id: uid(), type: "segment", title: "Segment nou", min: 5, cat: "platforma", video: "", gfx: "", talk: "", script: "", who: "" }; }
   function focusRow(id) { const t = $(`#rows tr[data-id="${id}"] .title-cell`); if (t) { t.focus(); t.select(); } }
 
-  $("#btnAddRow").onclick = () => { snapshot(); const s = newSeg(); state.items.push(s); save(); renderTable(); focusRow(s.id); tick(); };
+  $("#btnAddRow").onclick = () => { snapshot(); const s = newSeg(); state.items.push(s); save(); pushItems(); renderTable(); focusRow(s.id); tick(); };
   $("#btnAddHeader").onclick = () => {
-    snapshot(); const h = { id: uid(), type: "header", title: "SECȚIUNE NOUĂ" }; state.items.push(h); save(); renderTable();
+    snapshot(); const h = { id: uid(), type: "header", title: "SECȚIUNE NOUĂ" }; state.items.push(h); save(); pushItems(); renderTable();
     const inp = $(`#rows tr[data-id="${h.id}"] input`); if (inp) { inp.focus(); inp.select(); }
   };
 
@@ -311,7 +332,7 @@
     const [moved] = state.items.splice(from, 1);
     const to = state.items.findIndex((x) => x.id === tr.dataset.id);
     state.items.splice(to, 0, moved);
-    dragId = null; save(); renderTable(); tick();
+    dragId = null; save(); pushItems(); renderTable(); tick();
   });
   $("#rows").addEventListener("dragend", () => { dragId = null; $$("#rows tr.drag-over").forEach((r) => r.classList.remove("drag-over")); });
 
@@ -325,7 +346,7 @@
   function setMode(m) {
     state.mode = m;
     if (m === "plan") state.live.running = false;
-    save(); renderMode(); tick();
+    save(); pushLive(); renderMode(); tick();
   }
   function renderMode() {
     $$(".seg-btn[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === state.mode));
@@ -339,7 +360,7 @@
   }
   $$(".seg-btn[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
   $$(".seg-btn[data-adv]").forEach((b) => b.onclick = () => {
-    state.advance = b.dataset.adv; save(); renderMode(); tick();
+    state.advance = b.dataset.adv; save(); pushLive(); renderMode(); tick();
     toast(state.advance === "auto" ? "Auto: la zero trece singur la segmentul următor" : "Manual: la zero timerul devine roșu până apeși „Următorul”");
   });
 
@@ -353,13 +374,13 @@
       if (now < end) break;
       state.live.idx++; state.live.itemStart = end; moved = true;
     }
-    if (moved) { save(); setTimeout(scrollToCurrent, 50); }
+    if (moved) { save(); pushLive(); setTimeout(scrollToCurrent, 50); }
     return moved;
   }
 
   function go() {
     if (state.mode !== "live") return setMode("live");
-    const now = Date.now(); const list = segs();
+    const now = nowMs(); const list = segs();
     if (!state.live.running) {
       state.live = { running: true, idx: 0, itemStart: now, showStart: now };
     } else if (state.live.idx < list.length - 1) {
@@ -367,26 +388,26 @@
     } else {
       toast("Ăsta e ultimul segment");
     }
-    save(); renderMode(); tick(); scrollToCurrent();
+    save(); pushLive(); renderMode(); tick(); scrollToCurrent();
   }
   function prev() {
     if (!state.live.running || state.live.idx <= 0) return;
-    state.live.idx--; state.live.itemStart = Date.now(); save(); tick(); scrollToCurrent();
+    state.live.idx--; state.live.itemStart = nowMs(); save(); pushLive(); tick(); scrollToCurrent();
   }
   function stop() {
     if (!state.live.running) return;
     if (!confirmInline("Oprești modul live? Cronometrul se resetează.")) return;
-    state.live.running = false; save(); renderMode(); tick();
+    state.live.running = false; save(); pushLive(); renderMode(); tick();
   }
   function jumpTo(id) {
     const idx = segIndex(id); if (idx < 0) return;
-    const now = Date.now();
+    const now = nowMs();
     if (state.mode !== "live" || !state.live.running) {
       state.mode = "live";
       // pornim show-ul ca și cum ar fi început la ora planificată a segmentului
       state.live = { running: true, idx, itemStart: now, showStart: now - plannedOffsets()[id] * 60000 };
     } else { state.live.idx = idx; state.live.itemStart = now; }
-    save(); renderMode(); tick();
+    save(); pushLive(); renderMode(); tick();
   }
   function confirmInline(msg) { return window.confirm(msg); }
   function scrollToCurrent() {
@@ -399,7 +420,7 @@
 
   /* ---------------- hero + pop-up ---------------- */
   function tick() {
-    const now = new Date();
+    const now = new Date(nowMs());
     $("#clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     autoAdvance(now.getTime());
     const pos = position(now.getTime());
@@ -690,8 +711,11 @@
     if (a === "import") $("#importFile").click();
     if (a === "print") window.print();
     if (a === "settings") openSettings();
+    if (a === "team") openTeam();
+    if (a === "signout" && S) S.signOut();
     if (a === "reset" && window.confirm("Înlocuiești rundown-ul curent cu cel implicit? Exportă-l înainte dacă vrei să-l păstrezi.")) {
-      snapshot(); state = fromDefault(); save(); renderAll(); toast("Rundown-ul implicit a fost încărcat");
+      snapshot(); const keep = { mode: state.mode, advance: state.advance, live: state.live }; state = { ...fromDefault(), ...keep };
+      save(); pushItems(); renderAll(); toast(cloud() ? "Rundown-ul implicit a fost încărcat pentru toată echipa" : "Rundown-ul implicit a fost încărcat");
     }
   });
 
@@ -711,7 +735,7 @@
       snapshot();
       state.show = { ...state.show, ...(d.show || {}) };
       state.items = d.items.map((it) => ({ id: uid(), type: "segment", min: 5, cat: "platforma", title: "", video: "", gfx: "", talk: "", who: "", ...it }));
-      save(); renderAll(); toast(`Importat: ${segs().length} segmente`);
+      save(); pushItems(); renderAll(); toast(`Importat: ${segs().length} segmente`);
     } catch (err) { toast("Fișierul nu e un rundown valid"); }
     e.target.value = "";
   });
@@ -723,7 +747,7 @@
     dlg.onclose = () => {
       if (dlg.returnValue !== "ok") return;
       state.show = { ...state.show, title: f.title.value, date: f.date.value, start: f.start.value || "15:00", venue: f.venue.value };
-      save(); renderAll();
+      save(); pushItems(); renderAll();
     };
   }
 
@@ -758,11 +782,172 @@
   }
   $$(".aurora").forEach((el, i) => buildAurora(el, 17 + i * 101));
 
+  /* ---------------- cloud: rundown comun, Live comun, cont ---------------- */
+  let needsRender = false;
+  function focusedCell() { const a = document.activeElement; return a && a.classList && a.classList.contains("cell") && $("#rows").contains(a); }
+  $("#rows").addEventListener("focusout", () => setTimeout(() => { if (needsRender && !focusedCell()) { needsRender = false; renderTable(); } }, 0));
+
+  function applyRemote(data) {
+    if (!data) {                       // cloud gol: primul editor urcă rundown-ul lui
+      if (cloud() && canEdit()) { pushItems(); toast("Rundown-ul a fost urcat în cloud pentru toată echipa"); }
+      return;
+    }
+    const items = data.items.map((it) => {
+      const o = { ...it };
+      for (const [k, v] of localDirty) {
+        const [id, f] = k.split(".");
+        if (id !== it.id) continue;
+        if (String(o[f]) === String(v)) localDirty.delete(k); else o[f] = v;
+      }
+      return o;
+    });
+    state.show = { ...state.show, ...data.show }; state.items = items; save();
+    $("#showTitle").textContent = state.show.title;
+    $("#showMeta").textContent = `${fmtDate()} · ${state.show.start} · ${state.show.venue || ""}`;
+    if (focusedCell()) needsRender = true; else renderTable();
+    tick();
+  }
+  function applyLive(d) {
+    const prevKey = `${state.live.running}|${state.live.idx}|${state.live.itemStart}`;
+    state.mode = d.mode || "plan"; state.advance = d.advance || "manual";
+    let idx = Number.isFinite(d.idx) ? d.idx : -1;
+    if (d.curId) { const i = segIndex(d.curId); if (i >= 0) idx = i; }
+    state.live = { running: !!d.running, idx, itemStart: d.itemStart || 0, showStart: d.showStart || 0 };
+    save(); renderMode(); tick();
+    if (prevKey !== `${state.live.running}|${state.live.idx}|${state.live.itemStart}`) scrollToCurrent();
+  }
+
+  const ROLE_LABEL = { owner: "Proprietar", editor: "Editor", viewer: "Doar citire", local: "" };
+  function renderAccount() {
+    const el = $("#account"); if (!el) return;
+    const st = S ? S.status : "local";
+    if (!S || !S.ready) { el.innerHTML = ""; return; }
+    if (!S.user) {
+      el.innerHTML = `<button class="btn" data-signin title="Conectează-te ca să lucrezi pe rundown-ul comun">Conectare Google</button>`;
+    } else {
+      const u = S.user; const ini = esc((u.name || u.email || "?").trim().charAt(0).toUpperCase());
+      el.innerHTML = `<span class="sync-dot ${st}" title="${st === "online" ? "Sincronizat" : st === "error" ? "Eroare de sincronizare" : "Se conectează…"}"></span>
+        <span class="who-chip" title="${esc(u.email)}">${u.photo ? `<img src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${ini}</i>`}<span>${esc((u.name || "").split(" ")[0])}</span><em>${ROLE_LABEL[S.role] || ""}</em></span>`;
+    }
+    document.body.classList.toggle("cloud", !!S.user);
+    document.body.classList.toggle("ro", !canEdit());
+    document.body.classList.toggle("is-owner", !!(S.user && S.isOwner()));
+  }
+  document.addEventListener("click", async (e) => {
+    if (!e.target.closest("[data-signin]") || !S) return;
+    try { await S.signIn(); } catch (err) { toast("Conectarea n-a mers: " + (err && err.code ? err.code : "eroare")); }
+  });
+
+  function openTeam() {
+    if (!S || !S.isOwner()) return;
+    const dlg = $("#teamDlg"); const f = dlg.querySelector("form");
+    f.emails.value = (S.editors || []).join("\n");
+    dlg.showModal();
+    dlg.onclose = async () => {
+      if (dlg.returnValue !== "ok") return;
+      try { await S.setEditors(f.emails.value.split(/[\s,;]+/)); toast("Lista de editori a fost salvată"); }
+      catch (err) { toast("N-am putut salva lista: " + (err.code || "eroare")); }
+    };
+  }
+
+  /* ---------------- comentarii ---------------- */
+  let drawerSeg = null; // null = toate
+  const openComments = () => (S ? S.comments : []).filter((c) => !c.resolved);
+  function renderCommentBadges() {
+    const counts = {};
+    openComments().forEach((c) => { counts[c.segId] = (counts[c.segId] || 0) + 1; });
+    $$("#rows tr.seg-row").forEach((tr) => {
+      const n = counts[tr.dataset.id] || 0; const b = tr.querySelector(".cmt-btn"); if (!b) return;
+      b.classList.toggle("has", n > 0); b.querySelector(".n").textContent = n ? n : "";
+    });
+    const total = openComments().length;
+    $("#cmtCount").textContent = total ? total : "";
+  }
+  function timeAgo(ms) {
+    const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+    if (s < 60) return "acum"; if (s < 3600) return `acum ${Math.floor(s / 60)} min`;
+    if (s < 86400) return `acum ${Math.floor(s / 3600)} h`;
+    const d = new Date(ms); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function openDrawer(segId) {
+    drawerSeg = segId || null;
+    $("#drawer").hidden = false; document.body.classList.add("drawer-open");
+    renderDrawer();
+    if (drawerSeg && S && S.user) setTimeout(() => $("#cmtText").focus(), 50);
+  }
+  function closeDrawer() { $("#drawer").hidden = true; document.body.classList.remove("drawer-open"); }
+  function renderDrawer() {
+    if ($("#drawer").hidden) return;
+    const seg = drawerSeg && state.items.find((i) => i.id === drawerSeg);
+    $("#drawerLabel").textContent = seg ? `COMENTARII · ${hhmm(plannedOffsets()[seg.id] || 0)}` : "COMENTARII";
+    $("#drawerTitle").textContent = seg ? (seg.title || "Moment") : "Toate momentele";
+    $("#drawerAll").hidden = !seg;
+    const showRes = $("#showResolved").checked;
+    const list = (S ? S.comments : []).filter((c) => (!seg || c.segId === seg.id) && (showRes || !c.resolved));
+    const me = S && S.user ? S.user.uid : null;
+    $("#cmtList").innerHTML = list.length ? list.map((c) => {
+      const segNow = state.items.find((i) => i.id === c.segId);
+      return `<article class="cmt ${c.resolved ? "resolved" : ""}" data-id="${esc(c.id)}">
+        <header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${esc((c.name || "?").charAt(0).toUpperCase())}</i>`}
+          <b>${esc(c.name || "Anonim")}</b><span>${esc(timeAgo(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Sugestie de text</span>` : ""}</header>
+        ${!seg ? `<button class="seg-link" data-goto="${esc(c.segId)}">${esc(segNow ? segNow.title : c.segTitle || "moment șters")}</button>` : ""}
+        <p>${esc(c.text)}</p>
+        <footer>
+          ${canEdit() && cloud() && c.kind === "text" && segNow ? `<button class="mini" data-c="apply">Pune textul în „Ce se spune”</button>` : ""}
+          ${canEdit() && cloud() ? `<button class="mini" data-c="resolve">${c.resolved ? "Redeschide" : "Rezolvat"}</button>` : ""}
+          ${cloud() && (canEdit() || c.uid === me) ? `<button class="mini del" data-c="del">Șterge</button>` : ""}
+        </footer></article>`;
+    }).join("") : `<p class="empty">${seg ? "Niciun comentariu la acest moment." : "Niciun comentariu deschis."}</p>`;
+    const signed = !!(S && S.user);
+    $("#composer").hidden = !signed || !seg;
+    $("#signinBox").hidden = signed || !(S && S.ready);
+    $("#composerHint").textContent = signed && seg ? `ca ${S.user.name || S.user.email}` : "";
+    if (signed && !seg) $("#cmtList").insertAdjacentHTML("beforeend", `<p class="empty">Ca să scrii un comentariu, deschide-l de la momentul la care se referă (iconița de lângă rând).</p>`);
+  }
+  $("#btnComments").onclick = () => openDrawer(null);
+  $("#drawerClose").onclick = closeDrawer;
+  $("#drawerAll").onclick = () => { drawerSeg = null; renderDrawer(); };
+  $("#showResolved").onchange = renderDrawer;
+  $("#cmtList").addEventListener("click", async (e) => {
+    const g = e.target.closest("[data-goto]");
+    if (g) { drawerSeg = g.dataset.goto; renderDrawer(); const tr = $(`#rows tr[data-id="${g.dataset.goto}"]`); if (tr) tr.scrollIntoView({ block: "center", behavior: "smooth" }); return; }
+    const b = e.target.closest("[data-c]"); if (!b || !S) return;
+    const id = b.closest(".cmt").dataset.id; const c = S.comments.find((x) => x.id === id); if (!c) return;
+    try {
+      if (b.dataset.c === "resolve") await S.resolveComment(id, !c.resolved);
+      if (b.dataset.c === "del" && window.confirm("Ștergi comentariul?")) await S.deleteComment(id);
+      if (b.dataset.c === "apply") {
+        const it = state.items.find((i) => i.id === c.segId); if (!it) return;
+        snapshot(); it.talk = c.text; save(); pushItems(); renderTable(); tick();
+        await S.resolveComment(id, true); toast("Textul a fost pus în „Ce se spune”");
+      }
+    } catch (err) { toast("N-a mers: " + (err.code || "eroare")); }
+  });
+  $("#composer").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const text = $("#cmtText").value.trim(); if (!text || !drawerSeg || !S) return;
+    const seg = state.items.find((i) => i.id === drawerSeg);
+    const kind = $("#composer").querySelector("input[name=kind]:checked").value;
+    $("#cmtSend").disabled = true;
+    try { await S.addComment({ segId: drawerSeg, segTitle: seg ? seg.title : "", text, kind }); $("#cmtText").value = ""; toast("Comentariu trimis"); }
+    catch (err) { toast("Comentariul nu s-a trimis: " + (err.code || err.message || "eroare")); }
+    $("#cmtSend").disabled = false;
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#drawer").hidden) closeDrawer(); });
+
+  if (S) {
+    S.on("auth", () => { renderAccount(); renderTable(); renderMode(); renderDrawer(); });
+    S.on("status", renderAccount);
+    S.on("show", applyRemote);
+    S.on("live", applyLive);
+    S.on("comments", () => { renderCommentBadges(); renderDrawer(); });
+  }
+
   /* ---------------- pornire ---------------- */
   function renderAll() {
     $("#showTitle").textContent = state.show.title;
     $("#showMeta").textContent = `${fmtDate()} · ${state.show.start} · ${state.show.venue || ""}`;
-    renderFilters(); renderTable(); renderMode(); tick();
+    renderFilters(); renderTable(); renderMode(); renderAccount(); tick();
   }
   renderAll();
   setInterval(tick, 250);

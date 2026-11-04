@@ -40,17 +40,20 @@
     <button class="btn ghost" id="btnPrev" title="Segmentul anterior">◀</button>
     <button class="btn primary" id="btnGo">Start show</button>
     <button class="btn ghost" id="btnStop" title="Oprește modul live">■</button>
-    <a class="btn ghost" id="btnPreview" href="https://claude.ai/artifact/VrHwhdrHcLurZYqBtUsg98" target="_blank" rel="noopener" title="Pagina de preview pentru clienți, cu comentarii">Preview</a>
+    <a class="btn ghost" id="btnPreview" href="client.html" target="_blank" rel="noopener" title="Pagina pentru clienți: citesc rundown-ul și lasă comentarii cu contul Google">Preview</a>
     <button class="btn accent" id="btnPopup" title="Fereastră mereu deasupra cu ce urmează">Pop-up</button>
+    <div class="account" id="account"></div>
     <div class="menu">
       <button class="btn ghost" id="btnMenu" aria-haspopup="true">⋯</button>
       <div class="menu-list" id="menuList" hidden>
         <button data-act="settings">Setări show</button>
+        <button data-act="team" class="owner-only">Echipa (cine poate edita)</button>
         <button data-act="export">Exportă JSON</button>
         <button data-act="import">Importă JSON</button>
         <button data-act="print">Printează</button>
         <hr>
         <button data-act="reset" class="danger">Revino la rundown-ul implicit</button>
+        <button data-act="signout" class="cloud-only">Deconectare</button>
       </div>
     </div>
   </div>
@@ -88,6 +91,7 @@
     <div class="filters" id="filters"></div>
     <div class="toolbar-right">
       <span class="total" id="totalInfo"></span>
+      <button class="btn small" id="btnComments">Comentarii <b id="cmtCount"></b></button>
       <button class="btn small" id="btnAddHeader">+ Secțiune</button>
       <button class="btn small" id="btnAddRow">+ Segment</button>
     </div>
@@ -116,6 +120,42 @@
   <p class="foot">Modificările se salvează automat în acest browser. Pentru alt calculator: ⋯ → Exportă JSON, apoi Importă JSON pe celălalt. Scurtături: <kbd>N</kbd> următorul segment în live, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> anulează.</p>
 </main>
 
+<aside class="drawer" id="drawer" hidden aria-label="Comentarii">
+  <div class="drawer-head">
+    <div><div class="label" id="drawerLabel">COMENTARII</div><div class="drawer-title" id="drawerTitle">Toate momentele</div></div>
+    <button class="icon" id="drawerClose" title="Închide">✕</button>
+  </div>
+  <div class="drawer-tools">
+    <button class="chip-btn" id="drawerAll">Toate</button>
+    <label class="chk"><input type="checkbox" id="showResolved"> Arată rezolvate</label>
+  </div>
+  <div class="cmt-list" id="cmtList"></div>
+  <form class="composer" id="composer">
+    <div class="kind" role="radiogroup" aria-label="Tip">
+      <label><input type="radio" name="kind" value="comment" checked> Comentariu</label>
+      <label><input type="radio" name="kind" value="text"> Sugestie pentru „Ce se spune”</label>
+    </div>
+    <textarea id="cmtText" rows="3" maxlength="4000" placeholder="Scrie aici…"></textarea>
+    <div class="composer-foot"><span class="hint" id="composerHint"></span><button class="btn primary small" id="cmtSend" type="submit">Trimite</button></div>
+  </form>
+  <div class="signin-box" id="signinBox" hidden>
+    <p>Conectează-te cu Google ca să comentezi.</p>
+    <button class="btn primary" data-signin type="button">Conectare cu Google</button>
+  </div>
+</aside>
+
+<dialog id="teamDlg" class="glass">
+  <form method="dialog">
+    <h3>Cine poate edita</h3>
+    <p class="dlg-note">Un email Google pe rând. Ceilalți care se conectează doar citesc și comentează. Tu (proprietarul) poți edita oricum.</p>
+    <textarea name="emails" rows="8" placeholder="misu@exemplu.ro"></textarea>
+    <div class="dlg-actions">
+      <button value="cancel" class="btn ghost">Renunță</button>
+      <button value="ok" class="btn primary">Salvează</button>
+    </div>
+  </form>
+</dialog>
+
 <dialog id="settingsDlg" class="glass">
   <form method="dialog">
     <h3>Setări show</h3>
@@ -132,6 +172,10 @@
 
 <input type="file" id="importFile" accept="application/json" hidden>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
 <script src="rundown-data.js"></script>
 <script src="app.js"></script>
 </body>

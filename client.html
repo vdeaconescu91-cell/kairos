@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KAIROS · Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%2303060f%22/%3E%3Cpath%20d%3D%22M27.8%207.2A15%2015%200%201%200%2034.6%2016%22%20fill%3D%22none%22%20stroke%3D%22%237aa5ff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2231.9%22%20cy%3D%2210.6%22%20r%3D%223%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
+<style>
+/* o coloană de citit, ora în stânga ca pe un rundown tipărit; același look întunecat ca aplicația */
+:root { --bg:#04060c; --panel:#0b0f1a; --line:#1c2333; --fg:#eef1f7; --muted:#8c95a8; --blue:#4f86ff; --ice:#d6e4ff;
+  --display:"Inter Tight","Helvetica Neue",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace; color-scheme:dark; }
+* { box-sizing:border-box; }
+html,body { margin:0; background:var(--bg); color:var(--fg); }
+body { font-family:var(--display); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+button,textarea,input { font:inherit; color:inherit; }
+.wrap { max-width:920px; margin:0 auto; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); }
+.top { border-bottom:1px solid var(--line); background:radial-gradient(60% 120% at 50% 130%,rgba(79,134,255,.32),rgba(79,134,255,0) 70%),var(--bg); }
+.top .wrap { padding-block:24px 28px; display:grid; gap:16px; }
+.bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.bar svg { width:26px; height:26px; filter:drop-shadow(0 0 7px rgba(79,134,255,.7)); }
+.bar b { font-weight:600; font-size:14px; letter-spacing:.32em; color:var(--ice); }
+.acct { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
+.acct img { width:26px; height:26px; border-radius:50%; }
+h1 { margin:0; font-size:clamp(30px,6vw,52px); font-weight:600; letter-spacing:-.03em; line-height:1; text-transform:uppercase; text-wrap:balance;
+  background:linear-gradient(90deg,#fff 0%,#fff 55%,#7d879b 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.sub { margin-top:-6px; font-size:14px; font-weight:600; letter-spacing:.24em; text-transform:uppercase; color:var(--ice); }
+.facts { display:flex; flex-wrap:wrap; gap:6px 18px; color:var(--muted); font-size:14px; }
+.facts b { color:var(--fg); font-weight:500; font-family:var(--mono); font-size:13px; }
+.how { margin:0; max-width:62ch; color:#c7cede; }
+.btn { border:1px solid color-mix(in srgb,var(--blue) 65%,transparent); background:color-mix(in srgb,var(--blue) 30%,transparent); color:#fff;
+  border-radius:999px; padding:8px 14px; font-weight:600; font-size:13px; cursor:pointer; }
+.btn.ghost { background:transparent; border-color:#2a3550; color:var(--ice); }
+.btn:hover { filter:brightness(1.2); } .btn:focus-visible { outline:2px solid var(--ice); outline-offset:2px; }
+.btn:disabled { opacity:.5; cursor:default; }
+.banner { border:1px solid #2a3550; border-radius:12px; padding:12px 14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#0a0e18; }
+.banner p { margin:0; flex:1; min-width:220px; color:#c7cede; font-size:14px; }
+.legend { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { display:inline-flex; align-items:center; gap:6px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
+  color:var(--c); border:1px solid color-mix(in srgb,var(--c) 45%,transparent); background:color-mix(in srgb,var(--c) 12%,transparent); }
+.chip::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--c); }
+main.wrap { padding-block:8px 72px; }
+section { margin-top:30px; }
+h2 { margin:0 0 12px; font-size:12px; font-weight:700; letter-spacing:.18em; color:#9dbcff; text-transform:uppercase; }
+.seg { display:grid; grid-template-columns:76px minmax(0,1fr); gap:16px; padding:18px 18px 16px; border:1px solid var(--line); border-left:3px solid var(--c);
+  border-radius:14px; background:var(--panel); margin-bottom:10px; }
+.when { display:grid; align-content:start; gap:2px; }
+.time { font-family:var(--mono); font-size:17px; font-weight:500; font-variant-numeric:tabular-nums; }
+.dur { font-family:var(--mono); font-size:12px; color:var(--muted); }
+.body { min-width:0; display:grid; gap:10px; }
+.head { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; }
+.who { font-size:13px; color:var(--muted); }
+h3 { margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em; line-height:1.2; text-wrap:balance; }
+.say { border-radius:10px; padding:10px 12px; background:color-mix(in srgb,var(--c) 7%,#070a12); }
+.k, summary { font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
+.say p, .script p { margin:4px 0 0; max-width:68ch; white-space:pre-wrap; color:#e3e8f2; }
+.script { border-radius:10px; padding:10px 12px; border:1px dashed var(--line); }
+summary { cursor:pointer; }
+.prod { margin:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px 18px; }
+.prod div { min-width:0; } dt { font-size:11px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; } dd { margin:2px 0 0; font-size:13px; color:#b9c1d2; }
+.thread { border-top:1px solid var(--line); padding-top:10px; display:grid; gap:8px; }
+.thread-toggle { justify-self:start; background:none; border:0; padding:0; color:var(--ice); cursor:pointer; font-size:13px; font-weight:600; }
+.cm { border-radius:10px; padding:8px 10px; background:#0e1322; }
+.cm.resolved { opacity:.55; }
+.cm header { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); flex-wrap:wrap; }
+.cm header b { color:var(--fg); font-size:13px; }
+.cm header img { width:20px; height:20px; border-radius:50%; }
+.cm .tag { color:#e4f53b; border:1px solid rgba(228,245,59,.4); border-radius:999px; padding:0 7px; font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
+.cm p { margin:6px 0 0; white-space:pre-wrap; font-size:14px; }
+.cm .del { margin-top:6px; background:none; border:0; color:#ff8b95; cursor:pointer; font-size:12px; padding:0; }
+.compose { display:grid; gap:8px; }
+.compose .kind { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--muted); }
+.compose .kind label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; }
+.compose textarea { width:100%; resize:vertical; background:#0e1322; border:1px solid #2a3550; border-radius:10px; padding:9px 11px; line-height:1.45; }
+.compose textarea:focus { outline:none; border-color:var(--blue); }
+.compose .row { display:flex; justify-content:flex-end; gap:8px; }
+.foot { margin-top:40px; color:var(--muted); font-size:13px; }
+.toast { position:fixed; left:50%; bottom:max(20px,env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:#121828; border:1px solid #2a3550; border-radius:999px; padding:9px 16px; font-size:13px; z-index:9; }
+[hidden] { display:none !important; }
+@media (max-width:520px){ .seg { grid-template-columns:1fr; gap:8px; } .when { display:flex; gap:10px; align-items:baseline; } }
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <div class="bar"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="2.6" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.8" fill="#fff"/></svg><b>KAIROS</b>
+    <div class="acct" id="acct"></div></div>
+  <div><h1 id="title">—</h1></div><div class="sub" id="sub"></div>
+  <div class="facts" id="facts"></div>
+  <p class="how">Acesta e rundown-ul stream-ului, moment cu moment. La fiecare moment poți lăsa un <strong>comentariu</strong> sau o <strong>sugestie de text</strong> pentru ce se spune pe aer. Echipa vede comentariile imediat.</p>
+  <div class="banner" id="signinBanner" hidden><p>Conectează-te cu contul Google ca să vezi versiunea la zi și să lași comentarii.</p><button class="btn" data-signin>Conectare cu Google</button></div>
+  <div class="legend" id="legend"></div>
+</div></header>
+<main class="wrap" id="list"></main>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="sync.js"></script>
+<script src="rundown-data.js"></script>
+<script>
+(() => {
+  const S = window.KSYNC;
+  const CATS = { live:["Meci live","#4f86ff"], interviu:["Interviu","#a78bfa"], grafica:["Grafică","#22d3ee"], platforma:["Platformă","#c9d4ea"],
+    caritabil:["Caritabil","#f472b6"], ing:["ING","#ff7a2e"], donatii:["Donații","#e4f53b"], giveaway:["Giveaway","#34d399"], pauza:["Pauză / rezervă","#8a93a6"] };
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const $ = (s) => document.querySelector(s);
+  const d0 = window.TA_DEFAULT_RUNDOWN;
+  let data = { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) }, live = false;
+  const open = new Set();
+
+  function toast(m) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); } t.textContent = m; clearTimeout(toast.t); toast.t = setTimeout(() => t.remove(), 2600); }
+  function hhmm(min) { const [H, M] = (data.show.start || "15:00").split(":").map(Number); const t = H * 60 + M + min; return `${String(Math.floor(t / 60) % 24).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`; }
+  function ago(ms) { const s = Math.max(0, (Date.now() - ms) / 1000 | 0); return s < 60 ? "acum" : s < 3600 ? `acum ${s / 60 | 0} min` : s < 86400 ? `acum ${s / 3600 | 0} h` : new Date(ms).toLocaleString("ro-RO", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
+
+  function renderHead() {
+    const [name, ...rest] = (data.show.title || "").split(" · ");
+    $("#title").textContent = name; $("#sub").textContent = rest.join(" · "); $("#sub").hidden = !rest.length;
+    document.title = `${name} · KAIROS`;
+    let t = 0, n = 0; for (const it of data.items) if (it.type !== "header") { t += Number(it.min) || 0; n++; }
+    const [y, m, d] = (data.show.date || "").split("-");
+    $("#facts").innerHTML = `<span>Data <b>${d}.${m}.${y}</b></span><span>Live <b>${esc(data.show.start)} – ${hhmm(t)}</b></span><span>Locația <b>${esc(data.show.venue || "")}</b></span><span><b>${n}</b> momente</span>${live ? "" : `<span>· versiunea de pe site, nu cea la zi</span>`}`;
+    $("#legend").innerHTML = Object.values(CATS).map(([l, c]) => `<span class="chip" style="--c:${c}">${esc(l)}</span>`).join("");
+  }
+  function renderAcct() {
+    const signed = !!(S && S.user);
+    $("#signinBanner").hidden = signed || !(S && S.ready);
+    $("#acct").innerHTML = signed ? `${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<span>${esc(S.user.name)}</span><button class="btn ghost" id="out">Ieșire</button>`
+      : (S && S.ready ? `<button class="btn" data-signin>Conectare cu Google</button>` : "");
+    const o = $("#out"); if (o) o.onclick = () => S.signOut();
+  }
+  function thread(it) {
+    const all = (S && S.comments || []).filter((c) => c.segId === it.id);
+    const openN = all.filter((c) => !c.resolved).length;
+    const isOpen = open.has(it.id);
+    const me = S && S.user ? S.user.uid : null;
+    const label = all.length ? `${openN ? openN + " comentarii deschise" : "Comentarii"} (${all.length})` : "Lasă un comentariu";
+    let h = `<div class="thread"><button class="thread-toggle" data-tog="${esc(it.id)}">${isOpen ? "Ascunde" : label}</button>`;
+    if (isOpen) {
+      h += all.map((c) => `<div class="cm ${c.resolved ? "resolved" : ""}"><header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<b>${esc(c.name)}</b><span>${esc(ago(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Sugestie de text</span>` : ""}${c.resolved ? `<span>· rezolvat</span>` : ""}</header><p>${esc(c.text)}</p>${c.uid === me ? `<button class="del" data-del="${esc(c.id)}">Șterge</button>` : ""}</div>`).join("");
+      h += S && S.user && live
+        ? `<form class="compose" data-seg="${esc(it.id)}"><div class="kind"><label><input type="radio" name="k${esc(it.id)}" value="comment" checked> Comentariu</label><label><input type="radio" name="k${esc(it.id)}" value="text"> Sugestie pentru ce se spune</label></div><textarea rows="3" maxlength="4000" placeholder="Scrie aici…" aria-label="Comentariu"></textarea><div class="row"><button class="btn" type="submit">Trimite</button></div></form>`
+        : `<div class="banner"><p>Conectează-te cu Google ca să comentezi.</p><button class="btn" data-signin>Conectare cu Google</button></div>`;
+    }
+    return h + `</div>`;
+  }
+  function render() {
+    renderHead();
+    let t = 0, html = "", sec = false;
+    for (const it of data.items) {
+      if (it.type === "header") { html += `${sec ? "</section>" : ""}<section><h2>${esc(it.title)}</h2>`; sec = true; continue; }
+      const [label, color] = CATS[it.cat] || CATS.platforma; const start = hhmm(t); t += Number(it.min) || 0;
+      const script = (it.script || "").trim();
+      html += `<article class="seg" id="m-${esc(it.id)}" style="--c:${color}"><div class="when"><span class="time">${start}</span><span class="dur">${esc(it.min)} min</span></div><div class="body">
+        <div class="head"><span class="chip">${esc(label)}</span>${it.who ? `<span class="who">${esc(it.who)}</span>` : ""}</div><h3>${esc(it.title)}</h3>
+        ${it.talk ? `<div class="say"><div class="k">Ce se spune</div><p>${esc(it.talk)}</p></div>` : ""}
+        ${script ? `<details class="script"><summary>Scriptul complet</summary><p>${esc(script)}</p></details>` : ""}
+        <dl class="prod">${it.video ? `<div><dt>Video</dt><dd>${esc(it.video)}</dd></div>` : ""}${it.gfx ? `<div><dt>Grafică</dt><dd>${esc(it.gfx)}</dd></div>` : ""}</dl>
+        ${live ? thread(it) : ""}</div></article>`;
+    }
+    $("#list").innerHTML = html + (sec ? "</section>" : "") + `<p class="foot">Orele se pot schimba până la eveniment.</p>`;
+  }
+
+  document.addEventListener("click", async (e) => {
+    if (e.target.closest("[data-signin]")) { try { await S.signIn(); } catch (err) { toast("Conectarea n-a mers"); } return; }
+    const tg = e.target.closest("[data-tog]"); if (tg) { const id = tg.dataset.tog; open.has(id) ? open.delete(id) : open.add(id); render(); const f = document.querySelector(`form[data-seg="${id}"] textarea`); if (f) f.focus(); return; }
+    const dl = e.target.closest("[data-del]"); if (dl && confirm("Ștergi comentariul?")) { try { await S.deleteComment(dl.dataset.del); } catch (err) { toast("N-am putut șterge"); } }
+  });
+  document.addEventListener("submit", async (e) => {
+    const f = e.target.closest("form.compose"); if (!f) return; e.preventDefault();
+    const text = f.querySelector("textarea").value.trim(); if (!text) return;
+    const seg = data.items.find((i) => i.id === f.dataset.seg);
+    const kind = f.querySelector("input[type=radio]:checked").value;
+    f.querySelector("button").disabled = true;
+    try { await S.addComment({ segId: f.dataset.seg, segTitle: seg ? seg.title : "", text, kind }); toast("Mulțumim! Comentariul a ajuns la echipă."); }
+    catch (err) { toast("Comentariul nu s-a trimis. Încearcă din nou."); f.querySelector("button").disabled = false; }
+  });
+
+  if (S) {
+    S.on("auth", () => { renderAcct(); if (!S.user) { live = false; data = { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) }; render(); } });
+    S.on("show", (d) => { if (d) { data = { show: d.show, items: d.items }; live = true; render(); } });
+    S.on("comments", () => { if (live) render(); });
+  }
+  renderAcct(); render();
+})();
+</script>
+</body>
+</html>
