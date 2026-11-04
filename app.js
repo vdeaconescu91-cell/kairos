@@ -3,7 +3,10 @@
 (() => {
   "use strict";
 
-  const STORE_KEY = "ta-rundown-v1";
+  const KS0 = window.KSYNC;
+  const LEGACY = !KS0 || KS0.isLegacy;
+  // fiecare rundown își are copia lui locală; cel vechi (ta-2026) păstrează cheia de la început
+  const STORE_KEY = LEGACY ? "ta-rundown-v1" : `ta-rundown-v1:${KS0.showId}`;
   const CATS = {
     live:      { label: "Meci live",   var: "--c-live" },
     interviu:  { label: "Interviu",    var: "--c-interviu" },
@@ -65,6 +68,10 @@
         }
       }
     } catch (e) { /* stocare indisponibilă */ }
+    if (!LEGACY) {   // un rundown nou vine din cloud; până atunci pagina e goală
+      return { show: { title: "Se încarcă…", date: "", start: "18:00", venue: "" }, items: [], mode: "plan", advance: "manual",
+        live: { running: false, idx: -1, itemStart: 0, showStart: 0 } };
+    }
     return fromDefault();
   }
 
@@ -712,6 +719,7 @@
     if (a === "print") window.print();
     if (a === "settings") openSettings();
     if (a === "team") openTeam();
+    if (a === "home") location.href = "./";
     if (a === "signout" && S) S.signOut();
     if (a === "reset" && window.confirm("Înlocuiești rundown-ul curent cu cel implicit? Exportă-l înainte dacă vrei să-l păstrezi.")) {
       snapshot(); const keep = { mode: state.mode, advance: state.advance, live: state.live }; state = { ...fromDefault(), ...keep };
@@ -789,7 +797,8 @@
 
   function applyRemote(data) {
     if (!data) {                       // cloud gol: primul editor urcă rundown-ul lui
-      if (cloud() && canEdit()) { pushItems(); toast("Rundown-ul a fost urcat în cloud pentru toată echipa"); }
+      if (LEGACY && cloud() && canEdit()) { pushItems(); toast("Rundown-ul a fost urcat în cloud pentru toată echipa"); }
+      else if (!LEGACY && cloud()) toast("Rundown-ul nu există sau nu ai acces la el.");
       return;
     }
     const items = data.items.map((it) => {
@@ -832,6 +841,7 @@
     document.body.classList.toggle("cloud", !!S.user);
     document.body.classList.toggle("ro", !canEdit());
     document.body.classList.toggle("is-owner", !!(S.user && S.isOwner()));
+    document.body.classList.toggle("is-admin", !!(S.user && S.isAdmin));
   }
   document.addEventListener("click", async (e) => {
     if (!e.target.closest("[data-signin]") || !S) return;
@@ -839,9 +849,9 @@
   });
 
   function openTeam() {
-    if (!S || !S.isOwner()) return;
+    if (!S || !S.user || !S.isOwner()) return;
     const dlg = $("#teamDlg"); const f = dlg.querySelector("form");
-    f.emails.value = (S.editors || []).join("\n");
+    f.emails.value = (S.showMeta.editors || []).join("\n");
     dlg.showModal();
     dlg.onclose = async () => {
       if (dlg.returnValue !== "ok") return;
@@ -849,6 +859,22 @@
       catch (err) { toast("N-am putut salva lista: " + (err.code || "eroare")); }
     };
   }
+  // linkul de invitație: îl generezi și îl trimiți, cine îl acceptă devine editor
+  $("#inviteMake").onclick = async () => {
+    try {
+      const r = await S.createInvite({ showId: S.showId, showTitle: state.show.title || "", team: $("#inviteTeam").checked });
+      $("#inviteUrl").value = r.url; $("#inviteCopy").disabled = false; $("#inviteUrl").select();
+      toast("Link generat, valabil 7 zile");
+    } catch (err) { toast("N-am putut genera linkul: " + (err.code || "eroare")); }
+  };
+  $("#inviteCopy").onclick = async () => {
+    const v = $("#inviteUrl").value; if (!v) return;
+    try { await navigator.clipboard.writeText(v); toast("Link copiat"); } catch (e) { $("#inviteUrl").select(); toast("Selectat: apasă Ctrl+C"); }
+  };
+  $("#inviteRevoke").onclick = async () => {
+    try { const n = await S.revokeInvites(S.showId); $("#inviteUrl").value = ""; $("#inviteCopy").disabled = true; toast(n ? "Linkurile de invitație au fost dezactivate" : "Nu aveai linkuri active"); }
+    catch (err) { toast("N-a mers: " + (err.code || "eroare")); }
+  };
 
   /* ---------------- comentarii ---------------- */
   let drawerSeg = null; // null = toate
@@ -942,6 +968,8 @@
     S.on("live", applyLive);
     S.on("comments", () => { renderCommentBadges(); renderDrawer(); });
   }
+
+  if (S && !LEGACY) { const pv = $("#btnPreview"); if (pv) pv.href = `client.html?id=${encodeURIComponent(S.showId)}`; }
 
   /* ---------------- pornire ---------------- */
   function renderAll() {

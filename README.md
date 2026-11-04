@@ -1,5 +1,13 @@
 # KAIROS · Rundown
 
+Pagini:
+- `index.html`: pagina de start. Te conectezi cu Google, vezi rundown-urile tale, pornești unul nou.
+- `rundown.html?id=…`: editorul, cu modurile Plan / Live, pop-up și prompter.
+- `client.html?id=…`: pagina pentru clienți, unde citesc rundown-ul și lasă comentarii.
+- `join.html?t=…`: linkul de invitație. Cine îl acceptă devine editor al rundown-ului.
+
+Regulile de acces din Firebase sunt în `firestore.rules`.
+
 Rundown live pentru **Turneul Artiștilor · Charity Padel Cup** (15.11.2026, Padel One București), după modelul Rundown Studio, cu un design inspirat din AICA.
 
 ## Ce face

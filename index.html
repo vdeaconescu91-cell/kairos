@@ -2,181 +2,177 @@
 <html lang="ro">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>KAIROS · Rundown</title>
-<meta name="description" content="Rundown live pentru Turneul Artiștilor · Charity Padel Cup">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=202611040349">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KAIROS</title>
+<meta name="description" content="KAIROS: rundown-uri live pentru show-uri și transmisiuni, cu timer comun, prompter și comentarii de la clienți.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="home.css?v=202611040403">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%2303060f%22/%3E%3Cpath%20d%3D%22M27.8%207.2A15%2015%200%201%200%2034.6%2016%22%20fill%3D%22none%22%20stroke%3D%22%237aa5ff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2231.9%22%20cy%3D%2210.6%22%20r%3D%223%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
 </head>
 <body>
-<div class="glow glow-a" aria-hidden="true"></div>
-<div class="glow glow-b" aria-hidden="true"></div>
-
-<header class="topbar">
-  <div class="brand">
-    <svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6efff"/><stop offset=".5" stop-color="#7aa5ff"/><stop offset="1" stop-color="#2a5fe0"/></linearGradient></defs><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="url(#kg)" stroke-width="2.4" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.6" fill="#fff"/></svg>
-    <div class="wordmark">KAIROS</div>
-    <span class="brand-sep" aria-hidden="true"></span>
-    <div class="brand-text">
-      <div class="brand-title" id="showTitle">Turneul Artiștilor</div>
-      <div class="brand-sub" id="showMeta">15.11.2026 · Padel One</div>
-    </div>
-  </div>
-
-  <div class="clock" id="clock" title="Ora curentă">--:--:--</div>
-
-  <div class="controls">
-    <div class="seg" role="tablist" aria-label="Mod">
-      <button class="seg-btn" data-mode="plan" role="tab">Plan</button>
-      <button class="seg-btn" data-mode="live" role="tab">Live</button>
-    </div>
-    <div class="seg adv" id="advSeg" role="tablist" aria-label="Trecerea la segmentul următor">
-      <button class="seg-btn" data-adv="auto" title="La zero trece singur la segmentul următor">Auto</button>
-      <button class="seg-btn" data-adv="manual" title="La zero timerul devine roșu până apasă regia „Următorul”">Manual</button>
-    </div>
-    <button class="btn ghost" id="btnPrev" title="Segmentul anterior">◀</button>
-    <button class="btn primary" id="btnGo">Start show</button>
-    <button class="btn ghost" id="btnStop" title="Oprește modul live">■</button>
-    <a class="btn ghost" id="btnPreview" href="client.html" target="_blank" rel="noopener" title="Pagina pentru clienți: citesc rundown-ul și lasă comentarii cu contul Google">Preview</a>
-    <button class="btn accent" id="btnPopup" title="Fereastră mereu deasupra cu ce urmează">Pop-up</button>
-    <div class="account" id="account"></div>
-    <div class="menu">
-      <button class="btn ghost" id="btnMenu" aria-haspopup="true">⋯</button>
-      <div class="menu-list" id="menuList" hidden>
-        <button data-act="settings">Setări show</button>
-        <button data-act="team" class="owner-only">Echipa (cine poate edita)</button>
-        <button data-act="export">Exportă JSON</button>
-        <button data-act="import">Importă JSON</button>
-        <button data-act="print">Printează</button>
-        <hr>
-        <button data-act="reset" class="danger">Revino la rundown-ul implicit</button>
-        <button data-act="signout" class="cloud-only">Deconectare</button>
+<header class="hero">
+  <div class="aurora" id="aurora" aria-hidden="true"></div>
+  <div class="wrap">
+    <nav class="nav">
+      <a class="brand" href="./"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="2.6" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.8" fill="#fff"/></svg><span class="wordmark">KAIROS</span></a>
+      <span class="sp"></span>
+      <span id="navUser"></span>
+    </nav>
+    <div class="lead">
+      <div class="eyebrow">Rundown live pentru show-uri</div>
+      <h1>Fiecare moment, la timp.</h1>
+      <p>Toată echipa vede același rundown și același timer, pe orice dispozitiv. Regia apasă „Următorul”, casterii citesc din prompter, iar clienții lasă comentarii pe fiecare moment.</p>
+      <div class="actions" id="heroActions">
+        <button class="btn primary" data-signin><span class="g"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 7.2-9.6 7.2-16.8z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.3-8.8 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg></span>Conectare cu Google</button>
       </div>
     </div>
   </div>
 </header>
 
-<main>
-  <section class="hero" aria-live="polite">
-    <article class="now card glass">
-      <div class="aurora" aria-hidden="true"></div>
-      <div class="label"><span class="dot"></span><span id="nowLabel">ACUM</span></div>
-      <h1 class="now-title" id="nowTitle">—</h1>
-      <div class="now-meta" id="nowMeta"></div>
-      <div class="now-timer">
-        <div class="big-time" id="nowRemain">--:--</div>
-        <div class="timer-side">
-          <div class="drift" id="drift"></div>
-          <div class="ends" id="nowEnds"></div>
-        </div>
-      </div>
-      <div class="progress"><span id="nowProgress"></span></div>
-      <p class="now-talk" id="nowTalk"></p>
-    </article>
-
-    <article class="next card glass">
-      <div class="aurora soft" aria-hidden="true"></div>
-      <div class="label">URMEAZĂ <span class="in" id="nextIn"></span></div>
-      <h2 class="next-title" id="nextTitle">—</h2>
-      <div class="next-cat" id="nextCat"></div>
-      <p class="next-talk" id="nextTalk"></p>
-      <div class="after" id="afterNext"></div>
-    </article>
-  </section>
-
-  <section class="toolbar">
-    <div class="filters" id="filters"></div>
-    <div class="toolbar-right">
-      <span class="total" id="totalInfo"></span>
-      <button class="btn small" id="btnComments">Comentarii <b id="cmtCount"></b></button>
-      <button class="btn small" id="btnAddHeader">+ Secțiune</button>
-      <button class="btn small" id="btnAddRow">+ Segment</button>
-    </div>
-  </section>
-
-  <section class="table-wrap">
-    <table class="rundown" id="rundown">
-      <thead>
-        <tr>
-          <th class="c-drag"></th>
-          <th class="c-num">#</th>
-          <th class="c-start">Start</th>
-          <th class="c-dur">Min</th>
-          <th class="c-title">Segment</th>
-          <th class="c-video">Video</th>
-          <th class="c-gfx">Grafică</th>
-          <th class="c-talk">Ce se spune</th>
-          <th class="c-who">Cine</th>
-          <th class="c-act"></th>
-        </tr>
-      </thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </section>
-
-  <p class="foot">Modificările se salvează automat în acest browser. Pentru alt calculator: ⋯ → Exportă JSON, apoi Importă JSON pe celălalt. Scurtături: <kbd>N</kbd> următorul segment în live, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> anulează.</p>
+<main class="wrap" id="app" hidden>
+  <div class="sec-head"><h2>Rundown-urile tale</h2><span id="countInfo"></span></div>
+  <div class="grid" id="grid"></div>
+  <div class="sec-head" style="margin-top:36px" id="adminHead" hidden><h2>Echipa KAIROS</h2><span>Cine are voie să pornească rundown-uri noi</span></div>
+  <div id="adminBox" hidden><button class="btn small" id="btnTeam">Gestionează echipa</button></div>
 </main>
 
-<aside class="drawer" id="drawer" hidden aria-label="Comentarii">
-  <div class="drawer-head">
-    <div><div class="label" id="drawerLabel">COMENTARII</div><div class="drawer-title" id="drawerTitle">Toate momentele</div></div>
-    <button class="icon" id="drawerClose" title="Închide">✕</button>
-  </div>
-  <div class="drawer-tools">
-    <button class="chip-btn" id="drawerAll">Toate</button>
-    <label class="chk"><input type="checkbox" id="showResolved"> Arată rezolvate</label>
-  </div>
-  <div class="cmt-list" id="cmtList"></div>
-  <form class="composer" id="composer">
-    <div class="kind" role="radiogroup" aria-label="Tip">
-      <label><input type="radio" name="kind" value="comment" checked> Comentariu</label>
-      <label><input type="radio" name="kind" value="text"> Sugestie pentru „Ce se spune”</label>
+<dialog id="newDlg">
+  <form method="dialog" id="newForm">
+    <h3>Rundown nou</h3>
+    <label>Numele show-ului <input name="title" required maxlength="120" placeholder="Ex.: Gala eSuperliga 2027" id="nfTitle"></label>
+    <div class="two">
+      <label>Data <input name="date" type="date" id="nfDate"></label>
+      <label>Începe la <input name="start" type="time" value="18:00" id="nfStart"></label>
     </div>
-    <textarea id="cmtText" rows="3" maxlength="4000" placeholder="Scrie aici…"></textarea>
-    <div class="composer-foot"><span class="hint" id="composerHint"></span><button class="btn primary small" id="cmtSend" type="submit">Trimite</button></div>
-  </form>
-  <div class="signin-box" id="signinBox" hidden>
-    <p>Conectează-te cu Google ca să comentezi.</p>
-    <button class="btn primary" data-signin type="button">Conectare cu Google</button>
-  </div>
-</aside>
-
-<dialog id="teamDlg" class="glass">
-  <form method="dialog">
-    <h3>Cine poate edita</h3>
-    <p class="dlg-note">Un email Google pe rând. Ceilalți care se conectează doar citesc și comentează. Tu (proprietarul) poți edita oricum.</p>
-    <textarea name="emails" rows="8" placeholder="misu@exemplu.ro"></textarea>
-    <div class="dlg-actions">
-      <button value="cancel" class="btn ghost">Renunță</button>
-      <button value="ok" class="btn primary">Salvează</button>
-    </div>
+    <label>Locația <input name="venue" maxlength="120" placeholder="Ex.: Nexus Gamers Pub" id="nfVenue"></label>
+    <label>Pornește de la <select name="copyFrom" id="nfCopy"><option value="">Un rundown gol</option></select></label>
+    <div class="dlg-actions"><button value="cancel" class="btn ghost" type="submit" formnovalidate>Renunță</button><button value="ok" class="btn primary" type="submit" id="nfOk">Creează</button></div>
   </form>
 </dialog>
 
-<dialog id="settingsDlg" class="glass">
+<dialog id="teamDlg">
   <form method="dialog">
-    <h3>Setări show</h3>
-    <label>Titlu <input name="title"></label>
-    <label>Data <input name="date" type="date"></label>
-    <label>Ora de start <input name="start" type="time"></label>
-    <label>Locația <input name="venue"></label>
-    <div class="dlg-actions">
-      <button value="cancel" class="btn ghost">Renunță</button>
-      <button value="ok" class="btn primary">Salvează</button>
-    </div>
+    <h3>Echipa KAIROS</h3>
+    <p class="note">Un email Google pe rând. Acești oameni pot porni rundown-uri noi. Pe un rundown anume îi adaugi ca editori din rundown-ul respectiv.</p>
+    <label>Emailuri <textarea name="emails" rows="7" id="teamEmails"></textarea></label>
+    <div class="dlg-actions"><button value="cancel" class="btn ghost">Renunță</button><button value="ok" class="btn primary">Salvează</button></div>
   </form>
 </dialog>
-
-<input type="file" id="importFile" accept="application/json" hidden>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="sync.js?v=202611040349"></script>
-<script src="rundown-data.js?v=202611040349"></script>
-<script src="app.js?v=202611040349"></script>
+<script>window.KSYNC_MODE = "landing";</script>
+<script src="sync.js?v=202611040403"></script>
+<script>
+(() => {
+  const S = window.KSYNC;
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const pad = (n) => String(n).padStart(2, "0");
+  const ROLE = { owner: "Proprietar", editor: "Editor", admin: "Admin" };
+  let shows = [], stop = null, migrated = false;
+
+  // luminile din fundal
+  (() => { let r = 41; const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; }; let h = "";
+    for (let i = 0; i < 18; i++) h += `<span class="beam" style="--x:${((i / 18) * 100 + rnd() * 5 - 2).toFixed(1)}%;--w:${(20 + rnd() * 80) | 0}px;--b:${(8 + rnd() * 18) | 0}px;--o:${(0.35 + rnd() * 0.6).toFixed(2)};--d:${(6 + rnd() * 9).toFixed(1)}s;--p:${(4 + rnd() * 6).toFixed(1)}s;--dl:${(-rnd() * 10).toFixed(1)}s"></span>`;
+    $("#aurora").innerHTML = h; })();
+
+  function toast(m) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); } t.textContent = m; clearTimeout(toast.t); toast.t = setTimeout(() => t.remove(), 2800); }
+  const endTime = (s) => { const [H, M] = (s.show.start || "00:00").split(":").map(Number); const t = H * 60 + M + (s.minutes || 0); return `${pad(Math.floor(t / 60) % 24)}:${pad(t % 60)}`; };
+  const fmtDate = (d) => { if (!d) return "fără dată"; const [y, m, dd] = d.split("-"); return `${dd}.${m}.${y}`; };
+  const ago = (ms) => { if (!ms) return ""; const s = (Date.now() - ms) / 1000 | 0; return s < 60 ? "acum" : s < 3600 ? `acum ${s / 60 | 0} min` : s < 86400 ? `acum ${s / 3600 | 0} h` : `acum ${s / 86400 | 0} zile`; };
+
+  function roleOf(s) {
+    const me = S.user.email;
+    if (s.ownerEmail === me) return "owner";
+    if ((s.editors || []).includes(me)) return "editor";
+    return S.isAdmin ? "admin" : "";
+  }
+
+  function render() {
+    const signed = !!(S && S.user);
+    $("#app").hidden = !signed;
+    $("#heroActions").hidden = signed;
+    $("#navUser").innerHTML = signed
+      ? `<span class="who">${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${esc(S.user.name.charAt(0))}</i>`}<span>${esc(S.user.name.split(" ")[0])}</span></span> <button class="btn small ghost" id="btnOut">Ieșire</button>`
+      : `<button class="btn small" data-signin>Conectare</button>`;
+    const out = $("#btnOut"); if (out) out.onclick = () => S.signOut();
+    $("#adminHead").hidden = $("#adminBox").hidden = !(signed && S.isAdmin);
+    if (!signed) return;
+    $("#countInfo").textContent = shows.length ? `${shows.length} ${shows.length === 1 ? "rundown" : "rundown-uri"}` : "";
+    const cards = shows.map((s) => {
+      const role = roleOf(s);
+      const href = `rundown.html?id=${encodeURIComponent(s.id)}`;
+      return `<div class="card" data-href="${href}" tabindex="0" role="link" aria-label="${esc(s.show.title || "Rundown")}">
+        ${role ? `<span class="role">${ROLE[role]}</span>` : ""}
+        <h3>${esc(s.show.title || "Fără nume")}</h3>
+        <div class="facts"><span><b>${esc(fmtDate(s.show.date))}</b></span><span><b>${esc(s.show.start || "--:--")} – ${endTime(s)}</b></span><span>${s.segments} momente</span>${s.show.venue ? `<span>${esc(s.show.venue)}</span>` : ""}</div>
+        <div class="foot"><span>${s.updatedAt ? `modificat ${esc(ago(s.updatedAt))}` : ""}</span>
+          <span class="links"><a href="${href}">Deschide</a><a href="client.html?id=${encodeURIComponent(s.id)}" target="_blank" rel="noopener" title="Pagina pentru clienți">Clienți</a></span></div>
+      </div>`;
+    });
+    const canCreate = S.isTeam;
+    $("#grid").innerHTML = (canCreate ? `<button class="card new" id="btnNew" type="button"><span class="plus">+</span><b>Rundown nou</b><span>gol sau copiat după unul existent</span></button>` : "")
+      + (cards.join("") || (canCreate ? "" : `<p class="empty">Nu ai încă acces la niciun rundown. Cere un link de invitație de la cine organizează show-ul.</p>`));
+    const nb = $("#btnNew"); if (nb) nb.onclick = openNew;
+  }
+
+  function openNew() {
+    $("#nfCopy").innerHTML = `<option value="">Un rundown gol</option>` + shows.map((s) => `<option value="${esc(s.id)}">Copie după: ${esc(s.show.title || s.id)}</option>`).join("");
+    $("#newForm").reset(); $("#nfStart").value = "18:00";
+    $("#newDlg").showModal(); setTimeout(() => $("#nfTitle").focus(), 30);
+  }
+  $("#newDlg").addEventListener("close", async () => {
+    if ($("#newDlg").returnValue !== "ok") return;
+    const title = $("#nfTitle").value.trim(); if (!title) return;
+    toast("Se creează…");
+    try {
+      const id = await S.createShow({ title, date: $("#nfDate").value, start: $("#nfStart").value || "18:00", venue: $("#nfVenue").value.trim(), copyFrom: $("#nfCopy").value });
+      location.href = `rundown.html?id=${encodeURIComponent(id)}`;
+    } catch (err) { toast("N-am putut crea rundown-ul: " + (err.code || "eroare")); }
+  });
+
+  $("#btnTeam").onclick = () => { $("#teamEmails").value = (S.team || []).join("\n"); $("#teamDlg").showModal(); };
+  $("#teamDlg").addEventListener("close", async () => {
+    if ($("#teamDlg").returnValue !== "ok") return;
+    try { await S.setTeam($("#teamEmails").value.split(/[\s,;]+/)); toast("Echipa a fost salvată"); } catch (err) { toast("N-am putut salva: " + (err.code || "eroare")); }
+  });
+
+  document.addEventListener("click", (e) => {
+    const c = e.target.closest(".card[data-href]");
+    if (c && !e.target.closest("a")) location.href = c.dataset.href;
+  });
+  document.addEventListener("keydown", (e) => {
+    const c = e.target.closest && e.target.closest(".card[data-href]");
+    if (c && e.key === "Enter") location.href = c.dataset.href;
+  });
+  document.addEventListener("click", async (e) => {
+    if (!e.target.closest("[data-signin]")) return;
+    try { await S.signIn(); } catch (err) { toast("Conectarea n-a mers: " + (err.code || "eroare")); }
+  });
+
+  if (S && S.ready) {
+    S.on("auth", () => {
+      if (stop) { stop(); stop = null; }
+      if (S.user) stop = S.listShows(async (list, err) => {
+        if (err) { toast("Nu pot încărca rundown-urile: " + (err.code || "eroare")); return; }
+        shows = list || [];
+        // rundown-urile vechi, fără proprietar: administratorul le preia o singură dată
+        if (S.isAdmin && !migrated) {
+          migrated = true;
+          if (!(S.team || []).length) { try { await S.setTeam([]); } catch (e) { console.error(e); } }
+          for (const s of shows.filter((x) => !x.ownerEmail)) { try { await S.setEditors(S.team || [], s.id); } catch (e) { console.error(e); } }
+        }
+        render();
+      });
+      else { shows = []; }
+      render();
+    });
+  } else { toast("Nu mă pot conecta la server. Verifică internetul."); }
+  render();
+})();
+</script>
 </body>
 </html>

@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Invitație · KAIROS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="home.css?v=202611040403">
+<style>
+  .hero { min-height: 100vh; display: flex; flex-direction: column; }
+  .box { margin-block: auto; padding-block: 40px 80px; max-width: 560px; display: grid; gap: 18px; }
+  .box h1 { font-size: clamp(34px, 6vw, 60px); }
+  .box p { margin: 0; color: #c9cfdc; font-size: 17px; line-height: 1.5; }
+  .show { font-weight: 600; color: #fff; }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="aurora" id="aurora" aria-hidden="true"></div>
+  <div class="wrap">
+    <nav class="nav"><a class="brand" href="./"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="2.6" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.8" fill="#fff"/></svg><span class="wordmark">KAIROS</span></a></nav>
+  </div>
+  <div class="wrap box">
+    <div class="eyebrow">Invitație în echipă</div>
+    <h1 id="h">Se încarcă…</h1>
+    <p id="msg"></p>
+    <div class="actions" id="act"></div>
+  </div>
+</header>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script>window.KSYNC_MODE = "landing";</script>
+<script src="sync.js?v=202611040403"></script>
+<script>
+(() => {
+  const S = window.KSYNC, $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  const t = new URLSearchParams(location.search).get("t") || "";
+  (() => { let r = 77; const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; }; let h = "";
+    for (let i = 0; i < 16; i++) h += `<span class="beam" style="--x:${((i / 16) * 100 + rnd() * 5 - 2).toFixed(1)}%;--w:${(20 + rnd() * 80) | 0}px;--b:${(8 + rnd() * 18) | 0}px;--o:${(0.35 + rnd() * 0.6).toFixed(2)};--d:${(6 + rnd() * 9).toFixed(1)}s;--p:${(4 + rnd() * 6).toFixed(1)}s;--dl:${(-rnd() * 10).toFixed(1)}s"></span>`;
+    $("#aurora").innerHTML = h; })();
+
+  const show = (h, msg, act = "") => { $("#h").textContent = h; $("#msg").innerHTML = msg; $("#act").innerHTML = act; };
+  const signinBtn = `<button class="btn primary" data-signin>Conectare cu Google</button>`;
+
+  if (!/^[a-z0-9]{10,40}$/.test(t)) { show("Link invalid", "Linkul de invitație nu e complet. Cere-i celui care ți l-a trimis un link nou.", `<a class="btn" href="./">Mergi la KAIROS</a>`); return; }
+  if (!S || !S.ready) { show("Nu mă pot conecta", "Verifică internetul și reîncarcă pagina."); return; }
+
+  async function run() {
+    if (!S.user) { show("Ai fost invitat în KAIROS", "Conectează-te cu contul Google ca să vezi invitația.", signinBtn); return; }
+    show("Se verifică invitația…", "");
+    let inv = null;
+    try { inv = await S.getInvite(t); } catch (e) { inv = null; }
+    if (!inv) { show("Invitația nu există", "Linkul a fost greșit copiat sau a fost șters. Cere un link nou.", `<a class="btn" href="./">Mergi la KAIROS</a>`); return; }
+    if (!inv.active || inv.expiresAt < Date.now()) { show("Invitația a expirat", "Linkul nu mai e valabil. Cere-i celui care ți l-a trimis unul nou.", `<a class="btn" href="./">Mergi la KAIROS</a>`); return; }
+    show("Ai fost invitat să editezi",
+      `<span class="show">${esc(inv.showTitle || "un rundown")}</span>, de ${esc(inv.createdBy)}.${inv.team ? " Vei putea porni și rundown-uri noi." : ""}<br><br>Te alături ca <b>${esc(S.user.email)}</b>.`,
+      `<button class="btn primary" id="accept">Acceptă invitația</button><button class="btn ghost" id="other">Alt cont</button>`);
+    $("#accept").onclick = async () => {
+      $("#accept").disabled = true;
+      try { const id = await S.acceptInvite(t); location.href = `rundown.html?id=${encodeURIComponent(id)}`; }
+      catch (e) { $("#accept").disabled = false; show("N-a mers", "Nu te-am putut adăuga în echipă. Invitația poate fi expirată sau dezactivată. Cere un link nou.", `<a class="btn" href="./">Mergi la KAIROS</a>`); console.error(e); }
+    };
+    $("#other").onclick = () => S.signOut();
+  }
+  document.addEventListener("click", async (e) => { if (e.target.closest("[data-signin]")) { try { await S.signIn(); } catch (err) {} } });
+  S.on("auth", run);
+})();
+</script>
+</body>
+</html>

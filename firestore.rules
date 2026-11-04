@@ -1,47 +1,94 @@
 rules_version = '2';
 // KAIROS · cine ce poate face în baza de date.
-// Proprietarii (aceiași ca în sync.js) pot edita și pot alege editorii.
-// Editorii (lista din config/roles) editează rundown-ul și controlează Live-ul.
-// Oricine e conectat cu Google poate citi și poate lăsa comentarii.
+// Administratorii (aceiași ca în sync.js) văd și editează orice și aleg echipa KAIROS.
+// Echipa KAIROS (config/roles) poate porni rundown-uri noi.
+// Fiecare rundown are un proprietar și editori; ei îl editează și controlează Live-ul.
+// Cine are linkul unui rundown și e conectat cu Google îl poate citi și comenta.
 service cloud.firestore {
   match /databases/{database}/documents {
     function signedIn() { return request.auth != null; }
     function email() { return request.auth.token.email.lower(); }
     function verified() { return signedIn() && request.auth.token.email_verified == true; }
-    function isOwner() { return verified() && email() in ['vdeaconescu91@gmail.com', 'vlad@nexusclub.ro']; }
-    function isEditor() {
-      return isOwner() || (verified()
-        && exists(/databases/$(database)/documents/config/roles)
-        && email() in get(/databases/$(database)/documents/config/roles).data.editors);
+    function isAdmin() { return verified() && email() in ['vdeaconescu91@gmail.com', 'vlad@nexusclub.ro']; }
+    function rolesPath() { return /databases/$(database)/documents/config/roles; }
+    function isTeam() { return isAdmin() || (verified() && exists(rolesPath()) && email() in get(rolesPath()).data.get('editors', [])); }
+    function showData(id) { return get(/databases/$(database)/documents/shows/$(id)).data; }
+    function canEditShow(id) {
+      return isAdmin() || (verified() && (showData(id).get('ownerEmail', '') == email() || email() in showData(id).get('editors', [])));
+    }
+    // invitație validă: activă, neexpirată, pentru rundown-ul ăsta (sau pentru echipă)
+    function inviteOk(t, showId, needTeam) {
+      let inv = get(/databases/$(database)/documents/invites/$(t)).data;
+      return inv.active == true && inv.expiresAt > request.time
+        && (showId == '' || inv.showId == showId)
+        && (needTeam == false || inv.team == true);
+    }
+    // cineva se adaugă singur într-o listă, cu o invitație
+    function joinsList(field) {
+      return request.resource.data.get(field, []).hasAll(resource.data.get(field, []))
+        && email() in request.resource.data.get(field, []);
     }
 
     match /config/roles {
       allow read: if signedIn();
-      allow write: if isOwner();
+      allow create, delete: if isAdmin();
+      allow update: if isAdmin()
+        || (verified()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['editors', 'lastInvite'])
+          && joinsList('editors')
+          && request.resource.data.editors.size() == resource.data.get('editors', []).size() + 1
+          && inviteOk(request.resource.data.lastInvite, '', true));
     }
 
     match /shows/{showId} {
-      allow read: if signedIn();
-      allow write: if isEditor();
+      allow get: if signedIn();
+      allow list: if isAdmin() || (signedIn() && email() in resource.data.access);
+      allow create: if isTeam()
+        && request.resource.data.ownerEmail == email()
+        && request.resource.data.editors is list
+        && email() in request.resource.data.access;
+      allow update: if isAdmin()
+        || (verified() && resource.data.get('ownerEmail', '') == email())
+        || (verified() && email() in resource.data.get('editors', [])
+            && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['ownerEmail', 'editors', 'access']))
+        || (verified()
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['editors', 'access', 'lastInvite'])
+            && joinsList('editors') && joinsList('access')
+            && request.resource.data.editors.size() == resource.data.get('editors', []).size() + 1
+            && inviteOk(request.resource.data.lastInvite, showId, false));
+      allow delete: if isAdmin() || (verified() && resource.data.get('ownerEmail', '') == email());
 
       match /live/{doc} {
         allow read: if signedIn();
-        allow write: if isEditor();
+        allow write: if canEditShow(showId);
       }
 
       match /comments/{commentId} {
-        // fiecare își vede doar comentariile lui; editorii le văd pe toate
-        allow read: if isEditor() || (signedIn() && resource.data.uid == request.auth.uid);
+        // fiecare își vede doar comentariile lui; editorii rundown-ului le văd pe toate
+        allow read: if canEditShow(showId) || (signedIn() && resource.data.uid == request.auth.uid);
         allow create: if signedIn()
           && request.resource.data.uid == request.auth.uid
           && request.resource.data.text is string
           && request.resource.data.text.size() > 0
           && request.resource.data.text.size() <= 4000
           && request.resource.data.resolved == false;
-        allow update: if isEditor()
+        allow update: if canEditShow(showId)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['resolved', 'resolvedBy']);
-        allow delete: if isEditor() || (signedIn() && resource.data.uid == request.auth.uid);
+        allow delete: if canEditShow(showId) || (signedIn() && resource.data.uid == request.auth.uid);
       }
+    }
+
+    // linkuri de invitație: le citește doar cine are linkul; le face proprietarul rundown-ului
+    match /invites/{token} {
+      allow get: if signedIn();
+      allow list: if signedIn() && resource.data.createdBy == email();
+      allow create: if verified()
+        && request.resource.data.createdBy == email()
+        && request.resource.data.active == true
+        && (isAdmin() || showData(request.resource.data.showId).get('ownerEmail', '') == email())
+        && (request.resource.data.team == false || isAdmin());
+      allow update: if signedIn() && resource.data.createdBy == email()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['active']);
     }
 
     // fiecare își măsoară decalajul de ceas față de server

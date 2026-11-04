@@ -96,8 +96,8 @@ summary { cursor:pointer; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="sync.js?v=202611040349"></script>
-<script src="rundown-data.js?v=202611040349"></script>
+<script src="sync.js?v=202611040403"></script>
+<script src="rundown-data.js?v=202611040403"></script>
 <script>
 (() => {
   const S = window.KSYNC;
@@ -106,7 +106,8 @@ summary { cursor:pointer; }
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const $ = (s) => document.querySelector(s);
   const d0 = window.TA_DEFAULT_RUNDOWN;
-  let data = { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) }, live = false;
+  const blank = () => (S && !S.isLegacy) ? { show: { title: "Rundown", date: "", start: "18:00", venue: "" }, items: [] } : { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) };
+  let data = blank(), live = false;
   const open = new Set();
 
   function toast(m) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); } t.textContent = m; clearTimeout(toast.t); toast.t = setTimeout(() => t.remove(), 2600); }
@@ -177,7 +178,7 @@ summary { cursor:pointer; }
   });
 
   if (S) {
-    S.on("auth", () => { renderAcct(); if (!S.user) { live = false; data = { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) }; render(); } });
+    S.on("auth", () => { renderAcct(); if (!S.user) { live = false; data = blank(); render(); } });
     S.on("show", (d) => { if (d) { data = { show: d.show, items: d.items }; live = true; render(); } });
     S.on("comments", () => { if (live) render(); });
   }

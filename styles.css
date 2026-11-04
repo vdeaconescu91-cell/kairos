@@ -320,3 +320,16 @@ tr:hover .cmt-btn, .cmt-btn.has { opacity: 1; }
 .signin-box p { margin: 0; }
 .dlg-note { font-size: 12px; color: var(--muted); margin: -6px 0 12px; line-height: 1.45; }
 .drawer[hidden], .composer[hidden], .signin-box[hidden], #drawerAll[hidden] { display: none !important; }
+
+.home-link { display: flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; border-radius: 10px; }
+.home-link:hover .wordmark { filter: brightness(1.25); }
+
+/* ---------- invitații ---------- */
+.invite-box { border: 1px solid var(--line-2); border-radius: 12px; padding: 12px; margin-top: 14px; display: grid; gap: 8px; }
+.invite-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+.invite-head span { color: var(--muted); font-size: 12px; }
+.invite-box .dlg-note { margin: 0; }
+.invite-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.invite-row input { flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 10px; padding: 8px 10px; color: var(--text); font: 12px var(--mono); }
+.admin-only { display: none !important; }
+body.is-admin .admin-only { display: inline-flex !important; }

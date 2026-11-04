@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KAIROS · Rundown</title>
+<meta name="description" content="Rundown live pentru Turneul Artiștilor · Charity Padel Cup">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=202611040403">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%2303060f%22/%3E%3Cpath%20d%3D%22M27.8%207.2A15%2015%200%201%200%2034.6%2016%22%20fill%3D%22none%22%20stroke%3D%22%237aa5ff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2231.9%22%20cy%3D%2210.6%22%20r%3D%223%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="glow glow-a" aria-hidden="true"></div>
+<div class="glow glow-b" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <a class="home-link" href="./" title="Toate rundown-urile"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e6efff"/><stop offset=".5" stop-color="#7aa5ff"/><stop offset="1" stop-color="#2a5fe0"/></linearGradient></defs><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="url(#kg)" stroke-width="2.4" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.6" fill="#fff"/></svg>
+    <div class="wordmark">KAIROS</div></a>
+    <span class="brand-sep" aria-hidden="true"></span>
+    <div class="brand-text">
+      <div class="brand-title" id="showTitle">Turneul Artiștilor</div>
+      <div class="brand-sub" id="showMeta">15.11.2026 · Padel One</div>
+    </div>
+  </div>
+
+  <div class="clock" id="clock" title="Ora curentă">--:--:--</div>
+
+  <div class="controls">
+    <div class="seg" role="tablist" aria-label="Mod">
+      <button class="seg-btn" data-mode="plan" role="tab">Plan</button>
+      <button class="seg-btn" data-mode="live" role="tab">Live</button>
+    </div>
+    <div class="seg adv" id="advSeg" role="tablist" aria-label="Trecerea la segmentul următor">
+      <button class="seg-btn" data-adv="auto" title="La zero trece singur la segmentul următor">Auto</button>
+      <button class="seg-btn" data-adv="manual" title="La zero timerul devine roșu până apasă regia „Următorul”">Manual</button>
+    </div>
+    <button class="btn ghost" id="btnPrev" title="Segmentul anterior">◀</button>
+    <button class="btn primary" id="btnGo">Start show</button>
+    <button class="btn ghost" id="btnStop" title="Oprește modul live">■</button>
+    <a class="btn ghost" id="btnPreview" href="client.html" target="_blank" rel="noopener" title="Pagina pentru clienți: citesc rundown-ul și lasă comentarii cu contul Google">Preview</a>
+    <button class="btn accent" id="btnPopup" title="Fereastră mereu deasupra cu ce urmează">Pop-up</button>
+    <div class="account" id="account"></div>
+    <div class="menu">
+      <button class="btn ghost" id="btnMenu" aria-haspopup="true">⋯</button>
+      <div class="menu-list" id="menuList" hidden>
+        <button data-act="settings">Setări show</button>
+        <button data-act="home">Toate rundown-urile</button>
+        <button data-act="team" class="owner-only">Cine poate edita acest rundown</button>
+        <button data-act="export">Exportă JSON</button>
+        <button data-act="import">Importă JSON</button>
+        <button data-act="print">Printează</button>
+        <hr>
+        <button data-act="reset" class="danger">Revino la rundown-ul implicit</button>
+        <button data-act="signout" class="cloud-only">Deconectare</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-live="polite">
+    <article class="now card glass">
+      <div class="aurora" aria-hidden="true"></div>
+      <div class="label"><span class="dot"></span><span id="nowLabel">ACUM</span></div>
+      <h1 class="now-title" id="nowTitle">—</h1>
+      <div class="now-meta" id="nowMeta"></div>
+      <div class="now-timer">
+        <div class="big-time" id="nowRemain">--:--</div>
+        <div class="timer-side">
+          <div class="drift" id="drift"></div>
+          <div class="ends" id="nowEnds"></div>
+        </div>
+      </div>
+      <div class="progress"><span id="nowProgress"></span></div>
+      <p class="now-talk" id="nowTalk"></p>
+    </article>
+
+    <article class="next card glass">
+      <div class="aurora soft" aria-hidden="true"></div>
+      <div class="label">URMEAZĂ <span class="in" id="nextIn"></span></div>
+      <h2 class="next-title" id="nextTitle">—</h2>
+      <div class="next-cat" id="nextCat"></div>
+      <p class="next-talk" id="nextTalk"></p>
+      <div class="after" id="afterNext"></div>
+    </article>
+  </section>
+
+  <section class="toolbar">
+    <div class="filters" id="filters"></div>
+    <div class="toolbar-right">
+      <span class="total" id="totalInfo"></span>
+      <button class="btn small" id="btnComments">Comentarii <b id="cmtCount"></b></button>
+      <button class="btn small" id="btnAddHeader">+ Secțiune</button>
+      <button class="btn small" id="btnAddRow">+ Segment</button>
+    </div>
+  </section>
+
+  <section class="table-wrap">
+    <table class="rundown" id="rundown">
+      <thead>
+        <tr>
+          <th class="c-drag"></th>
+          <th class="c-num">#</th>
+          <th class="c-start">Start</th>
+          <th class="c-dur">Min</th>
+          <th class="c-title">Segment</th>
+          <th class="c-video">Video</th>
+          <th class="c-gfx">Grafică</th>
+          <th class="c-talk">Ce se spune</th>
+          <th class="c-who">Cine</th>
+          <th class="c-act"></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <p class="foot">Modificările se salvează automat în acest browser. Pentru alt calculator: ⋯ → Exportă JSON, apoi Importă JSON pe celălalt. Scurtături: <kbd>N</kbd> următorul segment în live, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> anulează.</p>
+</main>
+
+<aside class="drawer" id="drawer" hidden aria-label="Comentarii">
+  <div class="drawer-head">
+    <div><div class="label" id="drawerLabel">COMENTARII</div><div class="drawer-title" id="drawerTitle">Toate momentele</div></div>
+    <button class="icon" id="drawerClose" title="Închide">✕</button>
+  </div>
+  <div class="drawer-tools">
+    <button class="chip-btn" id="drawerAll">Toate</button>
+    <label class="chk"><input type="checkbox" id="showResolved"> Arată rezolvate</label>
+  </div>
+  <div class="cmt-list" id="cmtList"></div>
+  <form class="composer" id="composer">
+    <div class="kind" role="radiogroup" aria-label="Tip">
+      <label><input type="radio" name="kind" value="comment" checked> Comentariu</label>
+      <label><input type="radio" name="kind" value="text"> Sugestie pentru „Ce se spune”</label>
+    </div>
+    <textarea id="cmtText" rows="3" maxlength="4000" placeholder="Scrie aici…"></textarea>
+    <div class="composer-foot"><span class="hint" id="composerHint"></span><button class="btn primary small" id="cmtSend" type="submit">Trimite</button></div>
+  </form>
+  <div class="signin-box" id="signinBox" hidden>
+    <p>Conectează-te cu Google ca să comentezi.</p>
+    <button class="btn primary" data-signin type="button">Conectare cu Google</button>
+  </div>
+</aside>
+
+<dialog id="teamDlg" class="glass">
+  <form method="dialog">
+    <h3>Cine poate edita acest rundown</h3>
+    <p class="dlg-note">Un email Google pe rând. Ei editează rundown-ul și controlează Live-ul. Ceilalți care primesc linkul doar citesc și comentează. Tu, ca proprietar, poți edita oricum.</p>
+    <textarea name="emails" rows="6" placeholder="misu@exemplu.ro"></textarea>
+    <div class="invite-box">
+      <div class="invite-head"><b>Link de invitație</b><span>valabil 7 zile</span></div>
+      <p class="dlg-note">Cine deschide linkul și se conectează cu Google devine editor al acestui rundown.</p>
+      <label class="chk admin-only"><input type="checkbox" id="inviteTeam"> Poate porni și rundown-uri noi</label>
+      <div class="invite-row"><input id="inviteUrl" readonly placeholder="Apasă „Generează link”"><button type="button" class="btn small" id="inviteCopy" disabled>Copiază</button></div>
+      <div class="invite-row"><button type="button" class="btn small primary" id="inviteMake">Generează link</button><button type="button" class="btn small ghost" id="inviteRevoke">Dezactivează linkurile mele</button></div>
+    </div>
+    <div class="dlg-actions">
+      <button value="cancel" class="btn ghost">Renunță</button>
+      <button value="ok" class="btn primary">Salvează</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="settingsDlg" class="glass">
+  <form method="dialog">
+    <h3>Setări show</h3>
+    <label>Titlu <input name="title"></label>
+    <label>Data <input name="date" type="date"></label>
+    <label>Ora de start <input name="start" type="time"></label>
+    <label>Locația <input name="venue"></label>
+    <div class="dlg-actions">
+      <button value="cancel" class="btn ghost">Renunță</button>
+      <button value="ok" class="btn primary">Salvează</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="importFile" accept="application/json" hidden>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="sync.js?v=202611040403"></script>
+<script src="rundown-data.js?v=202611040403"></script>
+<script src="app.js?v=202611040403"></script>
+</body>
+</html>
