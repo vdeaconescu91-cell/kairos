@@ -6,7 +6,7 @@
 <title>Invitație · KAIROS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="home.css?v=202611040403">
+<link rel="stylesheet" href="home.css?v=202611042101">
 <style>
   .hero { min-height: 100vh; display: flex; flex-direction: column; }
   .box { margin-block: auto; padding-block: 40px 80px; max-width: 560px; display: grid; gap: 18px; }
@@ -19,7 +19,7 @@
 <header class="hero">
   <div class="aurora" id="aurora" aria-hidden="true"></div>
   <div class="wrap">
-    <nav class="nav"><a class="brand" href="./"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="2.6" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.8" fill="#fff"/></svg><span class="wordmark">KAIROS</span></a></nav>
+    <nav class="nav"><a class="brand" href="./"><canvas class="mark" data-kairos-orb data-detail="low" aria-hidden="true"></canvas><span class="wordmark">KAIROS</span></a></nav>
   </div>
   <div class="wrap box">
     <div class="eyebrow">Invitație în echipă</div>
@@ -70,5 +70,6 @@
   S.on("auth", run);
 })();
 </script>
+<script src="kairos-orb.js?v=202611042101"></script>
 </body>
 </html>

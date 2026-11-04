@@ -19,7 +19,7 @@ button,textarea,input { font:inherit; color:inherit; }
 .top { border-bottom:1px solid var(--line); background:radial-gradient(60% 120% at 50% 130%,rgba(79,134,255,.32),rgba(79,134,255,0) 70%),var(--bg); }
 .top .wrap { padding-block:24px 28px; display:grid; gap:16px; }
 .bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.bar svg { width:26px; height:26px; filter:drop-shadow(0 0 7px rgba(79,134,255,.7)); }
+.bar svg, .bar-orb { width:30px; height:30px; display:block; }
 .bar b { font-weight:600; font-size:14px; letter-spacing:.32em; color:var(--ice); }
 .acct { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
 .acct img { width:26px; height:26px; border-radius:50%; }
@@ -83,7 +83,7 @@ summary { cursor:pointer; }
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="bar"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="2.6" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.8" fill="#fff"/></svg><b>KAIROS</b>
+  <div class="bar"><canvas class="bar-orb" data-kairos-orb data-detail="low" aria-hidden="true"></canvas><b>KAIROS</b>
     <div class="acct" id="acct"></div></div>
   <div><h1 id="title">—</h1></div><div class="sub" id="sub"></div>
   <div class="facts" id="facts"></div>
@@ -185,5 +185,6 @@ summary { cursor:pointer; }
   renderAcct(); render();
 })();
 </script>
+<script src="kairos-orb.js?v=202611042101"></script>
 </body>
 </html>

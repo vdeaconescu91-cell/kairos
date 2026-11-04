@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>KAIROS</title>
-<meta name="description" content="KAIROS: rundown-uri live pentru show-uri și transmisiuni, cu timer comun, prompter și comentarii de la clienți.">
+<meta name="description" content="KAIROS: live rundowns for shows and broadcasts. One shared clock, a prompter for the hosts and notes from your clients.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="home.css?v=202611040403">
+<link rel="stylesheet" href="home.css?v=202611042101">
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%2303060f%22/%3E%3Cpath%20d%3D%22M27.8%207.2A15%2015%200%201%200%2034.6%2016%22%20fill%3D%22none%22%20stroke%3D%22%237aa5ff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2231.9%22%20cy%3D%2210.6%22%20r%3D%223%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
 </head>
 <body>
@@ -15,17 +15,23 @@
   <div class="aurora" id="aurora" aria-hidden="true"></div>
   <div class="wrap">
     <nav class="nav">
-      <a class="brand" href="./"><svg class="mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="2.6" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.8" fill="#fff"/></svg><span class="wordmark">KAIROS</span></a>
+      <a class="brand" href="./"><canvas class="mark" data-kairos-orb data-detail="low" aria-hidden="true"></canvas><span class="wordmark">KAIROS</span></a>
       <span class="sp"></span>
       <span id="navUser"></span>
     </nav>
-    <div class="lead">
-      <div class="eyebrow">Rundown live pentru show-uri</div>
-      <h1>Fiecare moment, la timp.</h1>
-      <p>Toată echipa vede același rundown și același timer, pe orice dispozitiv. Regia apasă „Următorul”, casterii citesc din prompter, iar clienții lasă comentarii pe fiecare moment.</p>
-      <div class="actions" id="heroActions">
-        <button class="btn primary" data-signin><span class="g"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 7.2-9.6 7.2-16.8z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.3-8.8 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg></span>Conectare cu Google</button>
+    <div class="hero-grid">
+      <div class="lead">
+        <div class="eyebrow">Live rundowns for shows and broadcasts</div>
+        <h1>Call the moment.</h1>
+        <p>Chronos counts the seconds. Kairos is the instant to act. KAIROS keeps your whole crew on it: one live rundown, one shared clock, a prompter for the hosts and notes from your clients, from stand-by to the last cue.</p>
+        <div class="actions" id="heroActions">
+          <button class="btn primary" data-signin><span class="g"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 7.2-9.6 7.2-16.8z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.3-8.8 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg></span>Sign in with Google</button>
+        </div>
       </div>
+      <figure class="orb-wrap">
+        <canvas class="orb-hero" data-kairos-orb aria-label="KAIROS"></canvas>
+        <figcaption><span class="gr">καιρός</span> <i>kairós</i> · Ancient Greek · the right moment, the instant to act</figcaption>
+      </figure>
     </div>
   </div>
 </header>
@@ -63,6 +69,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="kairos-orb.js?v=202611042101"></script>
 <script>window.KSYNC_MODE = "landing";</script>
 <script src="sync.js?v=202611040403"></script>
 <script>
@@ -97,7 +104,7 @@
     $("#heroActions").hidden = signed;
     $("#navUser").innerHTML = signed
       ? `<span class="who">${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${esc(S.user.name.charAt(0))}</i>`}<span>${esc(S.user.name.split(" ")[0])}</span></span> <button class="btn small ghost" id="btnOut">Ieșire</button>`
-      : `<button class="btn small" data-signin>Conectare</button>`;
+      : `<button class="btn small" data-signin>Sign in</button>`;
     const out = $("#btnOut"); if (out) out.onclick = () => S.signOut();
     $("#adminHead").hidden = $("#adminBox").hidden = !(signed && S.isAdmin);
     if (!signed) return;

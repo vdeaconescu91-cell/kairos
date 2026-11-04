@@ -333,3 +333,4 @@ tr:hover .cmt-btn, .cmt-btn.has { opacity: 1; }
 .invite-row input { flex: 1; min-width: 0; background: var(--panel-2); border: 1px solid var(--line-2); border-radius: 10px; padding: 8px 10px; color: var(--text); font: 12px var(--mono); }
 .admin-only { display: none !important; }
 body.is-admin .admin-only { display: inline-flex !important; }
+canvas.mark { width: 34px; height: 34px; flex: none; display: block; filter: none; }
