@@ -36,7 +36,7 @@
     g.clearRect(0, 0, S, S);
     g.globalCompositeOperation = "source-over";
     if (!low && p > 8.9) return { dis: 1, empty: true };
-    g.fillStyle = "#2b63f0";
+    g.fillStyle = "#123aa8";
     const dot = (x, y, r) => { if (r > 0.25) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); } };
 
     // intro: cerneala pornește ca o picătură în centru și se deschide spre cerc
@@ -86,10 +86,49 @@
     // nuanțe pe lichid: mai deschis sus-stânga, mai adânc jos
     g.globalCompositeOperation = "source-atop";
     const sh = g.createRadialGradient(c - R * 0.35, c - R * 0.45, 0, c, c, R * 1.1);
-    sh.addColorStop(0, "#cfe0ff"); sh.addColorStop(0.35, "#6f9bff"); sh.addColorStop(0.7, "#2f66f2"); sh.addColorStop(1, "#1238b8");
+    sh.addColorStop(0, "#5f86e8"); sh.addColorStop(0.35, "#1f4fd1"); sh.addColorStop(0.7, "#0f2f9e"); sh.addColorStop(1, "#0a1f6e");
     g.fillStyle = sh; g.fillRect(0, 0, S, S);
     g.globalCompositeOperation = "source-over";
     return { dis, empty: false, intro: low ? 0 : 1 - easeOut(clamp(p / 2.2)) };
+  }
+
+  /* ---------- voalurile și fisurile din cuarț (desenate o dată, apoi doar rotite) ---------- */
+  function buildInclusions(S) {
+    const cv = document.createElement("canvas"); cv.width = S; cv.height = S;
+    const g = cv.getContext("2d"), c = S / 2, R = S * 0.42;
+    g.save(); g.beginPath(); g.arc(c, c, R * 0.98, 0, TAU); g.clip();
+    // voaluri: benzi late, foarte transparente, ca niște pânze albe în cristal
+    g.filter = `blur(${S * 0.012}px)`;
+    for (let i = 0; i < 9; i++) {
+      const a = rnd(i * 13.1) * TAU, rr = R * (0.15 + 0.55 * rnd(i * 7.7));
+      const x = c + Math.cos(a) * rr, y = c + Math.sin(a) * rr, len = R * (0.35 + 0.5 * rnd(i * 3.3)), ang = rnd(i * 5.5) * Math.PI;
+      g.strokeStyle = `rgba(240,245,255,${0.08 + 0.14 * rnd(i * 9.1)})`; g.lineWidth = R * (0.05 + 0.12 * rnd(i * 2.9)); g.lineCap = "round";
+      g.beginPath(); g.moveTo(x - Math.cos(ang) * len / 2, y - Math.sin(ang) * len / 2);
+      g.quadraticCurveTo(x + Math.cos(ang + 1.2) * len * 0.25, y + Math.sin(ang + 1.2) * len * 0.25, x + Math.cos(ang) * len / 2, y + Math.sin(ang) * len / 2); g.stroke();
+    }
+    // fisuri: linii fine și moi, în câteva mănunchiuri, pe direcția unui curent
+    g.filter = `blur(${Math.max(0.5, S * 0.0012)}px)`;
+    for (let k = 0; k < 5; k++) {
+      const a = rnd(k * 21.7 + 3) * TAU, rr = R * (0.1 + 0.7 * rnd(k * 4.9 + 1));
+      const cx = c + Math.cos(a) * rr, cy = c + Math.sin(a) * rr, dir = rnd(k * 8.3 + 2) * Math.PI;
+      const n = 10 + Math.floor(rnd(k * 6.1) * 22);
+      for (let m = 0; m < n; m++) {
+        const off = (rnd(k * 100 + m) - 0.5) * R * 0.35, along = (rnd(k * 200 + m) - 0.5) * R * 0.3;
+        const x = cx + Math.cos(dir + 1.57) * off + Math.cos(dir) * along, y = cy + Math.sin(dir + 1.57) * off + Math.sin(dir) * along;
+        const l = R * (0.02 + 0.09 * rnd(k * 300 + m)), d2 = dir + (rnd(k * 400 + m) - 0.5) * 0.5;
+        g.strokeStyle = `rgba(250,252,255,${0.06 + 0.2 * rnd(k * 500 + m)})`; g.lineWidth = Math.max(0.5, S * 0.0012 * (0.5 + rnd(k * 600 + m)));
+        g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(d2) * l, y + Math.sin(d2) * l); g.stroke();
+      }
+    }
+    // praf fin, în suspensie
+    g.filter = "none";
+    for (let m = 0; m < 140; m++) {
+      const a = rnd(m * 1.7 + 900) * TAU, rr = R * Math.sqrt(rnd(m * 2.3 + 901)) * 0.95;
+      g.fillStyle = `rgba(255,255,255,${0.1 + 0.3 * rnd(m * 3.1 + 902)})`;
+      g.beginPath(); g.arc(c + Math.cos(a) * rr, c + Math.sin(a) * rr, Math.max(0.4, S * 0.0012 * rnd(m * 4.7 + 903) * 1.6), 0, TAU); g.fill();
+    }
+    g.restore();
+    return cv;
   }
 
   /* ---------- sfera ---------- */
@@ -101,12 +140,23 @@
     ctx.save();
     ctx.beginPath(); ctx.arc(c, c, R, 0, 6.2832); ctx.clip();
 
-    // sticla e transparentă: doar o urmă de volum pe margine (fresnel)
-    let g = ctx.createRadialGradient(c, c, R * 0.55, c, c, R);
-    g.addColorStop(0, "rgba(200,220,255,0)"); g.addColorStop(0.8, "rgba(200,220,255,.04)"); g.addColorStop(1, "rgba(200,220,255,.16)");
+    // lichidul lăptos, semitransparent: mai dens spre margini și jos, unde lumina se împrăștie
+    let g = ctx.createRadialGradient(c - R * 0.1, c - R * 0.15, R * 0.1, c, c + R * 0.1, R * 1.05);
+    g.addColorStop(0, "rgba(120,135,170,.05)"); g.addColorStop(0.5, "rgba(150,165,200,.1)"); g.addColorStop(0.82, "rgba(190,204,235,.24)"); g.addColorStop(1, "rgba(232,240,255,.52)");
+    ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
+    g = ctx.createLinearGradient(0, c - R, 0, c + R);
+    g.addColorStop(0, "rgba(255,255,255,0)"); g.addColorStop(0.6, "rgba(255,255,255,0)"); g.addColorStop(1, "rgba(215,225,250,.14)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
 
-    // lichidul albastru: strălucire difuză, apoi miezul; la dizolvare se umflă în fum și se stinge
+    // voalurile și fisurile din cuarț, care plutesc foarte încet
+    if (!low) {
+      if (!o.incl || o.incl.width !== S) o.incl = buildInclusions(S);
+      ctx.save(); ctx.translate(c, c); ctx.rotate(Math.sin(t * 0.05) * 0.12 + t * 0.01); ctx.translate(-c, -c);
+      ctx.globalAlpha = 0.6; ctx.drawImage(o.incl, 0, 0);
+      ctx.restore(); ctx.globalAlpha = 1;
+    }
+
+    // cerneala albastră: strălucire difuză, apoi miezul; la dizolvare se umflă în fum și se stinge
     const st = drawInk(inkCtx, S, t, low);
     if (!st.empty) {
       const d = st.dis, it = st.intro, sc = 1 + 0.07 * d;
@@ -116,6 +166,25 @@
       ctx.globalAlpha = 0.6 * (1 - d); ctx.filter = `blur(${Math.max(1, S * (0.012 + 0.03 * d) + soft)}px)`; put();
       ctx.globalAlpha = Math.pow(1 - d, 1.6) * (1 - 0.35 * it); ctx.filter = low ? `blur(${Math.max(0.3, S * 0.006)}px)` : `blur(${Math.max(0.6, soft + S * 0.02 * d)}px)`; put();
       ctx.filter = "none"; ctx.globalAlpha = 1;
+    }
+
+    // un văl subțire de lichid peste cerneală, ca să pară că e înăuntru, nu desenată pe sticlă
+    ctx.fillStyle = "rgba(200,212,238,.05)"; ctx.fillRect(0, 0, S, S);
+    if (!low && o.incl) {
+      ctx.save(); ctx.translate(c, c); ctx.rotate(-Math.sin(t * 0.04) * 0.08 - t * 0.006); ctx.scale(-1, 1); ctx.translate(-c, -c);
+      ctx.globalAlpha = 0.28; ctx.drawImage(o.incl, 0, 0);
+      ctx.restore(); ctx.globalAlpha = 1;
+    }
+
+    // pata de curcubeu din refracție, jos-stânga
+    if (!low) {
+      ctx.save(); ctx.globalCompositeOperation = "lighter"; ctx.filter = `blur(${S * 0.01}px)`;
+      ctx.translate(c - R * 0.58, c + R * 0.28); ctx.rotate(-1.1);
+      g = ctx.createLinearGradient(-R * 0.09, 0, R * 0.09, 0);
+      ["rgba(255,80,80,.0)", "rgba(255,120,80,.32)", "rgba(255,220,90,.32)", "rgba(90,255,150,.3)", "rgba(80,170,255,.32)", "rgba(170,100,255,.3)", "rgba(170,100,255,0)"]
+        .forEach((col, i, arr) => g.addColorStop(i / (arr.length - 1), col));
+      ctx.fillStyle = g; ctx.fillRect(-R * 0.09, -R * 0.03, R * 0.18, R * 0.06);
+      ctx.restore(); ctx.filter = "none";
     }
 
     // ---- cristalul ----
@@ -136,16 +205,27 @@
 
     // grosimea sticlei: margine luminoasă spre exterior, o bandă mai întunecată imediat în interior
     g = ctx.createRadialGradient(c, c, R * 0.68, c, c, R);
-    g.addColorStop(0, "rgba(200,220,255,0)"); g.addColorStop(0.82, "rgba(200,220,255,.05)"); g.addColorStop(0.93, "rgba(4,10,30,.22)"); g.addColorStop(0.975, "rgba(225,236,255,.22)"); g.addColorStop(1, "rgba(240,246,255,.5)");
+    g.addColorStop(0, "rgba(200,220,255,0)"); g.addColorStop(0.82, "rgba(200,220,255,.05)"); g.addColorStop(0.93, "rgba(4,10,30,.22)"); g.addColorStop(0.975, "rgba(225,236,255,.35)"); g.addColorStop(1, "rgba(245,249,255,.75)");
     ctx.fillStyle = g; ctx.fillRect(0, 0, S, S);
 
-    // reflexia mare, curbă, ca o fereastră în sticlă
-    g = ctx.createLinearGradient(c - R * 0.8, c - R * 0.8, c - R * 0.1, c - R * 0.1);
-    g.addColorStop(0, "rgba(255,255,255,.42)"); g.addColorStop(0.55, "rgba(255,255,255,.1)"); g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.filter = `blur(${Math.max(0.5, S * 0.007)}px)`;
-    ctx.fillStyle = g; arcBand(R * 0.73, R * 0.9, Math.PI * 1.08, Math.PI * 1.42); ctx.fill();
-    // un al doilea panou, mai subțire, lângă ea
-    ctx.fillStyle = "rgba(255,255,255,.1)"; arcBand(R * 0.66, R * 0.7, Math.PI * 1.12, Math.PI * 1.36); ctx.fill();
+    // secera luminoasă de pe marginea stângă, unde cristalul strânge lumina
+    ctx.save(); ctx.filter = `blur(${Math.max(0.5, S * 0.006)}px)`;
+    g = ctx.createLinearGradient(c - R, 0, c - R * 0.7, 0);
+    g.addColorStop(0, "rgba(255,255,255,.7)"); g.addColorStop(1, "rgba(255,255,255,0)");
+    ctx.fillStyle = g; arcBand(R * 0.8, R * 0.985, Math.PI * 0.62, Math.PI * 1.2); ctx.fill();
+    ctx.restore();
+
+    // reflexia mare, curbă, ca o fereastră în sticlă; se stinge treptat la capete
+    if (ctx.createConicGradient) {
+      g = ctx.createConicGradient(0, c, c);
+      g.addColorStop(0.52, "rgba(255,255,255,0)"); g.addColorStop(0.58, "rgba(255,255,255,.62)");
+      g.addColorStop(0.66, "rgba(255,255,255,.36)"); g.addColorStop(0.73, "rgba(255,255,255,0)");
+    } else {
+      g = "rgba(255,255,255,.18)";
+    }
+    ctx.filter = `blur(${Math.max(0.5, S * 0.008)}px)`;
+    ctx.fillStyle = g; arcBand(R * 0.74, R * 0.9, Math.PI * 1.02, Math.PI * 1.48); ctx.fill();
+    ctx.globalAlpha = 0.35; arcBand(R * 0.66, R * 0.7, Math.PI * 1.06, Math.PI * 1.42); ctx.fill(); ctx.globalAlpha = 1;
     ctx.filter = "none";
     // punctul de lumină
     ctx.save(); ctx.translate(c - R * 0.42, c - R * 0.52); ctx.rotate(-0.7);
