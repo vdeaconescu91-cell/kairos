@@ -6,26 +6,26 @@ window.TA_DEFAULT_RUNDOWN = {
   "show": {
     "title": "Turneul Artiștilor · Charity Padel Cup",
     "date": "2026-11-15",
-    "start": "15:00",
+    "start": "14:45",
     "venue": "Padel One București"
   },
   "items": [
     {
       "type": "header",
-      "title": "PRE-SHOW · 15:00–16:00"
+      "title": "PRE-SHOW · 14:45–16:00"
     },
     {
       "title": "Starting Soon",
-      "min": 10,
+      "min": 15,
       "cat": "grafica",
       "video": "Loop grafic, la final CAM 6 (sala larg)",
-      "gfx": "Starting Soon (countdown la 15:10), QR, sponsori",
-      "talk": "Fără voce. Muzică: TA_START_STREAM.",
+      "gfx": "Starting Soon (countdown la 15:00), QR, sponsori",
+      "talk": "Fără voce. Muzică: TA_START_STREAM_15min (se termină pe un hit fix la 15:00).",
       "who": "Regie: test audio/video, chat moderat"
     },
     {
       "title": "Deschiderea",
-      "min": 5,
+      "min": 7,
       "cat": "platforma",
       "video": "Stinger → CAM 6 sala → CAM 5 casterii",
       "gfx": "Lower third casteri (dublu), titlul evenimentului",
@@ -34,7 +34,7 @@ window.TA_DEFAULT_RUNDOWN = {
     },
     {
       "title": "Fundația Neuroatipic",
-      "min": 8,
+      "min": 10,
       "cat": "caritabil",
       "video": "CAM 5: casterii + reprezentantul fundației",
       "gfx": "PiP interviu (casteri), lower third reprezentant, pop-up Neuroatipic la final",
@@ -70,16 +70,16 @@ window.TA_DEFAULT_RUNDOWN = {
     },
     {
       "title": "Interviuri la terenuri",
-      "min": 9,
+      "min": 14,
       "cat": "interviu",
       "video": "CAM 4 cu Andrei; PiP T1/T4 la încălzire",
       "gfx": "PiP interviu (meci, WARM-UP), lower third artist",
-      "talk": "2 artiști din grupa A, 2–3 min fiecare: cum ți se pare grupa, de cine te temi, un mesaj pentru donații.",
+      "talk": "Artiști din grupa A, 2–3 min fiecare: cum ți se pare grupa, de cine te temi, un mesaj pentru donații. 3–4 interviuri, cu apel la donații între ele.",
       "who": "Andrei Niculae"
     },
     {
       "title": "Apel donații #1 + primul goal",
-      "min": 4,
+      "min": 5,
       "cat": "donatii",
       "video": "CAM 5",
       "gfx": "PiP interviu (grafică + casteri) cu bara de donații",
