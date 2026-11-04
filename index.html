@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TA Rundown</title>
+<meta name="description" content="Rundown live pentru Turneul Artiștilor · Charity Padel Cup">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='40%25' r='60%25'%3E%3Cstop offset='0' stop-color='%23cfe0ff'/%3E%3Cstop offset='.5' stop-color='%233d7bff'/%3E%3Cstop offset='1' stop-color='%23071a4d'/%3E%3C/radialGradient%3E%3C/defs%3E%3Crect width='64' height='64' rx='16' fill='url(%23g)'/%3E%3C/svg%3E">
+</head>
+<body>
+<div class="glow glow-a" aria-hidden="true"></div>
+<div class="glow glow-b" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="orb" aria-hidden="true"></span>
+    <div>
+      <div class="brand-title" id="showTitle">Turneul Artiștilor</div>
+      <div class="brand-sub" id="showMeta">15.11.2026 · Padel One</div>
+    </div>
+  </div>
+
+  <div class="clock" id="clock" title="Ora curentă">--:--:--</div>
+
+  <div class="controls">
+    <div class="seg" role="tablist" aria-label="Mod">
+      <button class="seg-btn" data-mode="plan" role="tab">Plan</button>
+      <button class="seg-btn" data-mode="live" role="tab">Live</button>
+    </div>
+    <button class="btn ghost" id="btnPrev" title="Segmentul anterior">◀</button>
+    <button class="btn primary" id="btnGo">Start show</button>
+    <button class="btn ghost" id="btnStop" title="Oprește modul live">■</button>
+    <button class="btn accent" id="btnPopup" title="Fereastră mereu deasupra cu ce urmează">Pop-up</button>
+    <div class="menu">
+      <button class="btn ghost" id="btnMenu" aria-haspopup="true">⋯</button>
+      <div class="menu-list" id="menuList" hidden>
+        <button data-act="settings">Setări show</button>
+        <button data-act="export">Exportă JSON</button>
+        <button data-act="import">Importă JSON</button>
+        <button data-act="print">Printează</button>
+        <hr>
+        <button data-act="reset" class="danger">Revino la rundown-ul implicit</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero" aria-live="polite">
+    <article class="now card glass">
+      <div class="label"><span class="dot"></span><span id="nowLabel">ACUM</span></div>
+      <h1 class="now-title" id="nowTitle">—</h1>
+      <div class="now-meta" id="nowMeta"></div>
+      <div class="now-timer">
+        <div class="big-time" id="nowRemain">--:--</div>
+        <div class="timer-side">
+          <div class="drift" id="drift"></div>
+          <div class="ends" id="nowEnds"></div>
+        </div>
+      </div>
+      <div class="progress"><span id="nowProgress"></span></div>
+      <p class="now-talk" id="nowTalk"></p>
+    </article>
+
+    <article class="next card glass">
+      <div class="label">URMEAZĂ <span class="in" id="nextIn"></span></div>
+      <h2 class="next-title" id="nextTitle">—</h2>
+      <div class="next-cat" id="nextCat"></div>
+      <p class="next-talk" id="nextTalk"></p>
+      <div class="after" id="afterNext"></div>
+    </article>
+  </section>
+
+  <section class="toolbar">
+    <div class="filters" id="filters"></div>
+    <div class="toolbar-right">
+      <span class="total" id="totalInfo"></span>
+      <button class="btn small" id="btnAddHeader">+ Secțiune</button>
+      <button class="btn small" id="btnAddRow">+ Segment</button>
+    </div>
+  </section>
+
+  <section class="table-wrap">
+    <table class="rundown" id="rundown">
+      <thead>
+        <tr>
+          <th class="c-drag"></th>
+          <th class="c-num">#</th>
+          <th class="c-start">Start</th>
+          <th class="c-dur">Min</th>
+          <th class="c-title">Segment</th>
+          <th class="c-video">Video</th>
+          <th class="c-gfx">Grafică</th>
+          <th class="c-talk">Ce se spune</th>
+          <th class="c-who">Cine</th>
+          <th class="c-act"></th>
+        </tr>
+      </thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </section>
+
+  <p class="foot">Modificările se salvează automat în acest browser. Pentru alt calculator: ⋯ → Exportă JSON, apoi Importă JSON pe celălalt. Scurtături: <kbd>N</kbd> următorul segment în live, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> anulează.</p>
+</main>
+
+<dialog id="settingsDlg" class="glass">
+  <form method="dialog">
+    <h3>Setări show</h3>
+    <label>Titlu <input name="title"></label>
+    <label>Data <input name="date" type="date"></label>
+    <label>Ora de start <input name="start" type="time"></label>
+    <label>Locația <input name="venue"></label>
+    <div class="dlg-actions">
+      <button value="cancel" class="btn ghost">Renunță</button>
+      <button value="ok" class="btn primary">Salvează</button>
+    </div>
+  </form>
+</dialog>
+
+<input type="file" id="importFile" accept="application/json" hidden>
+
+<script src="rundown-data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
