@@ -422,8 +422,22 @@
       $("#nextTitle").textContent = "—"; $("#nextCat").innerHTML = ""; $("#nextTalk").textContent = ""; $("#nextIn").textContent = ""; $("#afterNext").innerHTML = "";
     }
 
+    const curKey = pos.cur ? pos.cur.id : pos.mode;
+    if (lastCurKey !== null && curKey !== lastCurKey) playMorph(pos.cur ? pos.cur.title : pos.mode === "post" ? "Mulțumim!" : "");
+    lastCurKey = curKey;
+
     markRows(pos);
     renderPopup(pos);
+  }
+
+  let lastCurKey = null;
+  function playMorph(text) {
+    const m = $("#morph"); if (!m || !text) return;
+    $("#morphText").textContent = text.length > 42 ? text.slice(0, 40) + "…" : text;
+    m.classList.remove("play"); void m.offsetWidth; m.classList.add("play");
+    const a = $(".now .aurora"); if (a) { a.classList.add("flash"); setTimeout(() => a.classList.remove("flash"), 1600); }
+    setTimeout(() => m.classList.remove("play"), 2200);
+    if (popupWin && !popupWin.closed) { const b = popupWin.document.body; b.classList.remove("flip"); void b.offsetWidth; b.classList.add("flip"); }
   }
 
   function fmtDate() { const [y, m, d] = (state.show.date || "").split("-"); return d ? `${d}.${m}.${y}` : ""; }
@@ -445,7 +459,9 @@
     .talk{font-size:clamp(14px,4.2vw,19px);line-height:1.45;color:#e6eaf3;margin:10px 0 0;white-space:pre-wrap}
     .chip{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:2px 9px;border-radius:999px;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--cc);border:1px solid color-mix(in srgb,var(--cc) 45%,transparent);background:color-mix(in srgb,var(--cc) 14%,transparent)}
     .meta{font-size:12px;color:#8a93a6}.drift.late{color:#ff4d5e}.drift.early{color:#6ee7a8}
-    .clock{font-family:"JetBrains Mono",monospace;color:#d6e4ff}`;
+    .clock{font-family:"JetBrains Mono",monospace;color:#d6e4ff}
+    body.flip>*{animation:pflip 1.1s cubic-bezier(.22,.8,.25,1)}
+    @keyframes pflip{0%{opacity:0;filter:blur(14px);transform:scale(.97)}100%{opacity:1;filter:blur(0);transform:none}}`;
 
   const CAT_HEX = { live: "#3d7bff", interviu: "#a78bfa", grafica: "#22d3ee", platforma: "#dfe5f2", caritabil: "#f472b6", ing: "#ff6200", donatii: "#e4f53b", giveaway: "#34d399", pauza: "#6b7280" };
 
@@ -570,6 +586,21 @@
     if (e.key === "b" || e.key === "B") prev();
     if (e.key === "p" || e.key === "P") openPopup();
   });
+
+  /* ---------------- aurora (fundalul cardurilor de sus) ---------------- */
+  function buildAurora(el, seed) {
+    let r = seed;
+    const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; };
+    let html = "";
+    for (let i = 0; i < 16; i++) {
+      const x = (i / 16) * 100 + rnd() * 5 - 2;
+      const w = 18 + rnd() * 70, b = 6 + rnd() * 16, o = (0.35 + rnd() * 0.6).toFixed(2);
+      const d = (6 + rnd() * 9).toFixed(1), p = (4 + rnd() * 6).toFixed(1), dl = (-rnd() * 10).toFixed(1);
+      html += `<span class="beam" style="--x:${x.toFixed(1)}%;--w:${w.toFixed(0)}px;--b:${b.toFixed(0)}px;--o:${o};--d:${d}s;--p:${p}s;--dl:${dl}s"></span>`;
+    }
+    el.innerHTML = html;
+  }
+  $$(".aurora").forEach((el, i) => buildAurora(el, 17 + i * 101));
 
   /* ---------------- pornire ---------------- */
   function renderAll() {
