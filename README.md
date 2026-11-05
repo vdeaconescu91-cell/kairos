@@ -1,47 +1,31 @@
-# KAIROS · Rundown
+# KAIROS
 
-Pagini:
-- `index.html`: pagina de start. Te conectezi cu Google, vezi rundown-urile tale, pornești unul nou.
-- `rundown.html?id=…`: editorul, cu modurile Plan / Live, pop-up și prompter.
-- `client.html?id=…`: pagina pentru clienți, unde citesc rundown-ul și lasă comentarii.
-- `join.html?t=…`: linkul de invitație. Cine îl acceptă devine editor al rundown-ului.
+Rundown live pentru show-uri și transmisiuni: timer comun pentru toată echipa, mod Live, pop-up mereu deasupra, prompter, comentarii de la clienți.
 
-Regulile de acces din Firebase sunt în `firestore.rules`.
+Live: https://vdeaconescu91-cell.github.io/ta-rundown/
 
-Rundown live pentru **Turneul Artiștilor · Charity Padel Cup** (15.11.2026, Padel One București), după modelul Rundown Studio, cu un design inspirat din AICA.
-
-## Ce face
-- **Rundown editabil direct în tabel.** Fiecare celulă se editează direct. Pentru durată se scriu minutele, iar orele de start se recalculează singure. Rândurile se mută trăgând de mânerul ⋮⋮. Se pot adăuga segmente și secțiuni, se pot duplica și șterge, iar orice modificare se anulează cu Ctrl+Z.
-- **Plan.** Aplicația arată segmentul curent după ceas, pe baza orei de start a show-ului.
-- **Live.** Butonul *Start show* pornește cronometrul, iar *Următorul ▶* (sau tasta `N`) trece la segmentul următor. Aplicația arată:
-  - timpul rămas din segment, galben în ultimul minut și roșu când segmentul a depășit timpul;
-  - cât de în urmă sau de înainte e show-ul față de plan.
-
-  Comutatorul **Auto / Manual** decide ce se întâmplă când timerul ajunge la zero:
-  - **Auto:** se trece singur la segmentul următor, exact la ora planificată, deci întârzierile nu se adună.
-  - **Manual:** timerul trece pe minus și se face roșu până când regia apasă „Următorul”.
-- **Pop-up (tasta `P`).** E o fereastră mică, mereu deasupra celorlalte, cu:
-  - momentul de acum: timerul mare și ce se spune;
-  - jos, o bandă mică cu ce urmează și în cât timp.
-
-  Pop-up-ul are și **prompter**, pornit din butonul PROMPTER sau tasta `T`. Prompterul derulează scriptul segmentului (câmpul „script pentru prompter” din tabel), iar dacă segmentul n-are script, derulează notițele. Comenzile din pop-up:
-  - `Space`: pornește sau oprește derularea;
-  - `↑` / `↓`: viteza;
-  - `+` / `−`: mărimea textului;
-  - `R`: înapoi la început;
-  - `M`: text oglindit, pentru ecran cu sticlă;
-  - `N`: segmentul următor.
-
-  În Chrome și Edge rămâne deasupra oricărei aplicații (Document Picture-in-Picture). În alte browsere se deschide ca fereastră obișnuită.
-- **Filtre** pe tipuri de segment: meci live, interviu, grafică, platformă, caritabil, ING, donații, giveaway, pauză.
-- **Export / import JSON** și **print**, din meniul ⋯.
-
-## Unde se salvează
-În browserul în care lucrezi (localStorage). Tab-urile deschise în același browser se sincronizează între ele.
-Între calculatoare diferite nu există sincronizare: rundown-ul se mută prin **⋯ → Exportă JSON**, iar pe celălalt calculator prin **Importă JSON**.
+## Pagini
+| Pagina | Ce face |
+|---|---|
+| `index.html` | Pagina de start. Te conectezi cu Google, vezi rundown-urile la care ai acces, pornești unul nou. |
+| `rundown.html?id=…` | Editorul: tabelul, modurile Plan / Live, Auto / Manual, pop-up (`P`) și prompter (`T`). |
+| `client.html?id=…` | Pagina pentru clienți. Citesc rundown-ul și lasă comentarii; fiecare își vede doar comentariile lui. |
+| `join.html?t=…` | Linkul de invitație. Cine îl acceptă devine editor al rundown-ului (sau al echipei). |
 
 ## Fișiere
-- `index.html`, `styles.css`, `app.js`: aplicația, fără build și fără dependențe.
-- `rundown-data.js`: rundown-ul implicit, cel care se încarcă la prima deschidere sau din **⋯ → Revino la rundown-ul implicit**.
+| Fișier | Rol |
+|---|---|
+| `app.js` | Logica editorului: tabel, Live, pop-up, prompter, comentarii, invitații |
+| `sync.js` | Firebase: login, rundown-uri, Live comun, comentarii, invitații, ora serverului |
+| `styles.css`, `home.css` | Stiluri pentru editor, respectiv pentru paginile de start/invitație |
+| `kairos-sphere.js` | Sfera de sticlă în WebGL (hero) |
+| `kairos-orb.js` | Varianta 2D a sferei, pentru browserele fără WebGL |
+| `rundown-data.js` | Rundown-ul implicit (Turneul Artiștilor, 15.11.2026) |
+| `firestore.rules` | Regulile de acces din Firebase. Se publică manual din consola Firebase. |
+| `brand/` | Wordmark-ul și favicon-urile |
+| `preview.html`, `tools/build-preview.js` | Previzualizare statică a rundown-ului (generată) |
 
-Se deschide direct `index.html` în browser sau se publică pe GitHub Pages.
+## Cum se publică
+Push pe `main` → GitHub Pages publică în ~1 minut. Fișierele CSS/JS au `?v=AAAALLZZOOMM` în linkuri; schimbă versiunea când le modifici, altfel browserele țin varianta veche. Paginile HTML pot rămâne în cache ~10 minute (Ctrl+Shift+R).
+
+Nu există build și nici dependențe instalate: Firebase se încarcă de pe CDN (compat SDK 10.14.1).
