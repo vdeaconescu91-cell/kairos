@@ -2,7 +2,7 @@
 
 Rundown live pentru show-uri și transmisiuni: timer comun pentru toată echipa, mod Live, pop-up mereu deasupra, prompter, comentarii de la clienți.
 
-Live: https://vdeaconescu91-cell.github.io/ta-rundown/
+Live: https://vdeaconescu91-cell.github.io/kairos/
 
 ## Pagini
 | Pagina | Ce face |
