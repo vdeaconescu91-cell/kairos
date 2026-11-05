@@ -334,3 +334,6 @@ tr:hover .cmt-btn, .cmt-btn.has { opacity: 1; }
 .admin-only { display: none !important; }
 body.is-admin .admin-only { display: inline-flex !important; }
 canvas.mark { width: 34px; height: 34px; flex: none; display: block; filter: none; }
+
+.wordmark-img { height: 22px; width: auto; display: block; flex: none; }
+.bar .wordmark-img { height: 16px; }

@@ -6,7 +6,7 @@
 <title>KAIROS · Preview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2040%2040%22%3E%3Crect%20width%3D%2240%22%20height%3D%2240%22%20rx%3D%2210%22%20fill%3D%22%2303060f%22/%3E%3Cpath%20d%3D%22M27.8%207.2A15%2015%200%201%200%2034.6%2016%22%20fill%3D%22none%22%20stroke%3D%22%237aa5ff%22%20stroke-width%3D%223%22%20stroke-linecap%3D%22round%22/%3E%3Ccircle%20cx%3D%2231.9%22%20cy%3D%2210.6%22%20r%3D%223%22%20fill%3D%22%23fff%22/%3E%3C/svg%3E">
+<link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 <style>
 /* o coloană de citit, ora în stânga ca pe un rundown tipărit; același look întunecat ca aplicația */
 :root { --bg:#04060c; --panel:#0b0f1a; --line:#1c2333; --fg:#eef1f7; --muted:#8c95a8; --blue:#4f86ff; --ice:#d6e4ff;
@@ -79,11 +79,12 @@ summary { cursor:pointer; }
 .toast { position:fixed; left:50%; bottom:max(20px,env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:#121828; border:1px solid #2a3550; border-radius:999px; padding:9px 16px; font-size:13px; z-index:9; }
 [hidden] { display:none !important; }
 @media (max-width:520px){ .seg { grid-template-columns:1fr; gap:8px; } .when { display:flex; gap:10px; align-items:baseline; } }
+.wordmark-img { height: 16px; width: auto; display: block; flex: none; }
 </style>
 </head>
 <body>
 <header class="top"><div class="wrap">
-  <div class="bar"><canvas class="bar-orb" data-kairos-orb data-detail="low" aria-hidden="true"></canvas><b>KAIROS</b>
+  <div class="bar"><img class="wordmark-img" src="brand/wordmark.svg?v=202611050530" alt="KAIROS">
     <div class="acct" id="acct"></div></div>
   <div><h1 id="title">—</h1></div><div class="sub" id="sub"></div>
   <div class="facts" id="facts"></div>
