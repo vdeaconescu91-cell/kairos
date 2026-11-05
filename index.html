@@ -7,7 +7,7 @@
 <meta name="description" content="KAIROS: live rundowns for shows and broadcasts. One shared clock, a prompter for the hosts and notes from your clients.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="home.css?v=202611050530">
+<link rel="stylesheet" href="home.css?v=202611050630">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
@@ -89,6 +89,24 @@
   function toast(m) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); } t.textContent = m; clearTimeout(toast.t); toast.t = setTimeout(() => t.remove(), 2800); }
   const endTime = (s) => { const [H, M] = (s.show.start || "00:00").split(":").map(Number); const t = H * 60 + M + (s.minutes || 0); return `${pad(Math.floor(t / 60) % 24)}:${pad(t % 60)}`; };
   const fmtDate = (d) => { if (!d) return "fără dată"; const [y, m, dd] = d.split("-"); return `${dd}.${m}.${y}`; };
+  // ora de start a show-ului, în ora locală a browserului
+  const startMs = (s) => { if (!s.show.date) return ""; const [y, m, d] = s.show.date.split("-").map(Number); const [H, M] = (s.show.start || "00:00").split(":").map(Number); return new Date(y, m - 1, d, H, M).getTime(); };
+  const now = () => (S && S.now ? S.now() : Date.now());
+  function tickCountdowns() {
+    document.querySelectorAll(".card .cd").forEach((el) => {
+      const st = Number(el.dataset.start), en = Number(el.dataset.end);
+      if (!st) { el.textContent = ""; el.className = "cd"; return; }
+      const t = now();
+      if (t >= en && en > st) { el.textContent = "Show încheiat"; el.className = "cd done"; return; }
+      if (t >= st) { el.textContent = "LIVE acum"; el.className = "cd live"; return; }
+      let r = Math.floor((st - t) / 1000);
+      const dd = Math.floor(r / 86400); r %= 86400;
+      const hh = Math.floor(r / 3600), mm = Math.floor((r % 3600) / 60), ss = r % 60;
+      el.innerHTML = `Începe în <b>${dd ? dd + "z " : ""}${pad(hh)}:${pad(mm)}:${pad(ss)}</b>`;
+      el.className = "cd" + (st - t < 3600000 ? " soon" : "");
+    });
+  }
+  setInterval(tickCountdowns, 1000);
   const ago = (ms) => { if (!ms) return ""; const s = (Date.now() - ms) / 1000 | 0; return s < 60 ? "acum" : s < 3600 ? `acum ${s / 60 | 0} min` : s < 86400 ? `acum ${s / 3600 | 0} h` : `acum ${s / 86400 | 0} zile`; };
 
   function roleOf(s) {
@@ -116,7 +134,7 @@
         ${role ? `<span class="role">${ROLE[role]}</span>` : ""}
         <h3>${esc(s.show.title || "Fără nume")}</h3>
         <div class="facts"><span><b>${esc(fmtDate(s.show.date))}</b></span><span><b>${esc(s.show.start || "--:--")} – ${endTime(s)}</b></span><span>${s.segments} momente</span>${s.show.venue ? `<span>${esc(s.show.venue)}</span>` : ""}</div>
-        <div class="foot"><span>${s.updatedAt ? `modificat ${esc(ago(s.updatedAt))}` : ""}</span>
+        <div class="foot"><span class="cd" data-start="${startMs(s)}" data-end="${startMs(s) + (s.minutes || 0) * 60000}"></span>
           <span class="links"><a href="${href}">Deschide</a><a href="client.html?id=${encodeURIComponent(s.id)}" target="_blank" rel="noopener" title="Pagina pentru clienți">Clienți</a></span></div>
       </div>`;
     });
@@ -124,6 +142,7 @@
     $("#grid").innerHTML = (canCreate ? `<button class="card new" id="btnNew" type="button"><span class="plus">+</span><b>Rundown nou</b><span>gol sau copiat după unul existent</span></button>` : "")
       + (cards.join("") || (canCreate ? "" : `<p class="empty">Nu ai încă acces la niciun rundown. Cere un link de invitație de la cine organizează show-ul.</p>`));
     const nb = $("#btnNew"); if (nb) nb.onclick = openNew;
+    tickCountdowns();
   }
 
   function openNew() {
