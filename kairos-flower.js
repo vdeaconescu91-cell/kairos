@@ -7,7 +7,7 @@
   const cv = document.getElementById("flower"), panel = document.getElementById("aRight"), stage = document.querySelector(".login");
   if (!cv || !panel || !stage) return;
   const ctx = cv.getContext("2d");
-  const N = 32, BLOOM = 3.6, DELAY = .35, CELL = 4, Q = CELL / 8;   // glifele la jumătate față de prima versiune
+  const N = 32, BLOOM = 3.6, DELAY = .35, CELL = 7, Q = CELL / 8;   // glife aproape de mărimea din referință; benzile le lasă loc imaginii
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const frames = Array.from({ length: N }, (_, i) => { const im = new Image(); im.src = `hero/fl_${String(i).padStart(2, "0")}.webp`; return im; });
   const small = document.createElement("canvas"), sx = small.getContext("2d", { willReadFrequently: true });
@@ -27,7 +27,7 @@
     small.width = cols; small.height = rows;
     last = -1;
   }
-  const BAND = 4, RUN = 9;   // înălțimea unei benzi (rânduri de glife) și lungimea unui segment (coloane)
+  const BAND = 3, RUN = 6;   // înălțimea unei benzi (rânduri de glife) și lungimea unui segment (coloane)
   // copiile colorate pentru aberația cromatică, refăcute doar când se schimbă cadrul
   const tintM = document.createElement("canvas"), tintC = document.createElement("canvas"); let tintIdx = -1;
   function tintFrame(im) {
