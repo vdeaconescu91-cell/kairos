@@ -7,7 +7,7 @@
   const cv = document.getElementById("flower"), panel = document.getElementById("aRight"), stage = document.querySelector(".login");
   if (!cv || !panel || !stage) return;
   const ctx = cv.getContext("2d");
-  const NB = 72, NW = 60, BLOOM = 11, DELAY = .6, WIND_FPS = 10;   // bucla de vânt: 6 s
+  const NB = 72, NW = 60, BLOOM = 11, DELAY = .6, WIND_FPS = 7.5;   // bucla de vânt: 8 s, o adiere abia vizibilă
   const SW = 416, SH = 576;                                        // mărimea cadrelor randate
   const CELL = 7, Q = CELL / 8, BAND = 3, RUN = 6;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
