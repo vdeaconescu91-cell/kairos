@@ -54,14 +54,14 @@
     last = now;
     ctx.clearRect(0, 0, W, H);
     // imaginea de bază (cadrele au fundal transparent), cu aberație cromatică: o copie magenta la stânga, una cyan la dreapta
-    const iw = Math.min(H * (520 / 720), W * 1.4), ih = iw * (720 / 520), ix = (W - iw) / 2;
+    const iw = Math.min(H * (520 / 720), W * 1.12), ih = iw * (720 / 520), ix = (W - iw) / 2, iy = top * .15;   // capul florii iese puțin peste marginea de sus
     if (tintIdx !== idx) { tintFrame(im); tintIdx = idx; }
-    ctx.globalAlpha = .72; ctx.drawImage(im, ix, 0, iw, ih);
+    ctx.globalAlpha = .72; ctx.drawImage(im, ix, iy, iw, ih);
     ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = .55;
-    ctx.drawImage(tintM, ix - 3, 0, iw, ih); ctx.drawImage(tintC, ix + 3, 1, iw, ih);
+    ctx.drawImage(tintM, ix - 3, iy, iw, ih); ctx.drawImage(tintC, ix + 3, iy + 1, iw, ih);
     ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
     // glifele: doar în benzi orizontale (rânduri de „text” întrerupte), doar pe zonele luminoase și doar în interiorul casetei
-    sx.clearRect(0, 0, cols, rows); sx.drawImage(im, ix / CELL, 0, iw / CELL, ih / CELL);
+    sx.clearRect(0, 0, cols, rows); sx.drawImage(im, ix / CELL, iy / CELL, iw / CELL, ih / CELL);
     const d = sx.getImageData(0, 0, cols, rows).data;
     const r0 = Math.ceil(top / CELL), r1 = Math.min(rows, Math.floor((top + ph) / CELL));
     const seed = Math.floor(now / 90), bandSeed = Math.floor(now / 700);           // benzile se schimbă mai rar decât sclipirea
