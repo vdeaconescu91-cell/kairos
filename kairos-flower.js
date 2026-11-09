@@ -27,6 +27,7 @@
     small.width = cols; small.height = rows;
     last = -1;
   }
+  const PAL = [[255, 125, 205], [255, 214, 120], [175, 125, 255], [120, 210, 255], [255, 125, 205]];   // roz, galben, mov, bleu
   const easeOut = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
 
   function draw(now) {
@@ -44,12 +45,19 @@
     ctx.clearRect(0, 0, W, H);
     // imaginea de bază, cu o separare de culori discretă
     // cadrele au deja fundalul transparent (negrul randării a fost transformat în alfa)
-    const iw = H * (520 / 720), ix = (W - iw) / 2;                    // imaginea ocupă toată înălțimea, centrată
-    ctx.globalAlpha = .5; ctx.drawImage(im, ix, 0, iw, H);
-    ctx.globalAlpha = .14; ctx.drawImage(im, ix + 2.5, 0, iw, H); ctx.drawImage(im, ix - 2.5, 1, iw, H);
+    const iw = Math.min(H * (520 / 720), W * 1.25), ih = iw * (720 / 520), ix = (W - iw) / 2;   // floarea deschisă e lată: încape pe lățime                    // imaginea ocupă toată înălțimea, centrată
+    ctx.globalAlpha = .8; ctx.drawImage(im, ix, 0, iw, ih);
+    ctx.globalAlpha = .14; ctx.drawImage(im, ix + 2.5, 0, iw, ih); ctx.drawImage(im, ix - 2.5, 1, iw, ih);
+    // irizare peste floare: pete roz, galben, mov și bleu care se plimbă încet (doar unde e floarea)
+    const tt = now / 6000;
+    ctx.globalCompositeOperation = "source-atop"; ctx.globalAlpha = .5;
+    const gx = W * (.5 + .35 * Math.cos(tt)), gy = H * (.42 + .2 * Math.sin(tt * .8));
+    const gr = ctx.createLinearGradient(W - gx, H - gy, gx, gy);
+    gr.addColorStop(0, "rgb(255,120,200)"); gr.addColorStop(.33, "rgb(255,214,120)"); gr.addColorStop(.66, "rgb(170,120,255)"); gr.addColorStop(1, "rgb(120,210,255)");
+    ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
     ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
     // glifele, doar în interiorul cardului
-    sx.clearRect(0, 0, cols, rows); sx.drawImage(im, ix / CELL, 0, iw / CELL, rows);
+    sx.clearRect(0, 0, cols, rows); sx.drawImage(im, ix / CELL, 0, iw / CELL, ih / CELL);
     const d = sx.getImageData(0, 0, cols, rows).data;
     const r0 = Math.ceil(top / CELL), r1 = Math.min(rows, Math.floor((top + ph) / CELL));   // glifele doar în interiorul casetei
     const seed = Math.floor(now / 90);
@@ -59,12 +67,15 @@
         const L = (r * .3 + g * .55 + b * .15) / 255;
         if (L < .2) continue;
         const h = ((x * 73856093) ^ (y * 19349663) ^ (seed * 83492791)) >>> 0;
-        if ((h % 100) < 18) continue;                                  // sclipire: unele celule lipsesc în fiecare cadru
+        if ((h % 100) < 34) continue;                                  // sclipire: unele celule lipsesc în fiecare cadru
         const cx = x * CELL + CELL / 2, cy = y * CELL + CELL / 2;
         const lift = Math.min(1, L * 1.7);
-        const tint = (h >> 4) % 10;                                       // irizare: câteva celule bat în cyan sau liliachiu
-        ctx.fillStyle = tint === 0 ? `rgba(130,235,255,${.55 + L * .45})` : tint === 1 ? `rgba(205,160,255,${.55 + L * .45})`
-          : `rgb(${Math.round(r + (255 - r) * lift * .8)},${Math.round(g + (255 - g) * lift * .75)},${Math.round(b + (255 - b) * lift * .6)})`;
+        // culoarea glifei: un câmp care curge încet prin paleta roz → galben → mov → bleu, deschis spre alb unde e lumină
+        const f = (Math.sin(x * .045 + tt * 2) + Math.sin(y * .035 - tt * 1.4) + Math.sin((x + y) * .02 + tt)) / 3 * .5 + .5;
+        const p = f * (PAL.length - 1), i0 = Math.floor(p), i1 = Math.min(PAL.length - 1, i0 + 1), m = p - i0;
+        const c0 = PAL[i0], c1 = PAL[i1], wl = lift * .3 + ((h >> 4) % 9 === 0 ? .35 : 0);
+        const cr = c0[0] + (c1[0] - c0[0]) * m, cg = c0[1] + (c1[1] - c0[1]) * m, cb = c0[2] + (c1[2] - c0[2]) * m;
+        ctx.fillStyle = `rgba(${Math.round(cr + (255 - cr) * wl)},${Math.round(cg + (255 - cg) * wl)},${Math.round(cb + (255 - cb) * wl)},${.4 + L * .5})`;
         ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = .75;
         const kind = L < .32 ? 0 : L < .46 ? 1 : L < .6 ? 2 : L < .74 ? 3 : 4;
         const pick = (h >> 8) % 7 === 0 ? (kind + 1) % 5 : kind;        // câteva glife „greșite”, ca în ASCII-ul adevărat
