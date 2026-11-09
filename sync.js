@@ -257,13 +257,17 @@
     return String(s || "rundown").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
       .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "rundown";
   }
-  async function createShow({ title, date, start, venue, copyFrom }) {
+  async function createShow({ title, date, start, venue, copyFrom, items }) {
     if (!K.user) throw new Error("not_signed_in");
     const id = `${slug(title)}-${Math.random().toString(36).slice(2, 8)}`;
     let order = [], map = {};
     if (copyFrom) {
       const src = await showsCol.doc(copyFrom).get();
       if (src.exists) { order = src.get("order") || []; map = src.get("items") || {}; }
+    }
+    if (!order.length && Array.isArray(items) && items.length) {
+      // rundown importat dintr-un fișier
+      for (const it of items.slice(0, 600)) { const k = Math.random().toString(36).slice(2, 10); order.push(k); map[k] = it; }
     }
     if (!order.length) {
       const h = Math.random().toString(36).slice(2, 10), s1 = Math.random().toString(36).slice(2, 10);

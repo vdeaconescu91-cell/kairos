@@ -108,6 +108,7 @@ void main(){
   function sizeOf(o) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const css = o.el.clientWidth || 32;
+    if (o.el.dataset.detail !== "low") o.small = css < 80;          // canvas-ul poate fi ascuns la încărcare
     let px = Math.round(css * dpr * (o.small ? 1 : budget));
     px = Math.max(24, Math.min(px, o.small ? 96 : 900));
     if (o.el.width !== Math.round(css * dpr)) { o.el.width = Math.round(css * dpr); o.el.height = Math.round(css * dpr); }
