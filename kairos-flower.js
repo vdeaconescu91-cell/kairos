@@ -99,6 +99,9 @@
     ctx.fillStyle = gt; ctx.fillRect(0, 0, W, top);
     const gb = ctx.createLinearGradient(0, top + ph, 0, H); gb.addColorStop(0, "rgba(0,0,0,.45)"); gb.addColorStop(1, "rgba(0,0,0,1)");
     ctx.fillStyle = gb; ctx.fillRect(0, top + ph, W, H - top - ph);
+    // tulpinile se sting înainte de capătul imaginii, ca să nu se vadă o tăietură dreaptă
+    const ie = iy + ih, ge = ctx.createLinearGradient(0, ie - 110, 0, ie); ge.addColorStop(0, "rgba(0,0,0,0)"); ge.addColorStop(1, "rgba(0,0,0,1)");
+    ctx.fillStyle = ge; ctx.fillRect(0, ie - 110, W, H - ie + 110);
     ctx.globalCompositeOperation = "source-over";
   }
   function loop(now) { draw(now); requestAnimationFrame(loop); }
