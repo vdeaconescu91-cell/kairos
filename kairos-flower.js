@@ -7,7 +7,7 @@
   const cv = document.getElementById("flower"), panel = document.getElementById("aRight"), stage = document.querySelector(".login");
   if (!cv || !panel || !stage) return;
   const ctx = cv.getContext("2d");
-  const N = 32, BLOOM = 3.6, DELAY = .35, CELL = 8;
+  const N = 32, BLOOM = 3.6, DELAY = .35, CELL = 4, Q = CELL / 8;   // glifele la jumătate față de prima versiune
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const frames = Array.from({ length: N }, (_, i) => { const im = new Image(); im.src = `hero/fl_${String(i).padStart(2, "0")}.webp`; return im; });
   const small = document.createElement("canvas"), sx = small.getContext("2d", { willReadFrequently: true });
@@ -65,15 +65,15 @@
         const tint = (h >> 4) % 10;                                       // irizare: câteva celule bat în cyan sau liliachiu
         ctx.fillStyle = tint === 0 ? `rgba(130,235,255,${.55 + L * .45})` : tint === 1 ? `rgba(205,160,255,${.55 + L * .45})`
           : `rgb(${Math.round(r + (255 - r) * lift * .8)},${Math.round(g + (255 - g) * lift * .75)},${Math.round(b + (255 - b) * lift * .6)})`;
-        ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1;
+        ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = .75;
         const kind = L < .32 ? 0 : L < .46 ? 1 : L < .6 ? 2 : L < .74 ? 3 : 4;
         const pick = (h >> 8) % 7 === 0 ? (kind + 1) % 5 : kind;        // câteva glife „greșite”, ca în ASCII-ul adevărat
         ctx.beginPath();
-        if (pick === 0) { ctx.arc(cx, cy, .9, 0, 7); ctx.fill(); }
-        else if (pick === 1) { ctx.arc(cx, cy, 2.2, 0, 7); ctx.stroke(); }
-        else if (pick === 2) { ctx.arc(cx, cy, 2.4, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, .9, 0, 7); ctx.fill(); }
-        else if (pick === 3) { ctx.moveTo(cx, cy - 2.6); ctx.lineTo(cx + 2.6, cy + 2); ctx.lineTo(cx - 2.6, cy + 2); ctx.closePath(); ctx.fill(); }
-        else { ctx.fillRect(cx - 2.3, cy - 2.3, 4.6, 4.6); }
+        if (pick === 0) { ctx.arc(cx, cy, Math.max(.6, .9 * Q), 0, 7); ctx.fill(); }
+        else if (pick === 1) { ctx.arc(cx, cy, 2.2 * Q, 0, 7); ctx.stroke(); }
+        else if (pick === 2) { ctx.arc(cx, cy, 2.4 * Q, 0, 7); ctx.stroke(); ctx.beginPath(); ctx.arc(cx, cy, Math.max(.5, .9 * Q), 0, 7); ctx.fill(); }
+        else if (pick === 3) { ctx.moveTo(cx, cy - 2.6 * Q); ctx.lineTo(cx + 2.6 * Q, cy + 2 * Q); ctx.lineTo(cx - 2.6 * Q, cy + 2 * Q); ctx.closePath(); ctx.fill(); }
+        else { ctx.fillRect(cx - 2.3 * Q, cy - 2.3 * Q, 4.6 * Q, 4.6 * Q); }
       }
     }
     // ce iese deasupra și dedesubt: doar imaginea, care se stinge spre margini (ca o mască)
