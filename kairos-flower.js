@@ -7,7 +7,7 @@
   const cv = document.getElementById("flower"), panel = document.getElementById("aRight"), stage = document.querySelector(".login");
   if (!cv || !panel || !stage) return;
   const ctx = cv.getContext("2d");
-  const N = 32, BLOOM = 3.6, DELAY = .35, CELL = 7, Q = CELL / 8;   // glife aproape de mărimea din referință; benzile le lasă loc imaginii
+  const N = 32, BLOOM = 12, DELAY = .6, CELL = 7, Q = CELL / 8;   // glife aproape de mărimea din referință; benzile le lasă loc imaginii
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const frames = Array.from({ length: N }, (_, i) => { const im = new Image(); im.src = `hero/fl_${String(i).padStart(2, "0")}.webp`; return im; });
   const small = document.createElement("canvas"), sx = small.getContext("2d", { willReadFrequently: true });
@@ -28,40 +28,56 @@
     last = -1;
   }
   const BAND = 3, RUN = 6;   // înălțimea unei benzi (rânduri de glife) și lungimea unui segment (coloane)
-  // copiile colorate pentru aberația cromatică, refăcute doar când se schimbă cadrul
-  const tintM = document.createElement("canvas"), tintC = document.createElement("canvas"); let tintIdx = -1;
-  function tintFrame(im) {
+  // floarea compusă (două cadre amestecate + vântul) se desenează întâi aici; tot din ea se fac copiile colorate și glifele
+  const fc = document.createElement("canvas"), fx = fc.getContext("2d");
+  const tintM = document.createElement("canvas"), tintC = document.createElement("canvas");
+  function sizeOff() {
+    for (const c of [fc, tintM, tintC]) { c.width = Math.round(W * dpr); c.height = Math.round(H * dpr); }
+  }
+  function tint() {
     for (const [c, col] of [[tintM, "rgb(255,40,170)"], [tintC, "rgb(40,220,255)"]]) {
-      c.width = im.naturalWidth; c.height = im.naturalHeight; const x = c.getContext("2d");
-      x.globalCompositeOperation = "source-over"; x.drawImage(im, 0, 0);
+      const x = c.getContext("2d"); x.setTransform(1, 0, 0, 1, 0, 0);
+      x.globalCompositeOperation = "copy"; x.drawImage(fc, 0, 0);
       x.globalCompositeOperation = "multiply"; x.fillStyle = col; x.fillRect(0, 0, c.width, c.height);
-      x.globalCompositeOperation = "destination-in"; x.drawImage(im, 0, 0);
+      x.globalCompositeOperation = "destination-in"; x.drawImage(fc, 0, 0);
     }
   }
-  const easeOut = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+  // înflorire lentă: pornește încet, se deschide și se așază la fel de încet
+  const easeInOut = (x) => { x = Math.min(1, Math.max(0, x)); return .55 * x + .45 * x * x * (3 - 2 * x); };   // aproape liniar: cadrele randate au deja propria încetinire
+  // vântul: o legănare lentă din bază, cu rafale mai scurte peste ea; capul se mișcă mai mult decât tulpina
+  function wind(t) {
+    const base = Math.sin(t * .55) * .022 + Math.sin(t * 1.37 + 1.3) * .009;
+    const gust = Math.max(0, Math.sin(t * .23 + .6)) ** 3 * Math.sin(t * 2.9) * .012;
+    return base + gust;
+  }
 
   function draw(now) {
     if (!cols || !rows || stage.hidden || !pw) return;
     const t = (now - t0) / 1000;
-    const k = reduce ? 1 : easeOut((t - DELAY) / BLOOM);
-    const idx = Math.min(N - 1, Math.round(k * (N - 1)));
-    const im = frames[idx];
-    if (!im.complete || !im.naturalWidth) return;
-    // după ce a înflorit, sclipirea merge mai rar
-    const blooming = k < 1;
-    const step = blooming ? 33 : 80;
-    if (last >= 0 && now - last < step) return;
+    const k = reduce ? 1 : easeInOut((t - DELAY) / BLOOM);
+    const f = k * (N - 1), i0 = Math.floor(f), i1 = Math.min(N - 1, i0 + 1), m = f - i0;
+    const a = frames[i0], b = frames[i1];
+    if (!a.complete || !a.naturalWidth) return;
+    if (last >= 0 && now - last < 33) return;      // ~30 cadre pe secundă: destul pentru o mișcare lină
     last = now;
+    if (fc.width !== Math.round(W * dpr) || fc.height !== Math.round(H * dpr)) sizeOff();
+    const iw = Math.min(H * (520 / 720), W * 1.12), ih = iw * (720 / 520), ix = (W - iw) / 2, iy = top * .15;
+    // 1. floarea: cadrul curent amestecat cu următorul (fără sacadări), legănată de vânt în jurul bazei tulpinii
+    const sw = reduce ? 0 : wind(t) * (.35 + .65 * k), px = W / 2, py = iy + ih;
+    fx.setTransform(dpr, 0, 0, dpr, 0, 0); fx.clearRect(0, 0, W, H);
+    fx.translate(px, py); fx.rotate(sw * .35); fx.transform(1, 0, sw, 1 + Math.sin(t * .8) * .003, 0, 0); fx.translate(-px, -py);
+    fx.globalAlpha = 1; fx.drawImage(a, ix, iy, iw, ih);
+    if (m > .01 && b.complete && b.naturalWidth) { fx.globalAlpha = m; fx.drawImage(b, ix, iy, iw, ih); }
+    fx.globalAlpha = 1; fx.setTransform(1, 0, 0, 1, 0, 0);
+    tint();
     ctx.clearRect(0, 0, W, H);
-    // imaginea de bază (cadrele au fundal transparent), cu aberație cromatică: o copie magenta la stânga, una cyan la dreapta
-    const iw = Math.min(H * (520 / 720), W * 1.12), ih = iw * (720 / 520), ix = (W - iw) / 2, iy = top * .15;   // capul florii iese puțin peste marginea de sus
-    if (tintIdx !== idx) { tintFrame(im); tintIdx = idx; }
-    ctx.globalAlpha = .72; ctx.drawImage(im, ix, iy, iw, ih);
+    // 2. imaginea, cu aberație cromatică: o copie magenta la stânga, una cyan la dreapta
+    ctx.globalAlpha = .72; ctx.drawImage(fc, 0, 0, W, H);
     ctx.globalCompositeOperation = "screen"; ctx.globalAlpha = .55;
-    ctx.drawImage(tintM, ix - 3, iy, iw, ih); ctx.drawImage(tintC, ix + 3, iy + 1, iw, ih);
+    ctx.drawImage(tintM, -3, 0, W, H); ctx.drawImage(tintC, 3, 1, W, H);
     ctx.globalCompositeOperation = "source-over"; ctx.globalAlpha = 1;
-    // glifele: doar în benzi orizontale (rânduri de „text” întrerupte), doar pe zonele luminoase și doar în interiorul casetei
-    sx.clearRect(0, 0, cols, rows); sx.drawImage(im, ix / CELL, iy / CELL, iw / CELL, ih / CELL);
+    // 3. glifele: doar în benzi orizontale (rânduri de „text” întrerupte), doar pe zonele luminoase și doar în interiorul casetei
+    sx.clearRect(0, 0, cols, rows); sx.drawImage(fc, 0, 0, fc.width, fc.height, 0, 0, W / CELL, H / CELL);
     const d = sx.getImageData(0, 0, cols, rows).data;
     const r0 = Math.ceil(top / CELL), r1 = Math.min(rows, Math.floor((top + ph) / CELL));
     const seed = Math.floor(now / 90), bandSeed = Math.floor(now / 700);           // benzile se schimbă mai rar decât sclipirea
