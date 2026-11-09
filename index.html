@@ -7,7 +7,7 @@
 <meta name="description" content="KAIROS: live rundowns for shows and broadcasts. One shared clock, a prompter for the hosts and notes from your clients.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500;125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="kairos-home.css?v=202611091700">
+<link rel="stylesheet" href="kairos-home.css?v=202611092100">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
@@ -46,7 +46,6 @@
   <div class="d-grid">
     <section class="glass g-welcome">
       <img class="wordmark-img" src="brand/wordmark.svg?v=202611050530" alt="KAIROS">
-      <canvas class="w-orb" data-kairos-orb aria-hidden="true"></canvas>
       <h1>Welcome,<br><span id="hiName">there</span></h1>
       <p>Chronos counts the seconds. Kairos is the instant to act. KAIROS keeps your whole crew on it: one live rundown, one shared clock, a prompter for the hosts and notes from your clients, from stand-by to the last cue.</p>
     </section>
@@ -109,8 +108,6 @@
 <script src="kairos-bg.js?v=202611091500"></script>
 <script src="kairos-hero3d.js?v=202611091700"></script>
 <script src="kairos-import.js?v=202611091500"></script>
-<script src="kairos-sphere.js?v=202611091500"></script>
-<script src="kairos-orb.js?v=202611042130"></script>
 <script>
 (() => {
   const S = window.KSYNC;
