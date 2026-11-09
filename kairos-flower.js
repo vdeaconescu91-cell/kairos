@@ -30,6 +30,7 @@
   const easeOut = (x) => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
 
   function draw(now) {
+    if (!cols || !rows || stage.hidden || !pw) return;
     const t = (now - t0) / 1000;
     const k = reduce ? 1 : easeOut((t - DELAY) / BLOOM);
     const idx = Math.min(N - 1, Math.round(k * (N - 1)));
