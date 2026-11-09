@@ -258,3 +258,7 @@ body.signed .aurora { display: block; }
 .pc .btn:not(.primary) { background: rgba(5,10,40,.35); border-color: rgba(255,255,255,.35); }
 .pc .cd, .pc-facts, .pc-date, .pc .pc-facts span { color: rgba(235,242,255,.78) !important; }
 .pc .role { color: #fff; border-color: rgba(255,255,255,.5); }
+/* cardul ocupă toată lățimea chenarului: spațiul din stânga și din dreapta e egal cu cel de jos */
+.g-side { padding: 16px; }
+.stack, .g-side .stack { width: 100%; margin: 22px 0 0; }
+@media (max-width: 960px) { .stack { width: 100%; } }
