@@ -7,7 +7,7 @@
 <meta name="description" content="KAIROS: live rundowns for shows and broadcasts. One shared clock, a prompter for the hosts and notes from your clients.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500;125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="kairos-home.css?v=202611092300">
+<link rel="stylesheet" href="kairos-home.css?v=202611092345">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
@@ -105,7 +105,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>window.KSYNC_MODE = "landing";</script>
 <script src="sync.js?v=202611091500"></script>
-<script src="kairos-flower.js?v=202611092300"></script>
+<script src="kairos-flower.js?v=202611092345"></script>
 <script src="kairos-import.js?v=202611091500"></script>
 <script>
 (() => {
@@ -170,7 +170,7 @@
     </article>`;
   }
   function layoutStack(dir = 1) {
-    const cards = [...document.querySelectorAll("#stack .pc")], n = cards.length;
+    const cards = [...document.querySelectorAll("#stack .pc:not(.pc-ghost)")], n = cards.length;
     cards.forEach((c, i) => {
       const p = (i - idx + n) % n;
       const prev = c.dataset.pos;
@@ -185,6 +185,23 @@
   }
   const go = (d) => { const n = shows.length; if (n < 2) return; idx = (idx + d + n) % n; layoutStack(d); };
   $("#pPrev").onclick = () => go(-1); $("#pNext").onclick = () => go(1);
+  // derulare infinită: rotița sau tragerea (stânga/dreapta pe telefon) trece prin toate proiectele, iar după ultimul vine iar primul
+  let wheelAcc = 0, lastStep = 0;
+  $("#stack").addEventListener("wheel", (e) => {
+    if (shows.length < 2) return;
+    e.preventDefault();
+    wheelAcc += Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    const t = performance.now();
+    if (Math.abs(wheelAcc) > 40 && t - lastStep > 260) { go(wheelAcc > 0 ? 1 : -1); wheelAcc = 0; lastStep = t; }
+  }, { passive: false });
+  let touchX = null, touchY = null;
+  $("#stack").addEventListener("touchstart", (e) => { touchX = e.touches[0].clientX; touchY = e.touches[0].clientY; }, { passive: true });
+  $("#stack").addEventListener("touchend", (e) => {
+    if (touchX === null) return;
+    const dx = e.changedTouches[0].clientX - touchX, dy = e.changedTouches[0].clientY - touchY;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) go(dx < 0 ? 1 : -1);
+    touchX = touchY = null;
+  });
   let hold = false;
   $("#stack").addEventListener("mouseenter", () => hold = true); $("#stack").addEventListener("mouseleave", () => hold = false);
   $("#stack").addEventListener("focusin", () => hold = true); $("#stack").addEventListener("focusout", () => hold = false);
@@ -225,7 +242,9 @@
     const keep = shows[idx] && shows[idx].id;
     shows.sort((a, b) => (startMs(a) || 9e15) - (startMs(b) || 9e15));
     idx = Math.max(0, shows.findIndex((s) => s.id === keep));
-    $("#stack").innerHTML = shows.length ? shows.map(cardHTML).join("") : `<p class="empty">No projects yet. ${canCreate ? "Start one on the left, or ask a colleague for an invite link." : "Ask whoever runs the show for an invite link."}</p>`;
+    // teancul arată mereu trei straturi: dacă sunt mai puțin de trei proiecte, golurile se umplu cu carduri goale în spate
+    const ghosts = shows.length ? Array.from({ length: Math.max(0, 3 - shows.length) }, (_, k) => `<div class="pc pc-ghost" data-pos="${shows.length + k}" aria-hidden="true"></div>`).join("") : "";
+    $("#stack").innerHTML = shows.length ? shows.map(cardHTML).join("") + ghosts : `<p class="empty">No projects yet. ${canCreate ? "Start one on the left, or ask a colleague for an invite link." : "Ask whoever runs the show for an invite link."}</p>`;
     layoutStack();
     welcomeLine();
     tickClock();

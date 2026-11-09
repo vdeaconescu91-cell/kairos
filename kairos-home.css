@@ -262,3 +262,6 @@ body.signed .aurora { display: block; }
 .g-side { padding: 16px; }
 .stack, .g-side .stack { width: 100%; margin: 22px 0 0; }
 @media (max-width: 960px) { .stack { width: 100%; } }
+/* straturile goale din spatele teancului, când sunt mai puțin de trei proiecte */
+.pc.pc-ghost { pointer-events: none; cursor: default; }
+.pc.pc-ghost::before { display: none; }
