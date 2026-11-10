@@ -359,3 +359,6 @@ canvas.mark { width: 34px; height: 34px; flex: none; display: block; filter: non
 tr:hover .madd, .madd:focus-visible { opacity: 1; } .madd:hover { color: #fff; border-color: rgba(255,255,255,.4); }
 tr.music-over td { background: color-mix(in srgb, var(--cc, #3d7bff) 14%, transparent) !important; }
 tr.music-over .madd { opacity: 1; border-color: var(--cc, #3d7bff); color: #fff; }
+/* ♪ Muzică stă pe același rând cu eticheta de categorie: spațiu între ele, aceeași înălțime */
+.madd { margin-left: 10px; vertical-align: middle; line-height: 1.5; }
+select.cat + .madd { margin-left: 10px; }
