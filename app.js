@@ -203,6 +203,7 @@
           <textarea class="cell title-cell" data-f="title" rows="1" aria-label="Segment">${esc(it.title)}</textarea>
           <select class="cell cat" data-f="cat" aria-label="Tip">${Object.entries(CATS).map(([k, c]) =>
             `<option value="${k}" ${k === it.cat ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select>
+          ${musicCell(it)}
         </td>
         <td><textarea class="cell" data-f="video" rows="1" aria-label="Video">${esc(it.video)}</textarea></td>
         <td><textarea class="cell" data-f="gfx" rows="1" aria-label="Grafică">${esc(it.gfx)}</textarea></td>
@@ -225,6 +226,59 @@
     updateTotals();
     markRows(position());
   }
+
+  // muzica segmentului: player (în rundown și în Preview) + încărcare / înlocuire / ștergere pentru cine editează
+  function musicCell(it) {
+    const up = uploading.get(it.id);
+    if (up != null) return `<div class="music up"><span class="mname">♪ Se încarcă… ${Math.round(up * 100)}%</span><span class="mtrack"><span style="width:${up * 100}%"></span></span></div>`;
+    const edit = canEdit() && cloud();
+    if (it.music && it.music.url && window.KAudio) {
+      return window.KAudio.html(it.music, edit ? `<div class="macts"><button type="button" class="icon" data-a="mrep" title="Altă piesă">↻</button><button type="button" class="icon del" data-a="mdel" title="Scoate muzica">✕</button></div>` : "");
+    }
+    return edit ? `<button type="button" class="madd" data-a="madd" title="Alege un fișier audio sau trage-l peste rând">♪ Muzică</button>` : "";
+  }
+  const uploading = new Map();
+  let musicFor = null;
+  const musicInput = Object.assign(document.createElement("input"), { type: "file", accept: "audio/*,.mp3,.wav,.m4a,.aac,.ogg,.flac", hidden: true });
+  document.body.appendChild(musicInput);
+  musicInput.onchange = () => { const f = musicInput.files[0]; musicInput.value = ""; if (f && musicFor) attachMusic(musicFor, f); };
+  async function attachMusic(id, file) {
+    if (!cloud()) return toast("Conectează-te ca să urci muzică");
+    const it = state.items.find((x) => x.id === id); if (!it) return;
+    const old = it.music;
+    uploading.set(id, 0); renderTable();
+    let lastPaint = 0;
+    try {
+      const m = await S.uploadMusic(file, id, (p) => {
+        uploading.set(id, p);
+        const now = performance.now(); if (now - lastPaint > 150) { lastPaint = now; const td = $(`#rows tr[data-id="${id}"] .music.up`); if (td) td.outerHTML = musicCell(it); }
+      });
+      uploading.delete(id);
+      const cur = state.items.find((x) => x.id === id); if (!cur) return;
+      snapshot(); cur.music = m; save(); S.field(id, "music", m); renderTable();
+      toast(`Muzică adăugată: ${m.name}`);
+      if (old && old.path) S.deleteMusic(old.path);
+    } catch (e) {
+      uploading.delete(id); renderTable();
+      const c = e && (e.message || e.code) || "";
+      toast(c === "not_audio" ? "Fișierul nu e audio (MP3, WAV, M4A…)" : c === "too_big" ? "Fișierul e prea mare (maxim 50 MB)"
+        : /unauthorized|permission/i.test(c) ? "Nu ai drept să urci muzică aici" : /bucket|not-found|no_storage/i.test(c) ? "Stocarea pentru muzică nu e activată încă" : "Muzica nu s-a încărcat");
+      console.error(e);
+    }
+  }
+  // un fișier audio tras peste un rând se asignează acelui segment
+  $("#rows").addEventListener("dragover", (e) => {
+    if (!e.dataTransfer || ![...e.dataTransfer.types].includes("Files") || !canEdit()) return;
+    const tr = e.target.closest("tr.seg-row"); if (!tr) return;
+    e.preventDefault(); $$("#rows tr.music-over").forEach((r) => r !== tr && r.classList.remove("music-over")); tr.classList.add("music-over");
+  });
+  $("#rows").addEventListener("dragleave", (e) => { const tr = e.target.closest("tr"); if (tr && !tr.contains(e.relatedTarget)) tr.classList.remove("music-over"); });
+  $("#rows").addEventListener("drop", (e) => {
+    if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+    const tr = e.target.closest("tr.seg-row"); $$("#rows tr.music-over").forEach((r) => r.classList.remove("music-over"));
+    if (!tr || !canEdit()) return;
+    e.preventDefault(); e.stopImmediatePropagation(); attachMusic(tr.dataset.id, e.dataTransfer.files[0]);
+  }, true);
 
   function updateStarts() {
     const off = plannedOffsets();
@@ -291,6 +345,13 @@
     if (a === "jump") return jumpTo(state.items[i].id);
     if (a === "cmt") return openDrawer(state.items[i].id);
     if (!canEdit()) return;
+    if (a === "madd" || a === "mrep") { musicFor = state.items[i].id; musicInput.click(); return; }
+    if (a === "mdel") {
+      const it = state.items[i]; if (!it.music) return;
+      if (!confirm(`Scoți muzica „${it.music.name}” de pe acest segment?`)) return;
+      const path = it.music.path; snapshot(); delete it.music; save(); if (cloud()) { S.field(it.id, "music", null); S.deleteMusic(path); }
+      if (window.KAudio) window.KAudio.stop(); renderTable(); return;
+    }
     snapshot();
     if (a === "del") {
       const it = state.items[i];
@@ -531,7 +592,7 @@
     .clock{font-family:"JetBrains Mono",monospace;color:#d6e4ff;letter-spacing:.02em}
     .tg{font:600 11px/1 "Inter Tight",sans-serif;letter-spacing:.06em;color:#d6e4ff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 10px;cursor:pointer}
     .tg.on{background:color-mix(in srgb,var(--ac) 30%,transparent);border-color:color-mix(in srgb,var(--ac) 70%,transparent);color:#fff}
-    .t{font-size:clamp(20px,6.2vw,34px);font-weight:600;letter-spacing:-.02em;line-height:1.04;text-transform:uppercase;margin:2px 0 0;background:linear-gradient(90deg,#fff,#fff 60%,#6b7486);-webkit-background-clip:text;background-clip:text;color:transparent}
+    .t{font-size:clamp(20px,6.2vw,34px);font-weight:600;letter-spacing:-.02em;line-height:1.04;text-transform:uppercase;margin:calc(2px - .18em) 0 0;padding-top:.18em;background:linear-gradient(90deg,#fff,#fff 60%,#6b7486);-webkit-background-clip:text;background-clip:text;color:transparent}
     .meta{font-size:12px;color:#8a93a6}.drift.late{color:#ff4d5e}.drift.early{color:#6ee7a8}
     .time{font-family:"JetBrains Mono",monospace;font-size:clamp(52px,18vw,108px);font-weight:500;line-height:.95;letter-spacing:-.03em;color:#fff;
       text-shadow:0 2px 26px rgba(0,8,40,.8),0 0 40px color-mix(in srgb,var(--ac) 55%,transparent)}

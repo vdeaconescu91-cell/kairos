@@ -32,7 +32,7 @@
     canEdit() { return K.role === "owner" || K.role === "editor" || (K.role === "local" && K.isLegacy); },
     isOwner() { return K.role === "owner"; },
     signIn, signOut, field, items, live, addComment, resolveComment, deleteComment, setEditors, setTeam, listShows, createShow,
-    createInvite, getInvite, acceptInvite, revokeInvites
+    createInvite, getInvite, acceptInvite, revokeInvites, uploadMusic, deleteMusic
   };
   // compatibilitate: lista de editori a rundown-ului curent
   Object.defineProperty(K, "editors", { get: () => K.showMeta.editors || [] });
@@ -257,6 +257,26 @@
     return String(s || "rundown").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
       .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 32) || "rundown";
   }
+  /* ---------- muzica unui segment: fișierul stă în Firebase Storage, în rundown se păstrează doar linkul ---------- */
+  function uploadMusic(file, segId, onProgress) {
+    if (!K.user) return Promise.reject(new Error("not_signed_in"));
+    if (!firebase.storage) return Promise.reject(new Error("no_storage_sdk"));
+    if (!/^audio\//.test(file.type) && !/\.(mp3|wav|m4a|aac|ogg|flac)$/i.test(file.name)) return Promise.reject(new Error("not_audio"));
+    if (file.size > 50 * 1024 * 1024) return Promise.reject(new Error("too_big"));
+    const safe = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9._-]+/g, "_").slice(-80);
+    const path = `shows/${SHOW_ID}/music/${segId}-${Date.now().toString(36)}-${safe}`;
+    const ref = firebase.storage().ref(path);
+    const task = ref.put(file, { contentType: file.type || "audio/mpeg", cacheControl: "public, max-age=31536000" });
+    return new Promise((res, rej) => {
+      task.on("state_changed", (snap) => onProgress && onProgress(snap.bytesTransferred / Math.max(1, snap.totalBytes)), rej,
+        async () => { try { res({ url: await ref.getDownloadURL(), name: file.name, path, size: file.size }); } catch (e) { rej(e); } });
+    });
+  }
+  async function deleteMusic(path) {
+    if (!path || !firebase.storage) return;
+    try { await firebase.storage().ref(path).delete(); } catch (e) { console.warn("muzica nu s-a putut șterge", e); }
+  }
+
   async function createShow({ title, date, start, venue, copyFrom, items }) {
     if (!K.user) throw new Error("not_signed_in");
     const id = `${slug(title)}-${Math.random().toString(36).slice(2, 8)}`;

@@ -23,7 +23,7 @@ button,textarea,input { font:inherit; color:inherit; }
 .bar b { font-weight:600; font-size:14px; letter-spacing:.32em; color:var(--ice); }
 .acct { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
 .acct img { width:26px; height:26px; border-radius:50%; }
-h1 { margin:0; font-size:clamp(30px,6vw,52px); font-weight:600; letter-spacing:-.03em; line-height:1; text-transform:uppercase; text-wrap:balance;
+h1 { margin:-.18em 0 0; padding-top:.18em; font-size:clamp(30px,6vw,52px); font-weight:600; letter-spacing:-.03em; line-height:1.04; text-transform:uppercase; text-wrap:balance;
   background:linear-gradient(90deg,#fff 0%,#fff 55%,#7d879b 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
 .sub { margin-top:-6px; font-size:14px; font-weight:600; letter-spacing:.24em; text-transform:uppercase; color:var(--ice); }
 .facts { display:flex; flex-wrap:wrap; gap:6px 18px; color:var(--muted); font-size:14px; }
@@ -80,6 +80,14 @@ summary { cursor:pointer; }
 [hidden] { display:none !important; }
 @media (max-width:520px){ .seg { grid-template-columns:1fr; gap:8px; } .when { display:flex; gap:10px; align-items:baseline; } }
 .wordmark-img { height: 16px; width: auto; display: block; flex: none; }
+/* muzica segmentului */
+.music { display:flex; align-items:center; gap:10px; margin:8px 0 2px; max-width:420px; }
+.mplay { flex:none; width:34px; height:34px; border-radius:50%; border:1px solid color-mix(in srgb, var(--c, #4f86ff) 55%, transparent); background:color-mix(in srgb, var(--c, #4f86ff) 18%, transparent); color:#fff; display:grid; place-items:center; cursor:pointer; padding:0; }
+.mplay svg { width:13px; height:13px; fill:currentColor; } .mplay .i-pause, .mplay.playing .i-play { display:none; } .mplay.playing .i-pause { display:block; }
+.mplay:hover { background:color-mix(in srgb, var(--c, #4f86ff) 32%, transparent); } .mplay.playing { box-shadow:0 0 0 4px color-mix(in srgb, var(--c, #4f86ff) 22%, transparent); }
+.mmeta { flex:1; min-width:0; display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:center; }
+.mname { font-size:13px; color:#c7cede; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .mtime { font-family:"JetBrains Mono",monospace; font-size:11px; color:#8c95a8; }
+.mtrack { grid-column:1 / -1; height:4px; border-radius:2px; background:rgba(255,255,255,.08); cursor:pointer; overflow:hidden; } .mtrack span { display:block; height:100%; width:0; background:var(--c, #4f86ff); }
 </style>
 </head>
 <body>
@@ -97,7 +105,8 @@ summary { cursor:pointer; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="sync.js?v=202611040403"></script>
+<script src="kairos-audio.js?v=202611101300"></script>
+<script src="sync.js?v=202611101300"></script>
 <script src="rundown-data.js?v=202611040403"></script>
 <script>
 (() => {
@@ -155,6 +164,7 @@ summary { cursor:pointer; }
       const script = (it.script || "").trim();
       html += `<article class="seg" id="m-${esc(it.id)}" style="--c:${color}"><div class="when"><span class="time">${start}</span><span class="dur">${esc(it.min)} min</span></div><div class="body">
         <div class="head"><span class="chip">${esc(label)}</span>${it.who ? `<span class="who">${esc(it.who)}</span>` : ""}</div><h3>${esc(it.title)}</h3>
+        ${it.music && window.KAudio ? window.KAudio.html(it.music) : ""}
         ${it.talk ? `<div class="say"><div class="k">Ce se spune</div><p>${esc(it.talk)}</p></div>` : ""}
         ${script ? `<details class="script"><summary>Scriptul complet</summary><p>${esc(script)}</p></details>` : ""}
         <dl class="prod">${it.video ? `<div><dt>Video</dt><dd>${esc(it.video)}</dd></div>` : ""}${it.gfx ? `<div><dt>Grafică</dt><dd>${esc(it.gfx)}</dd></div>` : ""}</dl>

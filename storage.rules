@@ -1,0 +1,24 @@
+rules_version = '2';
+// KAIROS · fișierele de muzică ale segmentelor (Firebase Storage).
+// Le ascultă oricine e conectat cu Google și are linkul rundown-ului (ca la citirea rundown-ului în Firestore).
+// Le urcă și le șterge doar cine poate edita rundown-ul: administratorii, proprietarul și editorii lui.
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function email() { return request.auth.token.email.lower(); }
+    function verified() { return signedIn() && request.auth.token.email_verified == true; }
+    function isAdmin() { return verified() && email() in ['vdeaconescu91@gmail.com', 'vlad@nexusclub.ro']; }
+    function show(id) { return firestore.get(/databases/(default)/documents/shows/$(id)).data; }
+    function canEditShow(id) {
+      return isAdmin() || (verified() && (show(id).get('ownerEmail', '') == email() || email() in show(id).get('editors', [])));
+    }
+
+    match /shows/{showId}/music/{file} {
+      allow read: if signedIn();
+      allow create, update: if canEditShow(showId)
+        && request.resource.size < 50 * 1024 * 1024
+        && request.resource.contentType.matches('audio/.*');
+      allow delete: if canEditShow(showId);
+    }
+  }
+}
