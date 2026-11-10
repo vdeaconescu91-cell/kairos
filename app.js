@@ -197,12 +197,12 @@
       return `<tr class="seg-row" data-id="${it.id}" style="${catStyle(it.cat)}">
         <td class="drag" title="Trage ca să muți">⋮⋮</td>
         <td class="num">${n}</td>
-        <td class="start" data-start>${hhmm(off[it.id])}</td>
+        <td class="start"><span data-start>${hhmm(off[it.id])}</span>
+          <select class="cell cat" data-f="cat" aria-label="Tip">${Object.entries(CATS).map(([k, c]) =>
+            `<option value="${k}" ${k === it.cat ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select></td>
         <td><input class="cell dur" data-f="min" inputmode="numeric" value="${esc(it.min)}" aria-label="Durată în minute"></td>
         <td>
           <textarea class="cell title-cell" data-f="title" rows="1" aria-label="Segment">${esc(it.title)}</textarea>
-          <select class="cell cat" data-f="cat" aria-label="Tip">${Object.entries(CATS).map(([k, c]) =>
-            `<option value="${k}" ${k === it.cat ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select>
           ${musicCell(it)}
         </td>
         <td><textarea class="cell" data-f="video" rows="1" aria-label="Video">${esc(it.video)}</textarea></td>

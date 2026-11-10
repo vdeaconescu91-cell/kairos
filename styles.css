@@ -362,3 +362,7 @@ tr.music-over .madd { opacity: 1; border-color: var(--cc, #3d7bff); color: #fff;
 /* ♪ Muzică stă pe același rând cu eticheta de categorie: spațiu între ele, aceeași înălțime */
 .madd { margin-left: 10px; vertical-align: middle; line-height: 1.5; }
 select.cat + .madd { margin-left: 10px; }
+/* categoria stă sub oră, în coloana Start; sub titlul segmentului rămâne loc pentru muzică */
+.c-start { width: 132px; }
+td.start select.cat { display: block; margin-top: 8px !important; font-size: 10px; }
+.madd { margin-left: 0; }
