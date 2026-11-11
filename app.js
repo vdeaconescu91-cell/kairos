@@ -176,6 +176,8 @@
 
   /* ---------------- timeline: tot show-ul pe o bară, un bloc pe fiecare secțiune (nu pe fiecare segment), ca să se citească dintr-o privire ---------------- */
   let tlSecs = [];
+  // categoriile cu culori neutre (alb/gri) nu se văd ca umplere: pe timeline primesc liliachiul KAIROS
+  const TL_NEUTRAL = new Set(["platforma", "pauza"]);
   function renderTimeline() {
     const off = plannedOffsets(), total = off.__total || 1;
     tlSecs = []; let g = null;
@@ -193,7 +195,7 @@
     }
     const pct = (m) => (m / total) * 100;
     $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
-      `<button type="button" class="tl-sec" data-k="${k}" style="${catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(x.title.charAt(0) + x.title.slice(1).toLowerCase())}</span></button>`).join("");
+      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(x.title.charAt(0) + x.title.slice(1).toLowerCase())}</span></button>`).join("");
     const start = showStartDate();
     let ticks = "";
     for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
