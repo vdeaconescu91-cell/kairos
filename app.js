@@ -174,6 +174,54 @@
       remain: durMs - elapsed, elapsed, durMs, drift: null, nextInMs: durMs - elapsed };
   }
 
+  /* ---------------- timeline: tot show-ul pe o bară, un bloc pe fiecare secțiune (nu pe fiecare segment), ca să se citească dintr-o privire ---------------- */
+  let tlSecs = [];
+  function renderTimeline() {
+    const off = plannedOffsets(), total = off.__total || 1;
+    tlSecs = []; let g = null;
+    for (const it of state.items) {
+      if (it.type === "header") { g = { id: it.id, title: (it.title || "").split("·")[0].trim(), segs: [] }; tlSecs.push(g); continue; }
+      if (!g) { g = { id: null, title: "Show", segs: [] }; tlSecs.push(g); }
+      g.segs.push(it);
+    }
+    tlSecs = tlSecs.filter((x) => x.segs.length);
+    for (const x of tlSecs) {
+      x.from = off[x.segs[0].id]; x.dur = x.segs.reduce((a, s) => a + (Number(s.min) || 0), 0);
+      // culoarea blocului = categoria care ocupă cele mai multe minute din secțiune
+      const by = {}; x.segs.forEach((s) => { by[s.cat] = (by[s.cat] || 0) + (Number(s.min) || 0); });
+      x.cat = Object.entries(by).sort((a, b) => b[1] - a[1])[0][0];
+    }
+    const pct = (m) => (m / total) * 100;
+    $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
+      `<button type="button" class="tl-sec" data-k="${k}" style="${catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-name">${esc(x.title.toLowerCase())}</span></button>`).join("");
+    const start = showStartDate();
+    let ticks = "";
+    for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
+    $("#tlTicks").innerHTML = ticks;
+    $("#tlStart").textContent = hhmm(0); $("#tlEnd").textContent = hhmm(total);
+    $("#tlSum").textContent = `Show · ${Math.floor(total / 60)}h ${pad(total % 60)}m · ${segs().length} segmente`;
+  }
+  function tickTimeline(pos) {
+    const off = pos.off || plannedOffsets(), total = off.__total || 1;
+    let m = null;
+    if (pos.cur) m = off[pos.cur.id] + Math.max(0, Math.min(pos.elapsed || 0, pos.durMs || 0)) / 60000;
+    else if (pos.mode === "post") m = total;
+    const el = $("#tlNow");
+    el.hidden = m == null;
+    if (m != null) el.style.left = `${(m / total) * 100}%`;
+    $$("#tlBlocks .tl-sec").forEach((b) => {
+      const x = tlSecs[+b.dataset.k]; if (!x) return;
+      const cur = m != null && m >= x.from && m < x.from + x.dur;
+      b.classList.toggle("cur", cur); b.classList.toggle("done", m != null && m >= x.from + x.dur);
+    });
+  }
+  $("#tlBlocks").addEventListener("click", (e) => {
+    const b = e.target.closest(".tl-sec"); if (!b) return;
+    const x = tlSecs[+b.dataset.k]; if (!x) return;
+    const tr = $(`#rows tr[data-id="${x.id || x.segs[0].id}"]`);
+    if (tr) { tr.scrollIntoView({ behavior: "smooth", block: "start" }); tr.classList.add("flash"); setTimeout(() => tr.classList.remove("flash"), 1200); }
+  });
+
   /* ---------------- tabel ---------------- */
   function catStyle(cat) { return `--cc: var(${(CATS[cat] || CATS.platforma).var})`; }
   function chip(cat) { return `<span class="chip" style="${catStyle(cat)}">${esc((CATS[cat] || CATS.platforma).label)}</span>`; }
@@ -184,6 +232,7 @@
   }
 
   function renderTable() {
+    renderTimeline();
     const off = plannedOffsets();
     let n = 0;
     const html = state.items.map((it) => {
@@ -492,6 +541,7 @@
     $("#clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     autoAdvance(now.getTime());
     const pos = position(now.getTime());
+    tickTimeline(pos);
     const nowCard = $(".now");
 
     if (pos.cur) {

@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=202611101300">
+<link rel="stylesheet" href="styles.css?v=202611112015">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
@@ -60,6 +60,11 @@
 </header>
 
 <main>
+  <section class="tl card" id="tl" aria-label="Timeline-ul show-ului">
+    <div class="tl-head"><span id="tlStart">--:--</span><span class="tl-sum" id="tlSum"></span><span id="tlEnd">--:--</span></div>
+    <div class="tl-track" id="tlTrack"><div class="tl-blocks" id="tlBlocks"></div><div class="tl-head-mark" id="tlNow"><span></span></div></div>
+    <div class="tl-ticks" id="tlTicks"></div>
+  </section>
   <section class="hero" aria-live="polite">
     <article class="now card glass">
       <div class="aurora" aria-hidden="true"></div>
@@ -186,7 +191,7 @@
 <script src="kairos-audio.js?v=202611101300"></script>
 <script src="sync.js?v=202611101300"></script>
 <script src="rundown-data.js?v=202611040403"></script>
-<script src="app.js?v=202611101305"></script>
+<script src="app.js?v=202611112015"></script>
 <script src="kairos-sphere.js?v=202611050600"></script>
 <script src="kairos-orb.js?v=202611042130"></script>
 </body>
