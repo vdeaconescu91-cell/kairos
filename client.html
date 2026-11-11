@@ -88,6 +88,17 @@ summary { cursor:pointer; }
 .mmeta { flex:1; min-width:0; display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:center; }
 .mname { font-size:13px; color:#c7cede; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .mtime { font-family:"JetBrains Mono",monospace; font-size:11px; color:#8c95a8; }
 .mtrack { grid-column:1 / -1; height:4px; border-radius:2px; background:rgba(255,255,255,.08); cursor:pointer; overflow:hidden; } .mtrack span { display:block; height:100%; width:0; background:var(--c, #4f86ff); }
+/* previzualizarea grafică */
+.vis { margin:12px 0 4px; max-width:560px; }
+.vthumb { display:block; width:100%; padding:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#000; cursor:zoom-in; aspect-ratio:16/9; }
+.vthumb img { display:block; width:100%; height:100%; object-fit:cover; }
+.vthumb:focus-visible { outline:2px solid var(--ice); outline-offset:2px; }
+.vis figcaption { margin-top:4px; font-size:12px; color:var(--muted); }
+.vbox { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; background:rgba(2,4,10,.88); backdrop-filter:blur(6px); cursor:zoom-out; padding:16px; }
+.vbox[hidden] { display:none; }
+.vbox figure { margin:0; max-width:min(1280px,100%); }
+.vbox img { display:block; width:100%; height:auto; border-radius:10px; }
+.vbox figcaption { margin-top:10px; text-align:center; color:var(--ice); font-size:13px; }
 </style>
 </head>
 <body>
@@ -106,6 +117,7 @@ summary { cursor:pointer; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="kairos-audio.js?v=202611101300"></script>
+<script src="kairos-visual.js?v=202611111800"></script>
 <script src="sync.js?v=202611101300"></script>
 <script src="rundown-data.js?v=202611040403"></script>
 <script>
@@ -165,6 +177,7 @@ summary { cursor:pointer; }
       html += `<article class="seg" id="m-${esc(it.id)}" style="--c:${color}"><div class="when"><span class="time">${start}</span><span class="dur">${esc(it.min)} min</span></div><div class="body">
         <div class="head"><span class="chip">${esc(label)}</span>${it.who ? `<span class="who">${esc(it.who)}</span>` : ""}</div><h3>${esc(it.title)}</h3>
         ${it.music && window.KAudio ? window.KAudio.html(it.music) : ""}
+        ${it.visual && window.KVisual ? window.KVisual.html(it.visual, "", "big") : ""}
         ${it.talk ? `<div class="say"><div class="k">Ce se spune</div><p>${esc(it.talk)}</p></div>` : ""}
         ${script ? `<details class="script"><summary>Scriptul complet</summary><p>${esc(script)}</p></details>` : ""}
         <dl class="prod">${it.video ? `<div><dt>Video</dt><dd>${esc(it.video)}</dd></div>` : ""}${it.gfx ? `<div><dt>Grafică</dt><dd>${esc(it.gfx)}</dd></div>` : ""}</dl>

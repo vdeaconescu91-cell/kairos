@@ -394,3 +394,25 @@ tr.flash td { background: rgba(255,255,255,.08) !important; transition: backgrou
 
 /* Î, Ș, Ț: textul cu gradient se decupează la marginile elementului; puțin spațiu și în stânga/dreapta */
 .now-title, .next-title { padding-left: .06em; padding-right: .06em; margin-left: -.06em !important; }
+
+/* previzualizarea grafică a segmentului */
+.vis { margin: 0 0 6px; }
+.vthumb { display: block; padding: 0; border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; background: #000; cursor: zoom-in; width: 100%; max-width: 220px; aspect-ratio: 16 / 9; }
+.vthumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .25s; }
+.vthumb:hover img { transform: scale(1.04); }
+.vthumb:focus-visible { outline: 2px solid var(--accent, #3d7bff); outline-offset: 2px; }
+.vis figcaption { display: flex; align-items: center; gap: 4px; margin-top: 3px; font-size: 11px; color: var(--muted); }
+.vacts { display: inline-flex; gap: 2px; margin-left: auto; opacity: 0; transition: opacity .15s; } tr:hover .vacts, .vacts:focus-within { opacity: 1; }
+.vadd { margin: 0 0 6px; }
+.vbox { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; background: rgba(2,4,10,.86); backdrop-filter: blur(6px); cursor: zoom-out; padding: 24px; }
+.vbox[hidden] { display: none; }
+.vbox figure { margin: 0; max-width: min(1280px, 100%); }
+.vbox img { display: block; width: 100%; height: auto; border-radius: 10px; box-shadow: 0 30px 80px rgba(0,0,0,.6); }
+.vbox figcaption { margin-top: 10px; text-align: center; color: #c9d3e6; font-size: 13px; letter-spacing: .04em; }
+.vpick { position: fixed; z-index: 900; padding: 10px; border-radius: 14px; background: #0c1120; border: 1px solid var(--line-2); box-shadow: 0 20px 60px rgba(0,0,0,.55); max-height: 70vh; overflow: auto; }
+.vpick[hidden] { display: none; }
+.vp-h { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); margin: 0 2px 8px; }
+.vp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.vp-it { display: grid; gap: 4px; padding: 4px; border: 1px solid transparent; border-radius: 9px; background: none; color: inherit; font: inherit; font-size: 11px; text-align: left; cursor: pointer; }
+.vp-it img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; display: block; }
+.vp-it:hover { background: rgba(255,255,255,.05); } .vp-it.on { border-color: var(--accent, #3d7bff); }

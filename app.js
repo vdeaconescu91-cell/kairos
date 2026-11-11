@@ -314,7 +314,7 @@
           ${musicCell(it)}
         </td>
         <td><textarea class="cell" data-f="video" rows="1" aria-label="Video">${esc(it.video)}</textarea></td>
-        <td><textarea class="cell" data-f="gfx" rows="1" aria-label="Grafică">${esc(it.gfx)}</textarea></td>
+        <td>${visCell(it)}<textarea class="cell" data-f="gfx" rows="1" aria-label="Grafică">${esc(it.gfx)}</textarea></td>
         <td><textarea class="cell" data-f="talk" rows="1" aria-label="Ce se spune">${esc(it.talk)}</textarea>
           <textarea class="cell script-cell" data-f="script" rows="1" placeholder="+ script pentru prompter" aria-label="Script prompter">${esc(it.script)}</textarea></td>
         <td><textarea class="cell" data-f="who" rows="1" aria-label="Cine">${esc(it.who)}</textarea></td>
@@ -334,6 +334,41 @@
     updateTotals();
     markRows(position());
   }
+
+  // previzualizarea grafică: miniatură + alegere din bibliotecă pentru cine editează
+  function visCell(it) {
+    const KV = window.KVisual; if (!KV) return "";
+    const edit = canEdit();
+    const cur = KV.html(it.visual, edit ? `<span class="vacts"><button type="button" class="icon" data-a="vpick" title="Altă imagine">↻</button><button type="button" class="icon del" data-a="vdel" title="Scoate imaginea">✕</button></span>` : "");
+    return cur || (edit ? `<button type="button" class="madd vadd" data-a="vpick" title="Alege cum arată pe ecran">▣ Preview</button>` : "");
+  }
+  let visFor = null;
+  const visPop = document.createElement("div"); visPop.className = "vpick card"; visPop.hidden = true; document.body.appendChild(visPop);
+  function openVisPick(id, anchor) {
+    const KV = window.KVisual; visFor = id;
+    const it = state.items.find((x) => x.id === id), curKey = it && typeof it.visual === "string" ? it.visual : "";
+    visPop.innerHTML = `<div class="vp-h">Cum arată pe ecran<button type="button" class="icon" data-vp-close title="Închide">✕</button></div><div class="vp-grid">`
+      + Object.entries(KV.LIB).map(([k, n]) => `<button type="button" class="vp-it ${k === curKey ? "on" : ""}" data-vp="${k}"><img src="${KV.thumb(k)}" alt="" loading="lazy"><span>${esc(n)}</span></button>`).join("") + `</div>`;
+    visPop.hidden = false;
+    const r = anchor.getBoundingClientRect(), w = Math.min(560, innerWidth - 24);
+    visPop.style.width = `${w}px`;
+    visPop.style.left = `${Math.max(12, Math.min(innerWidth - w - 12, r.left))}px`;
+    const h = visPop.offsetHeight;
+    visPop.style.top = `${r.bottom + 6 + h > innerHeight ? Math.max(12, r.top - h - 6) : r.bottom + 6}px`;
+  }
+  function setVisual(id, v) {
+    const it = state.items.find((x) => x.id === id); if (!it) return;
+    snapshot(); if (v) it.visual = v; else delete it.visual; save();
+    if (cloud()) S.field(id, "visual", v || null);
+    renderTable();
+  }
+  visPop.addEventListener("click", (e) => {
+    if (e.target.closest("[data-vp-close]")) { visPop.hidden = true; return; }
+    const b = e.target.closest("[data-vp]"); if (!b || !visFor) return;
+    visPop.hidden = true; setVisual(visFor, b.dataset.vp);
+  });
+  document.addEventListener("mousedown", (e) => { if (!visPop.hidden && !visPop.contains(e.target) && !e.target.closest("[data-a=vpick]")) visPop.hidden = true; });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") visPop.hidden = true; });
 
   // muzica segmentului: player (în rundown și în Preview) + încărcare / înlocuire / ștergere pentru cine editează
   function musicCell(it) {
@@ -453,6 +488,8 @@
     if (a === "jump") return jumpTo(state.items[i].id);
     if (a === "cmt") return openDrawer(state.items[i].id);
     if (!canEdit()) return;
+    if (a === "vpick") { openVisPick(state.items[i].id, b); return; }
+    if (a === "vdel") { setVisual(state.items[i].id, null); return; }
     if (a === "madd" || a === "mrep") { musicFor = state.items[i].id; musicInput.click(); return; }
     if (a === "mdel") {
       const it = state.items[i]; if (!it.music) return;
