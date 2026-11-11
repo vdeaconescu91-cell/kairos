@@ -374,15 +374,27 @@ td.start select.cat { display: block; margin-top: 8px !important; font-size: 10p
 .tl-sum { text-transform: uppercase; letter-spacing: .12em; font-size: 10.5px; }
 .tl-track { position: relative; height: 38px; margin: 10px 0 6px; }
 .tl-blocks { position: absolute; inset: 0; }
-.tl-sec { position: absolute; top: 0; bottom: 0; border: 2px solid transparent; border-width: 0 1.5px; background-clip: padding-box; padding: 0; cursor: pointer;
-  border-radius: 9px; background-color: color-mix(in srgb, var(--cc) 72%, #0a1030); text-align: left; transition: filter .15s, opacity .3s; overflow: hidden; }
+.tl-sec { position: absolute; top: 0; bottom: 0; border: 0 solid transparent; border-width: 0 1.5px; background-clip: padding-box; padding: 0; cursor: pointer;
+  border-radius: 9px; background-color: color-mix(in srgb, var(--cc) 20%, #070b1f); text-align: left; transition: filter .15s; overflow: hidden; isolation: isolate;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cc) 35%, transparent); }
 .tl-sec:hover { filter: brightness(1.25); }
-.tl-name { position: absolute; top: 50%; left: 10px; right: 8px; transform: translateY(-50%); font-size: 12px; font-weight: 600; color: #fff;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: capitalize; text-shadow: 0 1px 6px rgba(0,0,0,.45); }
-.tl-sec.done { opacity: .4; }
-.tl-sec.cur { background-color: var(--cc); box-shadow: 0 0 22px color-mix(in srgb, var(--cc) 45%, transparent); }
-.tl-head-mark { position: absolute; top: -8px; bottom: -6px; width: 2px; margin-left: -1px; background: #fff; z-index: 3; pointer-events: none; box-shadow: 0 0 10px rgba(255,255,255,.7); transition: left 1s linear; }
-.tl-head-mark span { position: absolute; top: -4px; left: 50%; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #fff; }
+.tl-name { position: absolute; top: 50%; left: 10px; right: 8px; transform: translateY(-50%); z-index: 2; font-size: 12px; font-weight: 600; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-shadow: 0 1px 6px rgba(0,0,0,.5); }
+/* umplerea: cât s-a parcurs din secțiune; în secțiunea curentă, bule de culoare care urcă și se topesc unele în altele, ca într-o lampă cu lavă */
+.tl-fill { position: absolute; top: 0; bottom: 0; left: 0; width: var(--p, 0%); z-index: 1; overflow: hidden; transition: width 1.2s linear;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cc) 85%, #fff), color-mix(in srgb, var(--cc) 75%, #050816));
+  border-radius: 0 14px 14px 0 / 0 50% 50% 0; }
+.tl-sec.done .tl-fill { border-radius: 0; background: color-mix(in srgb, var(--cc) 55%, #070b1f); }
+.tl-fill i { position: absolute; display: none; border-radius: 50%; filter: blur(7px); mix-blend-mode: screen; will-change: transform; }
+.tl-sec.cur .tl-fill i { display: block; }
+.tl-fill i:nth-child(1) { width: 46px; height: 46px; left: 8%;  bottom: -30px; background: color-mix(in srgb, var(--cc) 40%, #fff); animation: lava-a 7s ease-in-out infinite; }
+.tl-fill i:nth-child(2) { width: 34px; height: 34px; left: 38%; bottom: -26px; background: color-mix(in srgb, var(--cc) 55%, #ff7ad9); animation: lava-b 9s ease-in-out infinite 1.2s; }
+.tl-fill i:nth-child(3) { width: 52px; height: 52px; left: 62%; bottom: -36px; background: color-mix(in srgb, var(--cc) 50%, #7af0ff); animation: lava-a 11s ease-in-out infinite 2.4s; }
+.tl-fill i:nth-child(4) { width: 28px; height: 28px; right: 2%; bottom: -20px; background: color-mix(in srgb, var(--cc) 30%, #fff); animation: lava-b 6s ease-in-out infinite .6s; }
+@keyframes lava-a { 0%, 100% { transform: translate(0, 0) scale(1); } 45% { transform: translate(14px, -44px) scale(1.25, .9); } 70% { transform: translate(-6px, -30px) scale(.85, 1.15); } }
+@keyframes lava-b { 0%, 100% { transform: translate(0, 0) scale(.9); } 50% { transform: translate(-12px, -40px) scale(1.2); } 80% { transform: translate(8px, -22px) scale(1, 1.2); } }
+.tl-sec.cur { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cc) 70%, #fff), 0 0 24px color-mix(in srgb, var(--cc) 35%, transparent); }
+@media (prefers-reduced-motion: reduce) { .tl-fill i { animation: none !important; } }
 .tl-ticks { position: relative; height: 14px; font-family: var(--mono); font-size: 10.5px; color: var(--dim, #6b7280); }
 .tl-ticks span { position: absolute; transform: translateX(-50%); }
 tr.flash td { background: rgba(255,255,255,.08) !important; transition: background .3s; }

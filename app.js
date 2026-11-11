@@ -193,7 +193,7 @@
     }
     const pct = (m) => (m / total) * 100;
     $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
-      `<button type="button" class="tl-sec" data-k="${k}" style="${catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-name">${esc(x.title.toLowerCase())}</span></button>`).join("");
+      `<button type="button" class="tl-sec" data-k="${k}" style="${catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"><i></i><i></i><i></i><i></i></span><span class="tl-name">${esc(x.title.charAt(0) + x.title.slice(1).toLowerCase())}</span></button>`).join("");
     const start = showStartDate();
     let ticks = "";
     for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
@@ -206,13 +206,12 @@
     let m = null;
     if (pos.cur) m = off[pos.cur.id] + Math.max(0, Math.min(pos.elapsed || 0, pos.durMs || 0)) / 60000;
     else if (pos.mode === "post") m = total;
-    const el = $("#tlNow");
-    el.hidden = m == null;
-    if (m != null) el.style.left = `${(m / total) * 100}%`;
+    // fără linie: secțiunea curentă se umple (ca o lampă cu lavă) cât s-a parcurs din ea; cele terminate rămân pline
     $$("#tlBlocks .tl-sec").forEach((b) => {
       const x = tlSecs[+b.dataset.k]; if (!x) return;
-      const cur = m != null && m >= x.from && m < x.from + x.dur;
-      b.classList.toggle("cur", cur); b.classList.toggle("done", m != null && m >= x.from + x.dur);
+      const p = m == null ? 0 : Math.min(1, Math.max(0, (m - x.from) / (x.dur || 1)));
+      b.classList.toggle("cur", m != null && m >= x.from && m < x.from + x.dur); b.classList.toggle("done", p >= 1);
+      b.style.setProperty("--p", `${(p * 100).toFixed(2)}%`);
     });
   }
   $("#tlBlocks").addEventListener("click", (e) => {
