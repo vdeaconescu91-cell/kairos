@@ -187,6 +187,16 @@
       g.segs.push(it);
     }
     tlSecs = tlSecs.filter((x) => x.segs.length);
+    // o secțiune în care toate segmentele au un prefix comun repetat („Bloc 1 · …”, „Bloc 2 · …”) se împarte pe acele prefixe
+    tlSecs = tlSecs.flatMap((x) => {
+      const pre = (s) => ((s.title || "").split("·")[0] || "").trim();
+      const count = {}; x.segs.forEach((s) => { const p = pre(s); count[p] = (count[p] || 0) + 1; });
+      const keys = Object.keys(count);
+      if (keys.length < 2 || keys.some((k) => !k || count[k] < 2)) return [x];
+      const parts = [];
+      for (const s of x.segs) { const p = pre(s); const last = parts[parts.length - 1]; if (last && last.title === p) last.segs.push(s); else parts.push({ id: s.id, title: p, section: x.title, segs: [s] }); }
+      return parts;
+    });
     for (const x of tlSecs) {
       x.from = off[x.segs[0].id]; x.dur = x.segs.reduce((a, s) => a + (Number(s.min) || 0), 0);
       // culoarea blocului = categoria care ocupă cele mai multe minute din secțiune
@@ -195,7 +205,7 @@
     }
     const pct = (m) => (m / total) * 100;
     $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
-      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(x.title.charAt(0) + x.title.slice(1).toLowerCase())}</span></button>`).join("");
+      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.section ? x.section + " · " : ""}${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(x.title.charAt(0) + x.title.slice(1).toLowerCase())}</span></button>`).join("");
     const start = showStartDate();
     let ticks = "";
     for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
