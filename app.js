@@ -200,7 +200,7 @@
         const live = pt.segs.find((s) => s.cat === "live") || pt.segs[Math.floor(pt.segs.length / 2)];
         const mid = (live.title || "").split("·").map((t) => t.trim()).filter((t) => t && t !== pt.title && !/^live$/i.test(t))[0];
         pt.block = `Match Window ${n + 1}` + (mid ? ` · ${mid}` : "");
-        pt.title = `MW${n + 1}` + (/decid/i.test(mid || "") ? " · Decider" : "");
+        pt.title = `MW${n + 1}` + (/decid/i.test(mid || "") ? " · Decider" : ""); pt.keep = true;
       });
       return parts;
     });
@@ -212,7 +212,7 @@
     }
     const pct = (m) => (m / total) * 100;
     $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
-      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.section ? x.section + " · " : ""}${x.block || x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(x.title === x.title.toUpperCase() ? x.title.charAt(0) + x.title.slice(1).toLowerCase() : x.title)}</span></button>`).join("");
+      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.section ? x.section + " · " : ""}${x.block || x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(!x.keep && x.title === x.title.toUpperCase() ? x.title.charAt(0) + x.title.slice(1).toLowerCase() : x.title)}</span></button>`).join("");
     const start = showStartDate();
     let ticks = "";
     for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
