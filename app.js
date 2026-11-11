@@ -193,7 +193,7 @@
     }
     const pct = (m) => (m / total) * 100;
     $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
-      `<button type="button" class="tl-sec" data-k="${k}" style="${catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"><i></i><i></i><i></i><i></i></span><span class="tl-name">${esc(x.title.charAt(0) + x.title.slice(1).toLowerCase())}</span></button>`).join("");
+      `<button type="button" class="tl-sec" data-k="${k}" style="${catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(x.title.charAt(0) + x.title.slice(1).toLowerCase())}</span></button>`).join("");
     const start = showStartDate();
     let ticks = "";
     for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
@@ -214,6 +214,47 @@
       b.style.setProperty("--p", `${(p * 100).toFixed(2)}%`);
     });
   }
+  // secțiunea curentă: lichid care „se clatină” (slosh) — corp închis la culoare, front luminos și curbat care se leagănă
+  const tlReduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function drawSlosh(now) {
+    requestAnimationFrame(drawSlosh);
+    const b = $("#tlBlocks .tl-sec.cur"); if (!b) return;
+    const cv = b.querySelector(".tl-cv"); if (!cv) return;
+    const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
+    if (!r.width) return;
+    if (cv.width !== Math.round(r.width * d) || cv.height !== Math.round(r.height * d)) { cv.width = Math.round(r.width * d); cv.height = Math.round(r.height * d); }
+    const x = cv.getContext("2d"); x.setTransform(d, 0, 0, d, 0, 0);
+    const w = r.width, h = r.height, t = tlReduce ? 0 : now / 1000;
+    const p = parseFloat(getComputedStyle(b).getPropertyValue("--p")) / 100 || 0;
+    const fx = Math.max(0, p * w);
+    const cc = getComputedStyle(b).getPropertyValue("--cc").trim() || "#3d7bff";
+    x.clearRect(0, 0, w, h);
+    if (fx < 1) return;
+    // frontul: o burtă care respiră + o înclinare care se leagănă dintr-o parte în alta
+    const bulge = 9 + 4 * Math.sin(t * 1.1), lean = 12 * Math.sin(t * .7) + 4 * Math.sin(t * 1.9 + 1);
+    const edge = (y) => Math.max(0, fx - 8 + bulge * Math.sin(Math.PI * y / h) + lean * (y / h - .5));
+    const path = () => { x.beginPath(); x.moveTo(0, 0); for (let y = 0; y <= h; y += 1.5) x.lineTo(edge(y), y); x.lineTo(edge(h), h); x.lineTo(0, h); x.closePath(); };
+    // corpul: aproape negru în spate, culoarea secțiunii spre front, aproape alb pe margine
+    const hex = (c) => { const m = /^#?([0-9a-f]{6})$/i.exec(c.trim()); const n = m ? parseInt(m[1], 16) : 0x3d7bff; return [n >> 16 & 255, n >> 8 & 255, n & 255]; };
+    const mix = (a, b2, k) => `rgb(${a.map((v, i) => Math.round(v * k + b2[i] * (1 - k))).join(",")})`;
+    const C = hex(cc), DARK = [5, 8, 24], WHITE = [255, 255, 255];
+    const g = x.createLinearGradient(0, 0, fx + bulge, 0), back = Math.max(0, (fx - 150) / (fx + bulge)), mid = Math.max(back, (fx - 60) / (fx + bulge));
+    g.addColorStop(0, "#050818"); g.addColorStop(back, mix(C, DARK, .12));
+    g.addColorStop(mid, mix(C, DARK, .7)); g.addColorStop(Math.max(mid, (fx - 16) / (fx + bulge)), mix(C, WHITE, .75));
+    g.addColorStop(1, "#eaf3ff");
+    path(); x.fillStyle = g; x.fill();
+    // strălucire pe margine
+    x.save(); x.shadowColor = mix(C, WHITE, .85); x.shadowBlur = 22; x.strokeStyle = "rgba(235,245,255,.9)"; x.lineWidth = 2.2;
+    x.beginPath(); for (let y = 0; y <= h; y += 1.5) { const ex = edge(y); y ? x.lineTo(ex, y) : x.moveTo(ex, y); } x.stroke(); x.restore();
+    // lumina se revarsă puțin în fața frontului
+    const fg = x.createLinearGradient(fx - 4, 0, fx + 46, 0); fg.addColorStop(0, `rgba(${C.join(",")},.35)`); fg.addColorStop(1, `rgba(${C.join(",")},0)`);
+    x.fillStyle = fg; x.fillRect(fx - 4, 0, 50, h);
+    // luciu discret sus, ca pe un lichid
+    const gl = x.createLinearGradient(0, 0, 0, h * .45); gl.addColorStop(0, "rgba(255,255,255,.14)"); gl.addColorStop(1, "rgba(255,255,255,0)");
+    x.save(); path(); x.clip(); x.fillStyle = gl; x.fillRect(0, 0, w, h * .45); x.restore();
+  }
+  requestAnimationFrame(drawSlosh);
+
   $("#tlBlocks").addEventListener("click", (e) => {
     const b = e.target.closest(".tl-sec"); if (!b) return;
     const x = tlSecs[+b.dataset.k]; if (!x) return;
