@@ -11,7 +11,7 @@
     "eliminatorie": "Faza eliminatorie", "road-to-final": "Road to the final", "brb": "Be right back",
     "campioni": "Campioni", "sponsori": "Sponsori", "thanks": "Thanks for watching",
   };
-  const V = "1";
+  const V = "2";
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function resolve(v) {
     if (!v) return null;
