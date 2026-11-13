@@ -376,7 +376,7 @@
     if (up != null) return `<div class="music up"><span class="mname">♪ Se încarcă… ${Math.round(up * 100)}%</span><span class="mtrack"><span style="width:${up * 100}%"></span></span></div>`;
     const edit = canEdit() && cloud();
     if (it.music && it.music.url && window.KAudio) {
-      return window.KAudio.html(it.music, edit ? `<div class="macts"><button type="button" class="icon" data-a="mrep" title="Altă piesă">↻</button><button type="button" class="icon del" data-a="mdel" title="Scoate muzica">✕</button></div>` : "");
+      return window.KAudio.html(it.music, edit ? `<div class="macts"><button type="button" class="icon" data-a="mrep" title="Altă piesă">↻</button><button type="button" class="icon del" data-a="mdel" title="Scoate muzica">✕</button></div>` : "", { download: edit });
     }
     return edit ? `<button type="button" class="madd" data-a="madd" title="Alege un fișier audio sau trage-l peste rând">♪ Muzică</button>` : "";
   }

@@ -71,14 +71,14 @@
 
   // HTML-ul unui player mic: buton, nume, timp, bară
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  function html(m, extra = "") {
+  function html(m, extra = "", opts = {}) {   // opts.download: arată butonul ↓ (doar pentru cine are acces de editare)
     if (!m || !m.url) return "";
     return `<div class="music"><button type="button" class="mplay" data-music="${esc(m.url)}" aria-label="Ascultă muzica" title="Ascultă muzica asignată">`
       + `<svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg><svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h3v11H4zm5 0h3v11H9z"/></svg></button>`
       + `<div class="mmeta"><span class="mname" title="${esc(m.name)}">♪ ${esc(m.name)}</span><span class="mtime" data-music-time></span>`
       + `<span class="mtrack" data-music-track><span data-music-bar></span></span></div>`
-      + `<button type="button" class="mdl" data-music-dl="${esc(m.url)}" data-name="${esc(m.name)}" data-path="${esc(m.path || "")}" aria-label="Descarcă muzica" title="Descarcă ${esc(m.name)}">`
-      + `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${extra}</div>`;
+      + (opts.download ? `<button type="button" class="mdl" data-music-dl="${esc(m.url)}" data-name="${esc(m.name)}" data-path="${esc(m.path || "")}" aria-label="Descarcă muzica" title="Descarcă ${esc(m.name)}">`
+      + `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : "") + `${extra}</div>`;
   }
   window.KAudio = { toggle, stop, html, paint, download, dispo };
 })();
