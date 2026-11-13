@@ -45,6 +45,8 @@
   let hiddenCats = new Set();
   let undoStack = [];
   let popupWin = null;
+  // ?screen=1: pagina arată doar pop-up-ul, pe tot ecranul (pentru monitor, TV sau browser source în OBS/vMix)
+  const SCREEN = new URLSearchParams(location.search).has("screen");
 
   function fromDefault() {
     const d = clone(window.TA_DEFAULT_RUNDOWN);
@@ -771,7 +773,25 @@
     .next .ni{font-family:"JetBrains Mono",monospace;font-size:12px;color:color-mix(in srgb,var(--nc) 55%,#fff);flex:none}
     body.flip .main>*{animation:pflip 1s cubic-bezier(.22,.8,.25,1)}
     @keyframes pflip{0%{opacity:0;filter:blur(14px);transform:translateY(6px)}100%{opacity:1;filter:none;transform:none}}
-    @media (prefers-reduced-motion:reduce){.beam{animation:none}}`;
+    @media (prefers-reduced-motion:reduce){.beam{animation:none}}
+    /* ecranul mare (?screen=1): același pop-up, pe toată pagina, fără butoane */
+    body.screen .tg,body.screen .ctl{display:none!important}
+    body.screen.ui .tg{display:inline-block!important} body.screen.ui.prompt .ctl{display:flex!important} body.screen.ui{cursor:default}
+    /* a doua linie „Apoi”: doar pe ecranul mare și doar când prompterul e oprit */
+    .next.after{display:none;--nc:var(--nc2)}
+    body.screen:not(.prompt) .next.after{display:flex} body.screen:not(.prompt) .next:not(.after){margin-bottom:1.4vmin}
+    body.screen .main{padding:4vmin 5vmin 2vmin;gap:1.6vmin}
+    body.screen .k{font-size:clamp(12px,1.9vmin,28px)} body.screen .dot{width:1.3vmin;height:1.3vmin}
+    body.screen .t{font-size:clamp(28px,7vmin,120px)}
+    body.screen .meta{font-size:clamp(13px,2.4vmin,36px)}
+    body.screen .time{font-size:min(30vmin,17vw);white-space:nowrap} body.screen .time.long{font-size:min(30vmin,8.5vw)}
+    body.screen .bar{height:max(4px,.9vmin)}
+    body.screen .talk p{font-size:clamp(18px,3.6vmin,56px)} body.screen .talk .lbl{font-size:clamp(10px,1.6vmin,22px)}
+    body.screen .next{margin:0 3vmin 3vmin;padding:2vmin 3vmin;gap:2vmin;border-radius:2vmin}
+    body.screen .next .nd{width:1.6vmin;height:1.6vmin} body.screen .next .nl{font-size:clamp(10px,1.8vmin,26px)}
+    body.screen .next .nt{font-size:clamp(14px,4vmin,64px)} body.screen .next .ni{font-size:clamp(12px,3vmin,48px)}
+    body.screen{cursor:none} body.screen .next.after{opacity:.8}
+    body.screen.prompt .time{font-size:min(14vmin,9vw)} body.screen.prompt .t{font-size:clamp(20px,4.5vmin,72px)}`;
 
   const CAT_HEX = { live: "#3d7bff", interviu: "#a78bfa", grafica: "#22d3ee", platforma: "#c9d4ea", caritabil: "#f472b6", ing: "#ff6200", donatii: "#e4f53b", giveaway: "#34d399", pauza: "#8a93a6" };
 
@@ -796,6 +816,11 @@
       if (!w) return toast("Browserul a blocat pop-up-ul. Permite pop-up-uri pentru pagina asta.");
       toast("Pop-up deschis. Pentru „mereu deasupra” folosește Chrome sau Edge.");
     }
+    mountPopup(w);
+  }
+
+  // construiește conținutul pop-up-ului într-o fereastră (pop-up, PiP sau ecranul mare din ?screen=1)
+  function mountPopup(w) {
     const d = w.document;
     d.title = "KAIROS · Acum";
     d.head.innerHTML = `<meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"><style>${POPUP_CSS}</style>`;
@@ -813,7 +838,8 @@
           <button id="pz" title="Înapoi la început (R)">↺</button><button id="pmr" title="Oglindit, pentru ecran cu sticlă (M)">⇋</button>
         </div>
       </div>
-      <div class="next"><span class="nd"></span><span class="nl">URMEAZĂ</span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>`;
+      <div class="next"><span class="nd"></span><span class="nl">URMEAZĂ</span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
+      <div class="next after" id="pafter"><span class="nd"></span><span class="nl">APOI</span><span class="nt" id="nt2">—</span><span class="ni" id="pi2"></span></div>`;
     buildAurora(d.getElementById("paur"), 911);
     popupWin = w;
     promptTextKey = "";
@@ -853,7 +879,8 @@
       else if (k === "r" || k === "R") act.top();
       else if (k === "t" || k === "T") act.toggle();
       else if (k === "m" || k === "M") act.mirror();
-      else if (k === "n" || k === "N") { if (state.mode === "live") go(); }
+      else if ((k === "n" || k === "N") && !SCREEN) { if (state.mode === "live") go(); }
+      else if (k === "f" || k === "F") { const el = d.documentElement; if (d.fullscreenElement) d.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); }
     });
     // derularea prompter-ului, lină, pe ceasul ferestrei pop-up
     const step = (ts) => {
@@ -899,6 +926,7 @@
       g("pm").textContent = ""; g("pr").textContent = pos.mode === "pre" ? fmtDur(pos.nextInMs) : "00:00"; g("pr").className = "time";
       g("pb").style.width = "0%";
     }
+    { const t = g("pr"); t.classList.toggle("long", t.textContent.length > 6); }   // timp lung (ore/zile): mai mic, ca să rămână pe un rând
     // textul se schimbă doar când se schimbă segmentul sau modul, ca să nu sară derularea
     const key = (pos.cur ? pos.cur.id : pos.mode) + "|" + prompter.on + "|" + text;
     if (key !== promptTextKey) {
@@ -911,6 +939,15 @@
       g("pi").textContent = pos.nextInMs != null && pos.nextInMs >= 0 ? `în ${fmtDur(pos.nextInMs)}` : "acum";
       g("nt").textContent = pos.next.title;
     } else { g("pi").textContent = ""; g("nt").textContent = "—"; }
+    // al doilea eveniment de după cel activ (se vede doar pe ecranul mare, cu prompterul oprit)
+    const after = pos.next ? pos.after : null;
+    g("pafter").style.visibility = after ? "" : "hidden";
+    if (after) {
+      d.body.style.setProperty("--nc2", hexOf(after));
+      g("nt2").textContent = after.title;
+      const inMs = pos.nextInMs != null ? Math.max(0, pos.nextInMs) + (pos.next.min || 0) * 60000 : null;
+      g("pi2").textContent = inMs != null ? `în ${fmtDur(inMs)}` : "";
+    }
   }
 
   $("#btnPopup").onclick = openPopup;
@@ -924,6 +961,7 @@
     if (a === "export") exportJSON();
     if (a === "import") $("#importFile").click();
     if (a === "print") window.print();
+    if (a === "screen") copyScreenLink();
     if (a === "settings") openSettings();
     if (a === "team") openTeam();
     if (a === "home") location.href = "./";
@@ -1184,6 +1222,37 @@
     $("#showMeta").textContent = `${fmtDate()} · ${state.show.start} · ${state.show.venue || ""}`;
     renderFilters(); renderTable(); renderMode(); renderAccount(); tick();
   }
+  /* ---------------- ecranul mare ---------------- */
+  function screenUrl() {
+    const u = new URL(location.href); u.hash = ""; u.searchParams.set("screen", "1");
+    if (S && S.showId && !u.searchParams.get("id") && !LEGACY) u.searchParams.set("id", S.showId);
+    return u.toString();
+  }
+  async function copyScreenLink() {
+    const url = screenUrl();
+    try { await navigator.clipboard.writeText(url); toast("Linkul pentru ecran e copiat. Deschide-l pe calculatorul de la ecran, conectat cu Google."); }
+    catch (e) { prompt("Linkul pentru ecran:", url); }
+  }
+  function mountScreen() {
+    document.documentElement.style.overflow = "hidden";
+    const f = Object.assign(document.createElement("iframe"), { title: "KAIROS · Ecran" });
+    f.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;border:0;z-index:2147483647;background:#000";
+    document.body.appendChild(f);
+    const fd = f.contentDocument; fd.open(); fd.write("<!doctype html><html><head></head><body></body></html>"); fd.close();
+    fd.body.classList.add("screen");
+    if (new URLSearchParams(location.search).get("prompter") === "1") prompter.on = true;   // &prompter=1: pornește direct cu prompterul
+    mountPopup(f.contentWindow);
+    // butoanele (Prompter, Start, viteză…) apar doar când miști mouse-ul, apoi dispar după 3 s
+    let uiT = 0;
+    fd.addEventListener("mousemove", () => { fd.body.classList.add("ui"); clearTimeout(uiT); uiT = setTimeout(() => fd.body.classList.remove("ui"), 3000); });
+
+    fd.title = document.title = `KAIROS · Ecran · ${state.show.title || ""}`;
+    f.contentWindow.focus();
+    // dublu-clic = ecran complet
+    fd.addEventListener("dblclick", () => { const el = fd.documentElement; if (fd.fullscreenElement) fd.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); });
+  }
+
   renderAll();
+  if (SCREEN) mountScreen();
   setInterval(tick, 250);
 })();
