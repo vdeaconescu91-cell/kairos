@@ -1,6 +1,6 @@
 /* KAIROS · un singur player pentru muzica segmentelor, folosit în rundown și în Preview.
    Orice buton cu data-music="URL" pornește/oprește piesa; o singură piesă cântă odată.
-   Butonul primește clasa .playing, iar elementul [data-music-time] din același .music arată timpul scurs / durata. */
+   Butonul primește clasa .playing; butonul [data-music-dl] descarcă piesa cu numele ei original, iar elementul [data-music-time] din același .music arată timpul scurs / durata. */
 (() => {
   "use strict";
   const audio = new Audio(); audio.preload = "none";
@@ -40,6 +40,35 @@
   }, true);
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && cur) stop(); });
 
+  // descărcare: fișierul pleacă cu numele original. Întâi îl cerem ca blob (merge dacă bucket-ul are CORS);
+  // altfel îi punem fișierului „attachment” în metadate (doar editorii pot) și îl deschidem direct.
+  const dispo = (name) => `attachment; filename="${String(name).replace(/[^\x20-\x7e]/g, "_").replace(/"/g, "'")}"; filename*=UTF-8''${encodeURIComponent(name)}`;
+  function save(href, name) {
+    const a = Object.assign(document.createElement("a"), { href, download: name || "" });
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  async function download(url, name, path, btn) {
+    if (btn) btn.classList.add("busy");
+    try {
+      const r = await fetch(url, { mode: "cors" });
+      if (!r.ok) throw new Error(r.status);
+      const blobUrl = URL.createObjectURL(await r.blob());
+      save(blobUrl, name); setTimeout(() => URL.revokeObjectURL(blobUrl), 60000);
+    } catch (e) {
+      if (path && window.firebase && firebase.storage) {
+        try { await firebase.storage().ref(path).updateMetadata({ contentDisposition: dispo(name) }); } catch (_) { /* fără drept de editare: rămâne cum e */ }
+      }
+      const a = Object.assign(document.createElement("a"), { href: url, target: "_blank", rel: "noopener" });
+      document.body.appendChild(a); a.click(); a.remove();
+    } finally { if (btn) btn.classList.remove("busy"); }
+  }
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-music-dl]");
+    if (!b) return;
+    e.preventDefault(); e.stopPropagation();
+    if (!b.classList.contains("busy")) download(b.dataset.musicDl, b.dataset.name, b.dataset.path, b);
+  }, true);
+
   // HTML-ul unui player mic: buton, nume, timp, bară
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function html(m, extra = "") {
@@ -47,7 +76,9 @@
     return `<div class="music"><button type="button" class="mplay" data-music="${esc(m.url)}" aria-label="Ascultă muzica" title="Ascultă muzica asignată">`
       + `<svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg><svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h3v11H4zm5 0h3v11H9z"/></svg></button>`
       + `<div class="mmeta"><span class="mname" title="${esc(m.name)}">♪ ${esc(m.name)}</span><span class="mtime" data-music-time></span>`
-      + `<span class="mtrack" data-music-track><span data-music-bar></span></span></div>${extra}</div>`;
+      + `<span class="mtrack" data-music-track><span data-music-bar></span></span></div>`
+      + `<button type="button" class="mdl" data-music-dl="${esc(m.url)}" data-name="${esc(m.name)}" data-path="${esc(m.path || "")}" aria-label="Descarcă muzica" title="Descarcă ${esc(m.name)}">`
+      + `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>${extra}</div>`;
   }
-  window.KAudio = { toggle, stop, html, paint };
+  window.KAudio = { toggle, stop, html, paint, download, dispo };
 })();

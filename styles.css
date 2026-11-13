@@ -353,6 +353,10 @@ canvas.mark { width: 34px; height: 34px; flex: none; display: block; filter: non
 .mtrack { grid-column: 1 / -1; height: 3px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; cursor: pointer; }
 .mtrack span { display: block; height: 100%; width: 0; background: var(--cc, #3d7bff); }
 .music.up .mtrack { grid-column: auto; flex: 1; }
+/* descărcare piesă */
+.mdl { flex: none; width: 26px; height: 26px; border-radius: 6px; padding: 0; display: grid; place-items: center; cursor: pointer; border: 0; background: transparent; color: var(--muted, #8c95a8); }
+.mdl svg { width: 14px; height: 14px; } .mdl:hover { background: var(--panel-2, rgba(255,255,255,.06)); color: #fff; }
+.mdl.busy { opacity: .45; cursor: progress; }
 .macts { display: flex; gap: 2px; opacity: 0; transition: opacity .15s; } tr:hover .macts, .macts:focus-within { opacity: 1; }
 .madd { margin-top: 8px; font: inherit; font-size: 11.5px; color: var(--muted, #8c95a8); background: none; cursor: pointer; padding: 3px 9px; border-radius: 999px;
   border: 1px dashed rgba(255,255,255,.16); opacity: .55; transition: opacity .15s; }

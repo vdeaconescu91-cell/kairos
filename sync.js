@@ -266,7 +266,9 @@
     const safe = file.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^A-Za-z0-9._-]+/g, "_").slice(-80);
     const path = `shows/${SHOW_ID}/music/${segId}-${Date.now().toString(36)}-${safe}`;
     const ref = firebase.storage().ref(path);
-    const task = ref.put(file, { contentType: file.type || "audio/mpeg", cacheControl: "public, max-age=31536000" });
+    const meta = { contentType: file.type || "audio/mpeg", cacheControl: "public, max-age=31536000" };
+    if (window.KAudio && window.KAudio.dispo) meta.contentDisposition = window.KAudio.dispo(file.name);   // linkul descarcă direct, cu numele original
+    const task = ref.put(file, meta);
     return new Promise((res, rej) => {
       task.on("state_changed", (snap) => onProgress && onProgress(snap.bytesTransferred / Math.max(1, snap.totalBytes)), rej,
         async () => { try { res({ url: await ref.getDownloadURL(), name: file.name, path, size: file.size }); } catch (e) { rej(e); } });
