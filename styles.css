@@ -252,44 +252,6 @@ dialog input { background: var(--panel-2); border: 1px solid var(--line-2); bord
   .brand-sub, .brand-sep, .brand-text { display: none; }
 }
 
-/* ---------- controale: grupuri ---------- */
-.ctl-main, .ctl-user { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.ctl-main { justify-content: flex-end; }
-.who-chip { cursor: pointer; }
-.menu-mobile { display: none; }
-
-/* ---------- mobil: brand · ceas · avatar sus, transport dedesubt, meniu ca bottom sheet ---------- */
-@media (max-width: 900px) {
-  .topbar { grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px 12px; padding-top: 10px; padding-bottom: 10px; }
-  .clock { order: 0; font-size: 18px; }
-  .controls { display: contents; }
-  .ctl-user { grid-column: 3; grid-row: 1; flex-wrap: nowrap; }
-  .ctl-main { grid-column: 1 / -1; grid-row: 2; flex-wrap: nowrap; justify-content: stretch; }
-  #btnGo { flex: 1; }
-  #btnPrev, #btnStop { min-width: 44px; }
-  #btnPreview, #btnPopup { display: none; }
-  body.ro .ctl-main { display: none; }
-  /* doar avatarul; numele și rolul se văd în meniu prin title, nu ocupă bara */
-  .who-chip { padding: 2px; }
-  .who-chip > span, .who-chip em { display: none; }
-  .who-chip img, .who-chip i { width: 32px; height: 32px; }
-  body.cloud #btnMenu { display: none; }
-
-  .menu-list { position: fixed; left: 8px; right: 8px; bottom: 8px; top: auto; z-index: 60; min-width: 0;
-    max-height: 82vh; overflow-y: auto; border-radius: 20px;
-    padding: 18px 8px calc(8px + env(safe-area-inset-bottom));
-    background: rgba(12,14,20,.98); backdrop-filter: blur(20px);
-    box-shadow: 0 0 0 100vmax rgba(0,0,0,.55), 0 20px 60px rgba(0,0,0,.6); }
-  .menu-list::before { content: ""; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
-    width: 36px; height: 4px; border-radius: 4px; background: var(--line-2); }
-  .menu-list button:not(.seg-btn) { padding: 14px 14px; font-size: 15px; }
-  .menu-mobile { display: block; }
-  .mm-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 14px; color: var(--muted); font-size: 14px; }
-  .mm-row:has(.seg.adv:not(.show)) { display: none; }
-  .mm-row .seg-btn { display: inline-block; width: auto; text-align: center; padding: 8px 16px; font-size: 14px; }
-  body.ro .mm-row, body.ro .menu-mobile hr { display: none; }
-}
-
 @media print {
   .glow, .topbar, .hero, .toolbar, .foot, .acts, .drag { display: none !important; }
   body, html { background: #fff; color: #000; }
@@ -458,3 +420,41 @@ tr.flash td { background: rgba(255,255,255,.08) !important; transition: backgrou
 .vp-it { display: grid; gap: 4px; padding: 4px; border: 1px solid transparent; border-radius: 9px; background: none; color: inherit; font: inherit; font-size: 11px; text-align: left; cursor: pointer; }
 .vp-it img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 6px; display: block; }
 .vp-it:hover { background: rgba(255,255,255,.05); } .vp-it.on { border-color: var(--accent, #3d7bff); }
+
+/* ---------- controale: grupuri ---------- */
+.ctl-main, .ctl-user { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ctl-main { justify-content: flex-end; }
+.who-chip { cursor: pointer; }
+.menu-mobile { display: none; }
+
+/* ---------- mobil: brand · ceas · avatar sus, transport dedesubt, meniu ca bottom sheet ---------- */
+@media (max-width: 900px) {
+  .topbar { grid-template-columns: minmax(0, 1fr) auto auto; gap: 10px 12px; padding-top: 10px; padding-bottom: 10px; }
+  .clock { order: 0; font-size: 18px; }
+  .controls { display: contents; }
+  .ctl-user { grid-column: 3; grid-row: 1; flex-wrap: nowrap; }
+  .ctl-main { grid-column: 1 / -1; grid-row: 2; flex-wrap: nowrap; justify-content: stretch; }
+  #btnGo { flex: 1; }
+  #btnPrev, #btnStop { min-width: 44px; }
+  #btnPreview, #btnPopup { display: none; }
+  body.ro .ctl-main { display: none; }
+  /* doar avatarul; numele și rolul se văd în meniu prin title, nu ocupă bara */
+  .who-chip { padding: 2px; gap: 0; }
+  .who-chip > span, .who-chip em { display: none; }
+  .who-chip img, .who-chip i { width: 32px; height: 32px; }
+  body.cloud #btnMenu { display: none; }
+
+  .menu-list { position: fixed; left: 8px; right: 8px; bottom: 8px; top: auto; z-index: 60; min-width: 0;
+    max-height: 82vh; overflow-y: auto; border-radius: 20px;
+    padding: 18px 8px calc(8px + env(safe-area-inset-bottom));
+    background: rgba(12,14,20,.98); backdrop-filter: blur(20px);
+    box-shadow: 0 0 0 100vmax rgba(0,0,0,.55), 0 20px 60px rgba(0,0,0,.6); }
+  .menu-list::before { content: ""; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+    width: 36px; height: 4px; border-radius: 4px; background: var(--line-2); }
+  .menu-list button:not(.seg-btn) { padding: 14px 14px; font-size: 15px; }
+  .menu-mobile { display: block; }
+  .mm-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 14px; color: var(--muted); font-size: 14px; }
+  .mm-row:has(.seg.adv:not(.show)) { display: none; }
+  .mm-row .seg-btn { display: inline-block; width: auto; text-align: center; padding: 8px 16px; font-size: 14px; }
+  body.ro .mm-row, body.ro .menu-mobile hr { display: none; }
+}
