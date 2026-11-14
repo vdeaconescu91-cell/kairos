@@ -955,6 +955,26 @@
   /* ---------------- meniu, setări, import/export ---------------- */
   $("#btnMenu").onclick = (e) => { e.stopPropagation(); $("#menuList").hidden = !$("#menuList").hidden; };
   document.addEventListener("click", () => { $("#menuList").hidden = true; });
+  // avatarul deschide același meniu (pe mobil e singurul buton din dreapta sus)
+  $("#account").addEventListener("click", (e) => {
+    if (!e.target.closest(".who-chip")) return;
+    e.stopPropagation(); $("#menuList").hidden = !$("#menuList").hidden;
+  });
+  // mobil: Plan/Live și Auto/Manual intră în meniu, iar meniul devine bottom sheet
+  // (îl mutăm în <body>, pentru că backdrop-filter de pe topbar strică position:fixed)
+  const mqMobile = window.matchMedia("(max-width: 900px)");
+  function placeForViewport() {
+    const list = $("#menuList"), main = $(".ctl-main");
+    if (mqMobile.matches) {
+      $("#mmMode").append($("#modeSeg")); $("#mmAdv").append($("#advSeg"));
+      document.body.append(list);
+    } else {
+      main.prepend($("#advSeg")); main.prepend($("#modeSeg"));
+      $(".menu").append(list);
+    }
+    list.hidden = true;
+  }
+  mqMobile.addEventListener("change", placeForViewport); placeForViewport();
   $("#menuList").addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const a = b.dataset.act;
@@ -965,6 +985,7 @@
     if (a === "settings") openSettings();
     if (a === "team") openTeam();
     if (a === "home") location.href = "./";
+    if (a === "preview") window.open($("#btnPreview").href, "_blank", "noopener");
     if (a === "signout" && S) S.signOut();
     if (a === "reset" && window.confirm("Înlocuiești rundown-ul curent cu cel implicit? Exportă-l înainte dacă vrei să-l păstrezi.")) {
       snapshot(); const keep = { mode: state.mode, advance: state.advance, live: state.live }; state = { ...fromDefault(), ...keep };

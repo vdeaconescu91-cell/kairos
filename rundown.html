@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=202611140030">
+<link rel="stylesheet" href="styles.css?v=202611140210">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
@@ -28,7 +28,8 @@
   <div class="clock" id="clock" title="Ora curentă">--:--:--</div>
 
   <div class="controls">
-    <div class="seg" role="tablist" aria-label="Mod">
+   <div class="ctl-main">
+    <div class="seg" id="modeSeg" role="tablist" aria-label="Mod">
       <button class="seg-btn" data-mode="plan" role="tab">Plan</button>
       <button class="seg-btn" data-mode="live" role="tab">Live</button>
     </div>
@@ -41,10 +42,18 @@
     <button class="btn ghost" id="btnStop" title="Oprește modul live">■</button>
     <a class="btn ghost" id="btnPreview" href="client.html" target="_blank" rel="noopener" title="Pagina pentru clienți: citesc rundown-ul și lasă comentarii cu contul Google">Preview</a>
     <button class="btn accent" id="btnPopup" title="Fereastră mereu deasupra cu ce urmează">Pop-up</button>
+   </div>
+   <div class="ctl-user">
     <div class="account" id="account"></div>
     <div class="menu">
-      <button class="btn ghost" id="btnMenu" aria-haspopup="true">⋯</button>
+      <button class="btn ghost" id="btnMenu" aria-haspopup="true" aria-label="Meniu">⋯</button>
       <div class="menu-list" id="menuList" hidden>
+        <div class="menu-mobile">
+          <div class="mm-row"><span>Mod</span><div id="mmMode"></div></div>
+          <div class="mm-row"><span>La zero</span><div id="mmAdv"></div></div>
+          <button data-act="preview">Preview pentru clienți</button>
+          <hr>
+        </div>
         <button data-act="settings">Setări show</button>
         <button data-act="home">Toate rundown-urile</button>
         <button data-act="team" class="owner-only">Cine poate edita acest rundown</button>
@@ -57,6 +66,7 @@
         <button data-act="signout" class="cloud-only">Deconectare</button>
       </div>
     </div>
+   </div>
   </div>
 </header>
 
@@ -193,7 +203,7 @@
 <script src="kairos-visual.js?v=202611122040"></script>
 <script src="sync.js?v=202611140030"></script>
 <script src="rundown-data.js?v=202611040403"></script>
-<script src="app.js?v=202611140215"></script>
+<script src="app.js?v=202611140220"></script>
 <script src="kairos-sphere.js?v=202611050600"></script>
 <script src="kairos-orb.js?v=202611042130"></script>
 </body>
