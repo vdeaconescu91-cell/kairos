@@ -980,6 +980,7 @@
     const a = b.dataset.act;
     if (a === "export") exportJSON();
     if (a === "import") $("#importFile").click();
+    if (a === "importScripts") $("#scriptsFile").click();
     if (a === "print") window.print();
     if (a === "screen") copyScreenLink();
     if (a === "prompter") { const u = new URL(screenUrl()); u.searchParams.set("prompter", "1"); location.href = u.toString(); }
@@ -1013,6 +1014,32 @@
       save(); pushItems(); renderAll(); toast(`Importat: ${segs().length} segmente`);
     } catch (err) { toast("Fișierul nu e un rundown valid"); }
     e.target.value = "";
+  });
+
+  // scripturi de prompter dintr-un fișier { "scripts": { "Titlu segment": "text" } }:
+  // atinge doar câmpul Script, potrivit după titlu; ID-urile, comentariile și muzica rămân neatinse
+  $("#scriptsFile").addEventListener("change", async (e) => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    if (!canEdit()) return toast("Doar editorii pot schimba scripturile");
+    let map;
+    try { const d = JSON.parse(await f.text()); map = d && typeof d.scripts === "object" ? d.scripts : d; if (!map || typeof map !== "object" || Array.isArray(map)) throw 0; }
+    catch (err) { return toast("Fișierul nu e un fișier de scripturi valid"); }
+    const norm = (s) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+    const byTitle = new Map(segs().map((it) => [norm(it.title), it]));
+    const hits = [], miss = [];
+    for (const [t, v] of Object.entries(map)) { const it = byTitle.get(norm(t)); if (it && typeof v === "string") hits.push([it, v]); else miss.push(t); }
+    const changed = hits.filter(([it, v]) => (it.script || "") !== v);
+    if (!changed.length) return toast(miss.length ? `Niciun script nou. Titluri negăsite: ${miss.length}` : "Scripturile sunt deja la zi");
+    const msg = `Înlocuiești scriptul la ${changed.length} segmente? Restul rundown-ului rămâne neatins.`
+      + (miss.length ? `\n\nNu am găsit în rundown: ${miss.join(", ")}` : "");
+    if (!confirm(msg)) return;
+    snapshot();
+    for (const [it, v] of changed) {
+      it.script = v;
+      if (cloud()) { localDirty.set(`${it.id}.script`, v); S.field(it.id, "script", v); }
+    }
+    save(); renderTable(); tick();
+    toast(`Scripturi actualizate: ${changed.length}${miss.length ? ` · negăsite: ${miss.length}` : ""}`);
   });
 
   function openSettings() {

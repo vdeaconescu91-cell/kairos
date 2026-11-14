@@ -59,6 +59,7 @@
         <button data-act="team" class="owner-only">Cine poate edita acest rundown</button>
         <button data-act="export">Exportă JSON</button>
         <button data-act="import">Importă JSON</button>
+        <button data-act="importScripts">Importă scripturi</button>
         <button data-act="print">Printează</button>
         <button data-act="screen">Link pentru ecran mare</button>
         <button data-act="prompter">Prompter pe acest ecran</button>
@@ -195,6 +196,7 @@
 </dialog>
 
 <input type="file" id="importFile" accept="application/json" hidden>
+<input type="file" id="scriptsFile" accept="application/json,.json" hidden>
 
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
@@ -204,7 +206,7 @@
 <script src="kairos-visual.js?v=202611122040"></script>
 <script src="sync.js?v=202611140030"></script>
 <script src="rundown-data.js?v=202611040403"></script>
-<script src="app.js?v=202611140250"></script>
+<script src="app.js?v=202611140340"></script>
 <script src="kairos-sphere.js?v=202611050600"></script>
 <script src="kairos-orb.js?v=202611042130"></script>
 </body>
