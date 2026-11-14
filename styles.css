@@ -436,7 +436,7 @@ tr.flash td { background: rgba(255,255,255,.08) !important; transition: backgrou
   .ctl-main { grid-column: 1 / -1; grid-row: 2; flex-wrap: nowrap; justify-content: stretch; }
   #btnGo { flex: 1; }
   #btnPrev, #btnStop { min-width: 44px; }
-  #btnPreview, #btnPopup { display: none; }
+  #btnPreview { display: none; }
   body.ro .ctl-main { display: none; }
   /* doar avatarul; numele și rolul se văd în meniu prin title, nu ocupă bara */
   .who-chip { padding: 2px; gap: 0; }
