@@ -982,6 +982,7 @@
     if (a === "import") $("#importFile").click();
     if (a === "print") window.print();
     if (a === "screen") copyScreenLink();
+    if (a === "prompter") { const u = new URL(screenUrl()); u.searchParams.set("prompter", "1"); location.href = u.toString(); }
     if (a === "settings") openSettings();
     if (a === "team") openTeam();
     if (a === "home") location.href = "./";
@@ -1265,7 +1266,13 @@
     mountPopup(f.contentWindow);
     // butoanele (Prompter, Start, viteză…) apar doar când miști mouse-ul, apoi dispar după 3 s
     let uiT = 0;
-    fd.addEventListener("mousemove", () => { fd.body.classList.add("ui"); clearTimeout(uiT); uiT = setTimeout(() => fd.body.classList.remove("ui"), 3000); });
+    const showUi = () => { fd.body.classList.add("ui"); clearTimeout(uiT); uiT = setTimeout(() => fd.body.classList.remove("ui"), 3000); };
+    fd.addEventListener("mousemove", showUi);
+    fd.addEventListener("pointerdown", showUi);   // tabletă: o atingere arată butoanele
+    // ecranul nu se stinge cât e deschis (tabletă/telefon folosit ca prompter)
+    let wake = null;
+    const keepAwake = async () => { try { if ("wakeLock" in navigator && document.visibilityState === "visible") wake = await navigator.wakeLock.request("screen"); } catch (e) {} };
+    keepAwake(); document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
 
     fd.title = document.title = `KAIROS · Ecran · ${state.show.title || ""}`;
     f.contentWindow.focus();
