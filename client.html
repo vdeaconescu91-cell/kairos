@@ -1,103 +1,105 @@
 <!doctype html>
-<html lang="ro">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>KAIROS · Preview</title>
+<title>KAIROS · Client preview</title>
+<meta name="theme-color" content="#05070d">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 <style>
-/* o coloană de citit, ora în stânga ca pe un rundown tipărit; același look întunecat ca aplicația */
-:root { --bg:#04060c; --panel:#0b0f1a; --line:#1c2333; --fg:#eef1f7; --muted:#8c95a8; --blue:#4f86ff; --ice:#d6e4ff;
-  --display:"Inter Tight","Helvetica Neue",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace; color-scheme:dark; }
+/* pagina pentru clienți: o coloană de citit, ora în stânga ca în caietul de regie; aceeași lume ca editorul */
+:root { --bg:#05070d; --desk:#0a1433; --desk-2:#0f1b45; --ink:#06175a; --rule:rgba(214,228,255,.10); --rule-2:rgba(214,228,255,.20);
+  --fg:#eef3ff; --fg-2:#c9d4ee; --muted:#a3b0cc; --dim:#8592b3; --signal:#3d7bff; --signal-btn:#2b63e6; --signal-ink:#9dbcff; --ice:#d6e4ff; --standby:#f2b33d;
+  --display:"Archivo","Inter Tight","Helvetica Neue",Arial,sans-serif; --ui:"Inter Tight","Helvetica Neue",Arial,sans-serif; --mono:"JetBrains Mono",ui-monospace,Menlo,monospace; color-scheme:dark; }
 * { box-sizing:border-box; }
 html,body { margin:0; background:var(--bg); color:var(--fg); }
-body { font-family:var(--display); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; }
+body { font-family:var(--ui); font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums; }
+::selection { background:var(--signal); color:#fff; }
+:focus-visible { outline:2px solid var(--ice); outline-offset:2px; }
 button,textarea,input { font:inherit; color:inherit; }
 .wrap { max-width:920px; margin:0 auto; padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); }
-.top { border-bottom:1px solid var(--line); background:radial-gradient(60% 120% at 50% 130%,rgba(79,134,255,.32),rgba(79,134,255,0) 70%),var(--bg); }
-.top .wrap { padding-block:24px 28px; display:grid; gap:16px; }
-.bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-.bar svg, .bar-orb { width:30px; height:30px; display:block; }
-.bar b { font-weight:600; font-size:14px; letter-spacing:.32em; color:var(--ice); }
+.top { border-bottom:1px solid var(--rule); background:var(--desk); }
+.top .wrap { padding-block:20px 24px; display:grid; gap:14px; }
+.bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; min-height:40px; }
 .acct { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
 .acct img { width:26px; height:26px; border-radius:50%; }
-h1 { margin:-.18em 0 0; padding-top:.18em; font-size:clamp(30px,6vw,52px); font-weight:600; letter-spacing:-.03em; line-height:1.04; text-transform:uppercase; text-wrap:balance;
-  background:linear-gradient(90deg,#fff 0%,#fff 55%,#7d879b 100%); -webkit-background-clip:text; background-clip:text; color:transparent; }
-.sub { margin-top:-6px; font-size:14px; font-weight:600; letter-spacing:.24em; text-transform:uppercase; color:var(--ice); }
-.facts { display:flex; flex-wrap:wrap; gap:6px 18px; color:var(--muted); font-size:14px; }
-.facts b { color:var(--fg); font-weight:500; font-family:var(--mono); font-size:13px; }
-.how { margin:0; max-width:62ch; color:#c7cede; }
-.btn { border:1px solid color-mix(in srgb,var(--blue) 65%,transparent); background:color-mix(in srgb,var(--blue) 30%,transparent); color:#fff;
-  border-radius:999px; padding:8px 14px; font-weight:600; font-size:13px; cursor:pointer; }
-.btn.ghost { background:transparent; border-color:#2a3550; color:var(--ice); }
-.btn:hover { filter:brightness(1.2); } .btn:focus-visible { outline:2px solid var(--ice); outline-offset:2px; }
+h1 { margin:6px 0 0; font-family:var(--display); font-stretch:125%; font-size:clamp(26px,5vw,44px); font-weight:700; letter-spacing:-.005em; line-height:1.06; text-transform:uppercase; text-wrap:balance; }
+.sub { font-size:14px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ice); }
+.facts { display:flex; flex-wrap:wrap; gap:6px 20px; color:var(--muted); font-size:14px; }
+.facts b { color:var(--fg); font-weight:500; font-family:var(--mono); font-size:13.5px; }
+.stale { color:var(--ice); }
+.how { margin:0; max-width:65ch; color:var(--fg-2); }
+.btn { display:inline-flex; align-items:center; justify-content:center; height:38px; border:1px solid var(--signal-btn); background:var(--signal-btn); color:#fff; border-radius:8px; padding:0 14px; font-weight:600; font-size:13.5px; cursor:pointer; }
+.btn.ghost { background:transparent; border-color:var(--rule-2); color:var(--ice); }
+.btn:hover { filter:brightness(1.12); }
 .btn:disabled { opacity:.5; cursor:default; }
-.banner { border:1px solid #2a3550; border-radius:12px; padding:12px 14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:#0a0e18; }
-.banner p { margin:0; flex:1; min-width:220px; color:#c7cede; font-size:14px; }
+.banner { border:1px solid var(--rule-2); border-radius:10px; padding:12px 14px; display:flex; gap:12px; align-items:center; flex-wrap:wrap; background:var(--bg); }
+.banner p { margin:0; flex:1; min-width:220px; color:var(--fg-2); font-size:14px; }
 .legend { display:flex; flex-wrap:wrap; gap:6px; }
-.chip { display:inline-flex; align-items:center; gap:6px; padding:2px 9px; border-radius:999px; font-size:11px; font-weight:600; letter-spacing:.06em; text-transform:uppercase;
-  color:var(--c); border:1px solid color-mix(in srgb,var(--c) 45%,transparent); background:color-mix(in srgb,var(--c) 12%,transparent); }
-.chip::before { content:""; width:6px; height:6px; border-radius:50%; background:var(--c); }
+.chip { display:inline-flex; align-items:center; gap:6px; height:24px; padding:0 9px; border-radius:4px; font-size:11.5px; font-weight:600; letter-spacing:.04em; text-transform:uppercase;
+  color:color-mix(in srgb,var(--c) 55%,#fff); border:1px solid color-mix(in srgb,var(--c) 45%,transparent); background:color-mix(in srgb,var(--c) 12%,var(--bg)); }
+.chip::before { content:""; width:7px; height:7px; border-radius:2px; background:var(--c); }
 main.wrap { padding-block:8px 72px; }
-section { margin-top:30px; }
-h2 { margin:0 0 12px; font-size:12px; font-weight:700; letter-spacing:.18em; color:#9dbcff; text-transform:uppercase; }
-.seg { display:grid; grid-template-columns:76px minmax(0,1fr); gap:16px; padding:18px 18px 16px; border:1px solid var(--line); border-left:3px solid var(--c);
-  border-radius:14px; background:var(--panel); margin-bottom:10px; }
-.when { display:grid; align-content:start; gap:2px; }
-.time { font-family:var(--mono); font-size:17px; font-weight:500; font-variant-numeric:tabular-nums; }
-.dur { font-family:var(--mono); font-size:12px; color:var(--muted); }
+section { margin-top:28px; }
+h2 { margin:0 0 10px; font-family:var(--display); font-stretch:125%; font-size:13px; font-weight:700; letter-spacing:.06em; color:var(--ice); text-transform:uppercase; }
+.seg { display:grid; grid-template-columns:84px minmax(0,1fr); gap:16px; padding:16px 18px; border-bottom:1px solid var(--rule); }
+.seg.now { background:var(--desk); border:2px solid var(--signal); border-radius:10px; }
+.when { display:grid; align-content:start; gap:4px; }
+.cue { justify-self:start; font-family:var(--mono); font-size:12px; color:var(--fg-2); border:1px solid var(--rule-2); border-radius:4px; padding:1px 6px; }
+.time { font-family:var(--mono); font-size:17px; font-weight:500; }
+.dur { font-family:var(--mono); font-size:12.5px; color:var(--muted); }
 .body { min-width:0; display:grid; gap:10px; }
 .head { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; }
-.who { font-size:13px; color:var(--muted); }
-h3 { margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em; line-height:1.2; text-wrap:balance; }
-.say { border-radius:10px; padding:10px 12px; background:color-mix(in srgb,var(--c) 7%,#070a12); }
-.k, summary { font-size:11px; font-weight:700; letter-spacing:.14em; text-transform:uppercase; color:var(--muted); }
-.say p, .script p { margin:4px 0 0; max-width:68ch; white-space:pre-wrap; color:#e3e8f2; }
-.script { border-radius:10px; padding:10px 12px; border:1px dashed var(--line); }
-summary { cursor:pointer; }
+.who { font-size:13.5px; color:var(--muted); }
+.nowtag { font-size:11px; font-weight:700; letter-spacing:.08em; padding:3px 7px; border-radius:4px; background:var(--signal-btn); color:#fff; }
+h3 { margin:0; font-size:19px; font-weight:600; letter-spacing:-.01em; line-height:1.25; text-wrap:balance; }
+.say { border-radius:8px; padding:10px 12px; background:var(--desk); }
+.k, summary { font-size:12px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); }
+.say p, .script p { margin:4px 0 0; max-width:68ch; white-space:pre-wrap; color:var(--fg); }
+.script { border-radius:8px; padding:10px 12px; border:1px dashed var(--rule-2); }
+summary { cursor:pointer; min-height:28px; display:flex; align-items:center; }
 .prod { margin:0; display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:8px 18px; }
-.prod div { min-width:0; } dt { font-size:11px; color:var(--muted); letter-spacing:.1em; text-transform:uppercase; } dd { margin:2px 0 0; font-size:13px; color:#b9c1d2; }
-.thread { border-top:1px solid var(--line); padding-top:10px; display:grid; gap:8px; }
-.thread-toggle { justify-self:start; background:none; border:0; padding:0; color:var(--ice); cursor:pointer; font-size:13px; font-weight:600; }
-.cm { border-radius:10px; padding:8px 10px; background:#0e1322; }
-.cm.resolved { opacity:.55; }
-.cm header { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); flex-wrap:wrap; }
+.prod div { min-width:0; } dt { font-size:12px; color:var(--muted); letter-spacing:.06em; text-transform:uppercase; } dd { margin:2px 0 0; font-size:13.5px; color:var(--fg-2); }
+.thread { border-top:1px solid var(--rule); padding-top:10px; display:grid; gap:8px; }
+.thread-toggle { justify-self:start; background:none; border:0; padding:4px 0; min-height:32px; color:var(--signal-ink); cursor:pointer; font-size:13.5px; font-weight:600; text-decoration:underline; text-underline-offset:3px; }
+.cm { border-radius:8px; padding:8px 10px; background:var(--desk); }
+.cm.resolved { opacity:.6; }
+.cm header { display:flex; align-items:center; gap:8px; font-size:12.5px; color:var(--muted); flex-wrap:wrap; }
 .cm header b { color:var(--fg); font-size:13px; }
 .cm header img { width:20px; height:20px; border-radius:50%; }
-.cm .tag { color:#e4f53b; border:1px solid rgba(228,245,59,.4); border-radius:999px; padding:0 7px; font-size:10px; letter-spacing:.06em; text-transform:uppercase; }
+.cm .tag { color:var(--ice); border:1px solid var(--rule-2); border-radius:4px; padding:0 6px; font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; }
 .cm p { margin:6px 0 0; white-space:pre-wrap; font-size:14px; }
-.cm .del { margin-top:6px; background:none; border:0; color:#ff8b95; cursor:pointer; font-size:12px; padding:0; }
+.cm .del { margin-top:6px; background:none; border:0; color:var(--standby); cursor:pointer; font-size:12.5px; padding:4px 0; }
 .compose { display:grid; gap:8px; }
-.compose .kind { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:12px; color:var(--muted); }
-.compose .kind label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; }
-.compose textarea { width:100%; resize:vertical; background:#0e1322; border:1px solid #2a3550; border-radius:10px; padding:9px 11px; line-height:1.45; }
-.compose textarea:focus { outline:none; border-color:var(--blue); }
+.compose .kind { display:flex; flex-wrap:wrap; gap:4px 14px; font-size:13px; color:var(--muted); }
+.compose .kind label { display:inline-flex; gap:6px; align-items:center; cursor:pointer; min-height:32px; }
+.compose .kind input { accent-color:var(--signal); }
+.compose textarea { width:100%; resize:vertical; background:var(--bg); border:1px solid var(--rule-2); border-radius:6px; padding:9px 11px; line-height:1.45; }
+.compose textarea:focus { outline:none; border-color:var(--ice); }
 .compose .row { display:flex; justify-content:flex-end; gap:8px; }
 .foot { margin-top:40px; color:var(--muted); font-size:13px; }
-.toast { position:fixed; left:50%; bottom:max(20px,env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:#121828; border:1px solid #2a3550; border-radius:999px; padding:9px 16px; font-size:13px; z-index:9; }
+.toast { position:fixed; left:50%; bottom:max(20px,env(safe-area-inset-bottom,0px)); transform:translateX(-50%); background:var(--desk-2); border:1px solid var(--rule-2); border-radius:8px; padding:10px 16px; font-size:13.5px; z-index:9; }
 [hidden] { display:none !important; }
-@media (max-width:520px){ .seg { grid-template-columns:1fr; gap:8px; } .when { display:flex; gap:10px; align-items:baseline; } }
-.wordmark-img { height: 16px; width: auto; display: block; flex: none; }
+@media (max-width:520px){ .seg { grid-template-columns:1fr; gap:8px; padding:14px 4px; } .seg.now { padding:14px 12px; } .when { display:flex; gap:10px; align-items:baseline; } }
+.wordmark-img { height: 18px; width: auto; display: block; flex: none; }
 /* muzica segmentului */
 .music { display:flex; align-items:center; gap:10px; margin:8px 0 2px; max-width:420px; }
-.mplay { flex:none; width:34px; height:34px; border-radius:50%; border:1px solid color-mix(in srgb, var(--c, #4f86ff) 55%, transparent); background:color-mix(in srgb, var(--c, #4f86ff) 18%, transparent); color:#fff; display:grid; place-items:center; cursor:pointer; padding:0; }
+.mplay { flex:none; width:36px; height:36px; border-radius:50%; border:1px solid color-mix(in srgb, var(--c, #3d7bff) 55%, transparent); background:color-mix(in srgb, var(--c, #3d7bff) 18%, var(--bg)); color:#fff; display:grid; place-items:center; cursor:pointer; padding:0; }
 .mplay svg { width:13px; height:13px; fill:currentColor; } .mplay .i-pause, .mplay.playing .i-play { display:none; } .mplay.playing .i-pause { display:block; }
-.mplay:hover { background:color-mix(in srgb, var(--c, #4f86ff) 32%, transparent); } .mplay.playing { box-shadow:0 0 0 4px color-mix(in srgb, var(--c, #4f86ff) 22%, transparent); }
 .mmeta { flex:1; min-width:0; display:grid; grid-template-columns:1fr auto; gap:4px 10px; align-items:center; }
-.mname { font-size:13px; color:#c7cede; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .mtime { font-family:"JetBrains Mono",monospace; font-size:11px; color:#8c95a8; }
-.mtrack { grid-column:1 / -1; height:4px; border-radius:2px; background:rgba(255,255,255,.08); cursor:pointer; overflow:hidden; } .mtrack span { display:block; height:100%; width:0; background:var(--c, #4f86ff); }
+.mname { font-size:13px; color:var(--fg-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; } .mtime { font-family:var(--mono); font-size:12px; color:var(--muted); }
+.mtrack { grid-column:1 / -1; height:4px; background:var(--rule); cursor:pointer; overflow:hidden; } .mtrack span { display:block; height:100%; width:0; background:var(--c, #3d7bff); }
 /* previzualizarea grafică */
 .vis { margin:12px 0 4px; max-width:560px; }
-.vthumb { display:block; width:100%; padding:0; border:1px solid var(--line); border-radius:10px; overflow:hidden; background:#000; cursor:zoom-in; aspect-ratio:16/9; }
+.vthumb { display:block; width:100%; padding:0; border:1px solid var(--rule-2); border-radius:6px; overflow:hidden; background:#000; cursor:zoom-in; aspect-ratio:16/9; }
 .vthumb img { display:block; width:100%; height:100%; object-fit:cover; }
-.vthumb:focus-visible { outline:2px solid var(--ice); outline-offset:2px; }
-.vis figcaption { margin-top:4px; font-size:12px; color:var(--muted); }
-.vbox { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; background:rgba(2,4,10,.88); backdrop-filter:blur(6px); cursor:zoom-out; padding:16px; }
+.vis figcaption { margin-top:4px; font-size:12.5px; color:var(--muted); }
+.vbox { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; background:rgba(2,4,10,.9); cursor:zoom-out; padding:16px; }
 .vbox[hidden] { display:none; }
 .vbox figure { margin:0; max-width:min(1280px,100%); }
-.vbox img { display:block; width:100%; height:auto; border-radius:10px; }
+.vbox img { display:block; width:100%; height:auto; border-radius:6px; }
 .vbox figcaption { margin-top:10px; text-align:center; color:var(--ice); font-size:13px; }
 </style>
 </head>
@@ -107,8 +109,8 @@ summary { cursor:pointer; }
     <div class="acct" id="acct"></div></div>
   <div><h1 id="title">—</h1></div><div class="sub" id="sub"></div>
   <div class="facts" id="facts"></div>
-  <p class="how">Acesta e rundown-ul stream-ului, moment cu moment. La fiecare moment poți lăsa un <strong>comentariu</strong> sau o <strong>sugestie de text</strong> pentru ce se spune pe aer. Comentariile tale le vezi doar tu și echipa de producție.</p>
-  <div class="banner" id="signinBanner" hidden><p>Conectează-te cu contul Google ca să vezi versiunea la zi și să lași comentarii.</p><button class="btn" data-signin>Conectare cu Google</button></div>
+  <p class="how">This is the show’s rundown, segment by segment. On any segment you can leave a <strong>comment</strong> or <strong>suggest what’s said</strong> on air. Only you and the production team see your comments.</p>
+  <div class="banner" id="signinBanner" hidden><p>Sign in with Google to see the latest version and leave comments.</p><button class="btn" data-signin>Sign in with Google</button></div>
   <div class="legend" id="legend"></div>
 </div></header>
 <main class="wrap" id="list"></main>
@@ -116,25 +118,25 @@ summary { cursor:pointer; }
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="kairos-audio.js?v=202611140110"></script>
-<script src="kairos-visual.js?v=202611122040"></script>
-<script src="sync.js?v=202611140030"></script>
+<script src="kairos-audio.js?v=202611181900"></script>
+<script src="kairos-visual.js?v=202611181900"></script>
+<script src="sync.js?v=202611181900"></script>
 <script src="rundown-data.js?v=202611040403"></script>
 <script>
 (() => {
   const S = window.KSYNC;
-  const CATS = { live:["Meci live","#4f86ff"], interviu:["Interviu","#a78bfa"], grafica:["Grafică","#22d3ee"], platforma:["Platformă","#c9d4ea"],
-    caritabil:["Caritabil","#f472b6"], ing:["ING","#ff7a2e"], donatii:["Donații","#e4f53b"], giveaway:["Giveaway","#34d399"], pauza:["Pauză / rezervă","#8a93a6"] };
+  const CATS = { live:["Live match","#3d7bff"], interviu:["Interview","#a78bfa"], grafica:["Graphics","#22d3ee"], platforma:["Platform","#c9d4ea"],
+    caritabil:["Charity","#f472b6"], ing:["ING","#ff6200"], donatii:["Donations","#e4f53b"], giveaway:["Giveaway","#34d399"], pauza:["Break / buffer","#9aa3b5"] };
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const $ = (s) => document.querySelector(s);
   const d0 = window.TA_DEFAULT_RUNDOWN;
   const blank = () => (S && !S.isLegacy) ? { show: { title: "Rundown", date: "", start: "18:00", venue: "" }, items: [] } : { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) };
-  let data = blank(), live = false;
+  let data = blank(), live = false, liveNow = null;
   const open = new Set();
 
   function toast(m) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); } t.textContent = m; clearTimeout(toast.t); toast.t = setTimeout(() => t.remove(), 2600); }
   function hhmm(min) { const [H, M] = (data.show.start || "15:00").split(":").map(Number); const t = H * 60 + M + min; return `${String(Math.floor(t / 60) % 24).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`; }
-  function ago(ms) { const s = Math.max(0, (Date.now() - ms) / 1000 | 0); return s < 60 ? "acum" : s < 3600 ? `acum ${s / 60 | 0} min` : s < 86400 ? `acum ${s / 3600 | 0} h` : new Date(ms).toLocaleString("ro-RO", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
+  function ago(ms) { const s = Math.max(0, (Date.now() - ms) / 1000 | 0); return s < 60 ? "just now" : s < 3600 ? `${s / 60 | 0} min ago` : s < 86400 ? `${s / 3600 | 0} h ago` : new Date(ms).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
 
   function renderHead() {
     const [name, ...rest] = (data.show.title || "").split(" · ");
@@ -142,14 +144,14 @@ summary { cursor:pointer; }
     document.title = `${name} · KAIROS`;
     let t = 0, n = 0; for (const it of data.items) if (it.type !== "header") { t += Number(it.min) || 0; n++; }
     const [y, m, d] = (data.show.date || "").split("-");
-    $("#facts").innerHTML = `<span>Data <b>${d}.${m}.${y}</b></span><span>Live <b>${esc(data.show.start)} – ${hhmm(t)}</b></span><span>Locația <b>${esc(data.show.venue || "")}</b></span><span><b>${n}</b> momente</span>${live ? "" : `<span>· versiunea de pe site, nu cea la zi</span>`}`;
+    $("#facts").innerHTML = `<span>Date <b>${d}.${m}.${y}</b></span><span>On air <b>${esc(data.show.start)} – ${hhmm(t)}</b></span><span>Venue <b>${esc(data.show.venue || "")}</b></span><span><b>${n}</b> segments</span>${live ? "" : `<span class="stale">Sample copy · sign in for the latest version</span>`}`;
     $("#legend").innerHTML = Object.values(CATS).map(([l, c]) => `<span class="chip" style="--c:${c}">${esc(l)}</span>`).join("");
   }
   function renderAcct() {
     const signed = !!(S && S.user);
     $("#signinBanner").hidden = signed || !(S && S.ready);
-    $("#acct").innerHTML = signed ? `${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<span>${esc(S.user.name)}</span><button class="btn ghost" id="out">Ieșire</button>`
-      : (S && S.ready ? `<button class="btn" data-signin>Conectare cu Google</button>` : "");
+    $("#acct").innerHTML = signed ? `${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<span>${esc(S.user.name)}</span><button class="btn ghost" id="out">Sign out</button>`
+      : (S && S.ready ? `<button class="btn" data-signin>Sign in with Google</button>` : "");
     const o = $("#out"); if (o) o.onclick = () => S.signOut();
   }
   function thread(it) {
@@ -157,39 +159,40 @@ summary { cursor:pointer; }
     const openN = all.filter((c) => !c.resolved).length;
     const isOpen = open.has(it.id);
     const me = S && S.user ? S.user.uid : null;
-    const label = all.length ? `${openN ? openN + " comentarii deschise" : "Comentarii"} (${all.length})` : "Lasă un comentariu";
-    let h = `<div class="thread"><button class="thread-toggle" data-tog="${esc(it.id)}">${isOpen ? "Ascunde" : label}</button>`;
+    const label = all.length ? `${openN ? openN + " open comment" + (openN > 1 ? "s" : "") : "Comments"} (${all.length})` : "Leave a comment";
+    let h = `<div class="thread"><button class="thread-toggle" data-tog="${esc(it.id)}">${isOpen ? "Hide comments" : label}</button>`;
     if (isOpen) {
-      h += all.map((c) => `<div class="cm ${c.resolved ? "resolved" : ""}"><header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<b>${esc(c.name)}</b><span>${esc(ago(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Sugestie de text</span>` : ""}${c.resolved ? `<span>· rezolvat</span>` : ""}</header><p>${esc(c.text)}</p>${c.uid === me ? `<button class="del" data-del="${esc(c.id)}">Șterge</button>` : ""}</div>`).join("");
+      h += all.map((c) => `<div class="cm ${c.resolved ? "resolved" : ""}"><header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<b>${esc(c.name)}</b><span>${esc(ago(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Script suggestion</span>` : ""}${c.resolved ? `<span>· resolved</span>` : ""}</header><p>${esc(c.text)}</p>${c.uid === me ? `<button class="del" data-del="${esc(c.id)}">Delete</button>` : ""}</div>`).join("");
       h += S && S.user && live
-        ? `<form class="compose" data-seg="${esc(it.id)}"><div class="kind"><label><input type="radio" name="k${esc(it.id)}" value="comment" checked> Comentariu</label><label><input type="radio" name="k${esc(it.id)}" value="text"> Sugestie pentru ce se spune</label></div><textarea rows="3" maxlength="4000" placeholder="Scrie aici…" aria-label="Comentariu"></textarea><div class="row"><button class="btn" type="submit">Trimite</button></div></form>`
-        : `<div class="banner"><p>Conectează-te cu Google ca să comentezi.</p><button class="btn" data-signin>Conectare cu Google</button></div>`;
+        ? `<form class="compose" data-seg="${esc(it.id)}"><div class="kind"><label><input type="radio" name="k${esc(it.id)}" value="comment" checked> Comment</label><label><input type="radio" name="k${esc(it.id)}" value="text"> Suggest what’s said</label></div><textarea rows="3" maxlength="4000" placeholder="Write here…" aria-label="Comment"></textarea><div class="row"><button class="btn" type="submit">Send</button></div></form>`
+        : `<div class="banner"><p>Sign in with Google to comment.</p><button class="btn" data-signin>Sign in with Google</button></div>`;
     }
     return h + `</div>`;
   }
   function render() {
     renderHead();
-    let t = 0, html = "", sec = false;
+    let t = 0, html = "", sec = false, q = 0;
     for (const it of data.items) {
       if (it.type === "header") { html += `${sec ? "</section>" : ""}<section><h2>${esc(it.title)}</h2>`; sec = true; continue; }
-      const [label, color] = CATS[it.cat] || CATS.platforma; const start = hhmm(t); t += Number(it.min) || 0;
+      const [label, color] = CATS[it.cat] || CATS.platforma; const startMin = t; const start = hhmm(t); t += Number(it.min) || 0; q++;
+      const isNow = liveNow && liveNow === it.id;
       const script = (it.script || "").trim();
-      html += `<article class="seg" id="m-${esc(it.id)}" style="--c:${color}"><div class="when"><span class="time">${start}</span><span class="dur">${esc(it.min)} min</span></div><div class="body">
-        <div class="head"><span class="chip">${esc(label)}</span>${it.who ? `<span class="who">${esc(it.who)}</span>` : ""}</div><h3>${esc(it.title)}</h3>
+      html += `<article class="seg${isNow ? " now" : ""}" id="m-${esc(it.id)}" style="--c:${color}"><div class="when"><span class="cue">Q${q}</span><span class="time">${start}</span><span class="dur">${esc(it.min)} min</span></div><div class="body">
+        <div class="head">${isNow ? `<span class="nowtag">On air now</span>` : ""}<span class="chip">${esc(label)}</span>${it.who ? `<span class="who">${esc(it.who)}</span>` : ""}</div><h3>${esc(it.title)}</h3>
         ${it.music && window.KAudio ? window.KAudio.html(it.music) : ""}
         ${it.visual && window.KVisual ? window.KVisual.html(it.visual, "", "big") : ""}
-        ${it.talk ? `<div class="say"><div class="k">Ce se spune</div><p>${esc(it.talk)}</p></div>` : ""}
-        ${script ? `<details class="script"><summary>Scriptul complet</summary><p>${esc(script)}</p></details>` : ""}
-        <dl class="prod">${it.video ? `<div><dt>Video</dt><dd>${esc(it.video)}</dd></div>` : ""}${it.gfx ? `<div><dt>Grafică</dt><dd>${esc(it.gfx)}</dd></div>` : ""}</dl>
+        ${it.talk ? `<div class="say"><div class="k">What’s said</div><p>${esc(it.talk)}</p></div>` : ""}
+        ${script ? `<details class="script"><summary>Full script</summary><p>${esc(script)}</p></details>` : ""}
+        <dl class="prod">${it.video ? `<div><dt>Video</dt><dd>${esc(it.video)}</dd></div>` : ""}${it.gfx ? `<div><dt>Graphics</dt><dd>${esc(it.gfx)}</dd></div>` : ""}</dl>
         ${live ? thread(it) : ""}</div></article>`;
     }
-    $("#list").innerHTML = html + (sec ? "</section>" : "") + `<p class="foot">Orele se pot schimba până la eveniment.</p>`;
+    $("#list").innerHTML = html + (sec ? "</section>" : "") + `<p class="foot">Times can change until the event.</p>`;
   }
 
   document.addEventListener("click", async (e) => {
-    if (e.target.closest("[data-signin]")) { try { await S.signIn(); } catch (err) { toast("Conectarea n-a mers"); } return; }
+    if (e.target.closest("[data-signin]")) { try { await S.signIn(); } catch (err) { toast("Sign-in didn’t work. Try again."); } return; }
     const tg = e.target.closest("[data-tog]"); if (tg) { const id = tg.dataset.tog; open.has(id) ? open.delete(id) : open.add(id); render(); const f = document.querySelector(`form[data-seg="${id}"] textarea`); if (f) f.focus(); return; }
-    const dl = e.target.closest("[data-del]"); if (dl && confirm("Ștergi comentariul?")) { try { await S.deleteComment(dl.dataset.del); } catch (err) { toast("N-am putut șterge"); } }
+    const dl = e.target.closest("[data-del]"); if (dl && confirm("Delete this comment?")) { try { await S.deleteComment(dl.dataset.del); } catch (err) { toast("Couldn’t delete it. Try again."); } }
   });
   document.addEventListener("submit", async (e) => {
     const f = e.target.closest("form.compose"); if (!f) return; e.preventDefault();
@@ -197,19 +200,19 @@ summary { cursor:pointer; }
     const seg = data.items.find((i) => i.id === f.dataset.seg);
     const kind = f.querySelector("input[type=radio]:checked").value;
     f.querySelector("button").disabled = true;
-    try { await S.addComment({ segId: f.dataset.seg, segTitle: seg ? seg.title : "", text, kind }); toast("Mulțumim! Comentariul a ajuns la echipă."); }
-    catch (err) { toast("Comentariul nu s-a trimis. Încearcă din nou."); f.querySelector("button").disabled = false; }
+    try { await S.addComment({ segId: f.dataset.seg, segTitle: seg ? seg.title : "", text, kind }); toast("Thanks! The team has your comment."); }
+    catch (err) { toast("The comment wasn’t sent. Try again."); f.querySelector("button").disabled = false; }
   });
 
   if (S) {
     S.on("auth", () => { renderAcct(); if (!S.user) { live = false; data = blank(); render(); } });
     S.on("show", (d) => { if (d) { data = { show: d.show, items: d.items }; live = true; render(); } });
     S.on("comments", () => { if (live) render(); });
+    // în timpul show-ului, segmentul care rulează e marcat „On air now”
+    S.on("live", (d) => { const id = d && d.mode === "live" && d.running && !d.ended ? d.curId : null; if (id !== liveNow) { liveNow = id; if (live) render(); } });
   }
   renderAcct(); render();
 })();
 </script>
-<script src="kairos-sphere.js?v=202611050600"></script>
-<script src="kairos-orb.js?v=202611042130"></script>
 </body>
 </html>

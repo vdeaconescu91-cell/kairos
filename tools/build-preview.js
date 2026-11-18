@@ -7,9 +7,9 @@ vm.runInContext(fs.readFileSync(path.join(root, "rundown-data.js"), "utf8"), ctx
 const d = ctx.window.TA_DEFAULT_RUNDOWN;
 
 const CATS = {
-  live: ["Meci live", "#4f86ff"], interviu: ["Interviu", "#a78bfa"], grafica: ["Grafică", "#22d3ee"],
-  platforma: ["Platformă", "#c9d4ea"], caritabil: ["Caritabil", "#f472b6"], ing: ["ING", "#ff7a2e"],
-  donatii: ["Donații", "#e4f53b"], giveaway: ["Giveaway", "#34d399"], pauza: ["Pauză / rezervă", "#8a93a6"]
+  live: ["Live match", "#3d7bff"], interviu: ["Interview", "#a78bfa"], grafica: ["Graphics", "#22d3ee"],
+  platforma: ["Platform", "#c9d4ea"], caritabil: ["Charity", "#f472b6"], ing: ["ING", "#ff6200"],
+  donatii: ["Donations", "#e4f53b"], giveaway: ["Giveaway", "#34d399"], pauza: ["Break / buffer", "#9aa3b5"]
 };
 const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const [H, M] = d.show.start.split(":").map(Number);
@@ -33,20 +33,24 @@ const card = (r) => {
       <div class="head"><span class="chip">${esc(label)}</span>${r.who ? `<span class="who">${esc(r.who)}</span>` : ""}</div>
       <h3>${esc(r.title)}</h3>
       ${r.talk ? `<div class="say" data-comment-target><div class="k">Ce se spune</div><p>${esc(r.talk)}</p></div>` : ""}
-      ${script ? `<details class="script" data-comment-target><summary>Scriptul complet</summary><p>${esc(script)}</p></details>` : ""}
+      ${script ? `<details class="script" data-comment-target><summary>Full script</summary><p>${esc(script)}</p></details>` : ""}
       <dl class="prod">
         ${r.video ? `<div><dt>Video</dt><dd>${esc(r.video)}</dd></div>` : ""}
-        ${r.gfx ? `<div><dt>Grafică</dt><dd>${esc(r.gfx)}</dd></div>` : ""}
+        ${r.gfx ? `<div><dt>Graphics</dt><dd>${esc(r.gfx)}</dd></div>` : ""}
       </dl>
       <div class="acts" data-uncommentable>
-        <button type="button" class="act" data-target="s${r.n}" data-kind="seg">Comentează momentul</button>
-        ${r.talk || script ? `<button type="button" class="act ghost" data-target="s${r.n}" data-kind="say">Sugerează alt text</button>` : ""}
+        <button type="button" class="act" data-target="s${r.n}" data-kind="seg">Comment on this segment</button>
+        ${r.talk || script ? `<button type="button" class="act ghost" data-target="s${r.n}" data-kind="say">Suggest what’s said</button>` : ""}
       </div>
     </div>
   </article>`;
 };
 
-const html = `<title>KAIROS Preview</title>
+const html = `<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>KAIROS Preview</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -60,14 +64,14 @@ const html = `<title>KAIROS Preview</title>
 * { box-sizing: border-box; }
 body { background: var(--bg); color: var(--fg); font-family: var(--display); font-size: 15px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 920px; margin: 0 auto; padding-block: 0 72px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-.top { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); background: radial-gradient(60% 120% at 50% 130%, rgba(79,134,255,.32), rgba(79,134,255,0) 70%), var(--bg); }
+.top { position: relative; overflow: hidden; border-bottom: 1px solid var(--line); background: #0a1433; }
 .top .wrap { padding-block: 28px 30px; display: grid; gap: 18px; }
 .brand { display: flex; align-items: center; gap: 10px; }
 .brand svg { width: 26px; height: 26px; filter: drop-shadow(0 0 7px rgba(79,134,255,.7)); }
 .brand b { font-weight: 600; font-size: 14px; letter-spacing: .32em; color: var(--ice); }
 .brand span { color: var(--muted); font-size: 13px; margin-left: auto; font-family: var(--mono); }
 h1 { margin: 0; font-size: clamp(30px, 6vw, 52px); font-weight: 600; letter-spacing: -.03em; line-height: 1; text-transform: uppercase; text-wrap: balance;
-  background: linear-gradient(90deg, #fff 0%, #fff 55%, #7d879b 100%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  color: #fff; }
 .sub { margin-top: -8px; font-size: 14px; font-weight: 600; letter-spacing: .24em; text-transform: uppercase; color: var(--ice); }
 .facts { display: flex; flex-wrap: wrap; gap: 6px 18px; color: var(--muted); font-size: 14px; }
 .facts b { color: var(--fg); font-weight: 500; font-family: var(--mono); font-size: 13px; }
@@ -79,7 +83,7 @@ h1 { margin: 0; font-size: clamp(30px, 6vw, 52px); font-weight: 600; letter-spac
 .chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--c); }
 section { margin-top: 34px; }
 h2 { margin: 0 0 12px; font-size: 12px; font-weight: 700; letter-spacing: .18em; color: #9dbcff; text-transform: uppercase; }
-.seg { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 16px; padding: 18px 18px 16px; border: 1px solid var(--line); border-left: 3px solid var(--c);
+.seg { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 16px; padding: 18px 18px 16px; border: 1px solid var(--line);
   border-radius: 14px; background: var(--panel); margin-bottom: 10px; scroll-margin-top: 16px; }
 .seg:target { box-shadow: 0 0 0 2px color-mix(in srgb, var(--c) 55%, transparent); }
 .when { display: grid; align-content: start; gap: 2px; }
@@ -110,17 +114,17 @@ dd { margin: 2px 0 0; font-size: 13px; color: #b9c1d2; }
 </style>
 
 <header class="top"><div class="wrap">
-  <div class="brand"><svg viewBox="0 0 40 40" aria-hidden="true"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="2.6" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="2.8" fill="#fff"/></svg><b>KAIROS</b><span>Preview rundown</span></div>
+  <div class="brand"><svg viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="9" width="15" height="17" fill="#fff"/><rect x="28" y="22" width="15" height="17" fill="#fff"/><rect x="21" y="4" width="6" height="40" fill="#3D7BFF"/></svg><b>KAIROS</b><span>Rundown preview</span></div>
   <h1>${esc(d.show.title.split(" · ")[0])}</h1>${d.show.title.includes(" · ") ? `<div class="sub">${esc(d.show.title.split(" · ").slice(1).join(" · "))}</div>` : ""}
-  <div class="facts"><span>Data <b>${da}.${mo}.${y}</b></span><span>Live <b>${d.show.start} – ${end}</b></span><span>Locația <b>${esc(d.show.venue || "")}</b></span><span><b>${n}</b> momente</span></div>
-  <p class="how">Acesta e rundown-ul stream-ului, moment cu moment. <strong>Lasă un comentariu</strong> pe orice moment: apasă „Comentează momentul” sau „Sugerează alt text” pentru ce se spune. Poți da click și direct pe text, în modul de comentarii.</p>
-  <p class="note" id="noComments" hidden>Comentariile nu sunt disponibile în această vizualizare. Deschide pagina din linkul primit, autentificat în Claude.</p>
+  <div class="facts"><span>Date <b>${da}.${mo}.${y}</b></span><span>On air <b>${d.show.start} – ${end}</b></span><span>Venue <b>${esc(d.show.venue || "")}</b></span><span><b>${n}</b> segments</span></div>
+  <p class="how">This is the show’s rundown, segment by segment. <strong>Leave a comment</strong> on any segment: press “Comment on this segment”, or “Suggest what’s said” for the on-air text. In comment mode you can also click the text itself.</p>
+  <p class="note" id="noComments" hidden>Comments aren’t available in this view. Open the page from the link you received, signed in to Claude.</p>
   <div class="legend">${Object.values(CATS).map(([l, c]) => `<span class="chip" style="--c:${c}">${esc(l)}</span>`).join("")}</div>
 </div></header>
 
 <main class="wrap">
 ${sections.map((s) => `<section>${s.title ? `<h2>${esc(s.title)}</h2>` : ""}${s.rows.map(card).join("")}</section>`).join("\n")}
-<p class="foot">Versiunea din ${new Date().toLocaleDateString("ro-RO", { day: "2-digit", month: "2-digit", year: "numeric" })}. Orele se pot schimba până la eveniment.</p>
+<p class="foot">Version of ${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" })}. Times can change until the event.</p>
 </main>
 
 <script>
@@ -144,4 +148,4 @@ ${sections.map((s) => `<section>${s.title ? `<h2>${esc(s.title)}</h2>` : ""}${s.
 </script>
 `;
 fs.writeFileSync(path.join(root, "preview.html"), html);
-console.log("preview.html:", n, "momente,", d.show.start, "→", end);
+console.log("preview.html:", n, "segments,", d.show.start, "→", end);

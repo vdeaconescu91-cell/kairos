@@ -265,3 +265,37 @@ body.signed .aurora { display: block; }
 /* straturile goale din spatele teancului, când sunt mai puțin de trei proiecte */
 .pc.pc-ghost { pointer-events: none; cursor: default; }
 .pc.pc-ghost::before { display: none; }
+
+/* ——— 18.11.2026 · aceeași lume ca editorul (caietul de regie): negru regie, masa de regie albastră, butoane drepte,
+   fără sticlă, fără luminile animate, fără text sub 12 px. Floarea din login rămâne. ——— */
+:root { --bg: #05070d; --muted: #a3b0cc; --dim: #8592b3; --line: rgba(214,228,255,.10); --line-2: rgba(214,228,255,.20);
+  --desk: #0a1433; --desk-2: #0f1b45; --signal-btn: #2b63e6; --glass: var(--desk); --glass-2: var(--desk); }
+::selection { background: var(--blue); color: #fff; }
+.aurora { display: none !important; }
+.btn { border-radius: 8px; background: var(--desk); }
+.btn:hover { background: var(--desk-2); }
+.btn.primary { background: var(--signal-btn); border-color: var(--signal-btn); }
+.btn.google { background: var(--desk); border-color: var(--line-2); border-radius: 8px; font-size: 14px; min-height: 44px; }
+.btn.google:hover { background: var(--desk-2); }
+.icon-btn { border-radius: 8px; background: var(--desk); }
+.icon-btn.sm { width: 32px; height: 32px; }
+.eyebrow, .lbl { font-size: 12px !important; }
+.dot { animation: none; box-shadow: none; }
+.or { font-size: 12px; color: var(--muted); }
+.hint, .a-left .sub { color: var(--muted); }
+.foot { color: var(--muted); }
+.auth { border-radius: 12px; border-color: var(--line-2); background: linear-gradient(90deg, var(--desk) 0 50%, transparent 50%); }
+.a-right { border-radius: 0 12px 12px 0; }
+.glass { background: var(--desk) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; border-radius: 12px !important; border-color: var(--line) !important; }
+dialog { border-radius: 12px; background: var(--desk); border: 1px solid var(--line-2); }
+@media (max-width: 720px) {
+  /* pe telefon floarea stă în caseta ei, sub textul de conectare, nu peste el */
+  #flower { z-index: 0; }
+  .auth { background: none; }
+  .a-left { background: var(--desk); border-radius: 12px 12px 0 0; }
+  .a-right { border-radius: 0 0 12px 12px; }
+}
+.team .lbl, .p-head .lbl { font-size: 12px; letter-spacing: .08em; }
+dialog .dlg-h { margin: 0 0 16px; font-family: var(--display); font-stretch: 125%; font-size: 18px; font-weight: 700; }
+@media (max-width: 720px) { dialog .dlg-h { font-size: 17px; } }
+.p-head h2.lbl { margin: 0; }

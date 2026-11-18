@@ -7,12 +7,15 @@
   const cv = document.getElementById("flower"), panel = document.getElementById("aRight"), stage = document.querySelector(".login");
   if (!cv || !panel || !stage) return;
   const ctx = cv.getContext("2d");
-  const NB = 72, NW = 60, BLOOM = 11, DELAY = .6, WIND_FPS = 7.5;   // bucla de vânt: 8 s, o adiere abia vizibilă
+  // se încarcă un cadru din două (36 + 30 în loc de 72 + 60): tranziția dintre cadre păstrează mișcarea lină, iar pagina are jumătate din greutate
+  const STEP = 2, NB = 72 / STEP, NW = 60 / STEP, BLOOM = 11, DELAY = .6, WIND_FPS = 7.5 / STEP;   // bucla de vânt: tot 8 s
   const SW = 416, SH = 576;                                        // mărimea cadrelor randate
   const CELL = 7, Q = CELL / 8, BAND = 3, RUN = 6;
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const load = (p) => { const im = new Image(); im.decoding = "async"; im.src = p; return im; };
-  const bloom = Array.from({ length: NB }, (_, i) => load(`hero/fb_${String(i).padStart(2, "0")}.webp`));
+  // cu „reduce motion” se încarcă doar floarea deschisă, fără animație
+  const bloom = reduce ? Array(NB).fill(null).map((_, i, a) => i === NB - 1 ? load(`hero/fb_71.webp`) : null)
+    : Array.from({ length: NB }, (_, i) => load(`hero/fb_${String(i * STEP).padStart(2, "0")}.webp`));
   let wind = null;   // se încarcă după ce pornește înflorirea
   const ok = (im) => im && im.complete && im.naturalWidth > 0;
 
@@ -43,7 +46,7 @@
     const x = reduce ? 1 : Math.min(1, Math.max(0, (t - DELAY) / BLOOM));
     if (x < 1 || !wind || !ok(wind[0])) {
       const k = .55 * x + .45 * x * x * (3 - 2 * x), f = k * (NB - 1), i = Math.floor(f);
-      return [bloom[i], bloom[Math.min(NB - 1, i + 1)], f - i];
+      return reduce ? [bloom[NB - 1], null, 0] : [bloom[i], bloom[Math.min(NB - 1, i + 1)], f - i];
     }
     const f = ((t - DELAY - BLOOM) * WIND_FPS) % NW, i = Math.floor(f);
     return [wind[i], wind[(i + 1) % NW], f - i];
@@ -104,7 +107,7 @@
     const t = (now - t0) / 1000;
     const [a, b, m] = frameAt(t);
     if (!ok(a)) return;
-    if (!wind && t > 1) wind = Array.from({ length: NW }, (_, i) => load(`hero/fw_${String(i).padStart(2, "0")}.webp`));
+    if (!wind && t > 1 && !reduce) wind = Array.from({ length: NW }, (_, i) => load(`hero/fw_${String(i * STEP).padStart(2, "0")}.webp`));
     const ie = compose(a, b, m);
     if (lastGlyph < 0 || now - lastGlyph > 80) { glyphs(now); lastGlyph = now; }
     ctx.clearRect(0, 0, W, H);
@@ -124,11 +127,19 @@
     ctx.fillStyle = ge; ctx.fillRect(0, ie - 110, W, H - ie + 110);
     ctx.globalCompositeOperation = "source-over";
   }
-  function loop(now) { draw(now); requestAnimationFrame(loop); }
-  addEventListener("resize", layout);
-  new ResizeObserver(layout).observe(panel);
+  // bucla rulează doar cât floarea se vede: nu în tab ascuns, nu după login, nu cu „reduce motion”
+  let raf = 0, inView = true;
+  const running = () => !reduce && inView && !document.hidden && !stage.hidden;
+  function loop(now) { raf = 0; draw(now); if (running()) raf = requestAnimationFrame(loop); }
+  const kick = () => { if (!raf && running()) raf = requestAnimationFrame(loop); };
+  addEventListener("resize", () => { layout(); if (reduce) requestAnimationFrame(draw); });
+  new ResizeObserver(() => { layout(); if (reduce) requestAnimationFrame(draw); }).observe(panel);
+  new IntersectionObserver((e) => { inView = e[0].isIntersecting; kick(); }).observe(cv);
+  document.addEventListener("visibilitychange", kick);
+  new MutationObserver(kick).observe(stage, { attributes: true, attributeFilter: ["hidden"] });
   layout();
-  bloom[0].onload = () => { t0 = performance.now(); };
+  if (bloom[0]) bloom[0].onload = () => { t0 = performance.now(); };
+  if (reduce) bloom[NB - 1].onload = () => requestAnimationFrame(draw);
   t0 = performance.now();
-  requestAnimationFrame(loop);
+  kick();
 })();

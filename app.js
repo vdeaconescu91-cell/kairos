@@ -8,15 +8,15 @@
   // fiecare rundown își are copia lui locală; cel vechi (ta-2026) păstrează cheia de la început
   const STORE_KEY = LEGACY ? "ta-rundown-v1" : `ta-rundown-v1:${KS0.showId}`;
   const CATS = {
-    live:      { label: "Meci live",   var: "--c-live" },
-    interviu:  { label: "Interviu",    var: "--c-interviu" },
-    grafica:   { label: "Grafică",     var: "--c-grafica" },
-    platforma: { label: "Platformă",   var: "--c-platforma" },
-    caritabil: { label: "Caritabil",   var: "--c-caritabil" },
+    live:      { label: "Live match", var: "--c-live" },
+    interviu:  { label: "Interview",  var: "--c-interviu" },
+    grafica:   { label: "Graphics",   var: "--c-grafica" },
+    platforma: { label: "Platform",   var: "--c-platforma" },
+    caritabil: { label: "Charity",    var: "--c-caritabil" },
     ing:       { label: "ING",         var: "--c-ing" },
-    donatii:   { label: "Donații",     var: "--c-donatii" },
+    donatii:   { label: "Donations",  var: "--c-donatii" },
     giveaway:  { label: "Giveaway",    var: "--c-giveaway" },
-    pauza:     { label: "Pauză / rezervă", var: "--c-pauza" }
+    pauza:     { label: "Break / buffer", var: "--c-pauza" }
   };
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -24,6 +24,20 @@
   const uid = () => Math.random().toString(36).slice(2, 10);
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  // iconițe desenate, aceeași grosime peste tot (în loc de caractere Unicode)
+  const svg = (d, extra = "") => `<svg class="ic" viewBox="0 0 16 16" aria-hidden="true" ${extra}>${d}</svg>`;
+  const IC = {
+    grip: svg(`<g fill="currentColor"><circle cx="6" cy="4" r="1.1"/><circle cx="10" cy="4" r="1.1"/><circle cx="6" cy="8" r="1.1"/><circle cx="10" cy="8" r="1.1"/><circle cx="6" cy="12" r="1.1"/><circle cx="10" cy="12" r="1.1"/></g>`),
+    cmt: svg(`<path d="M3 3.5h10a1.5 1.5 0 0 1 1.5 1.5v5A1.5 1.5 0 0 1 13 11.5H8l-3.2 2.4v-2.4H3A1.5 1.5 0 0 1 1.5 10V5A1.5 1.5 0 0 1 3 3.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>`),
+    jump: svg(`<path d="M5 3.5v9l7-4.5z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>`),
+    add: svg(`<path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`),
+    dup: svg(`<rect x="5.5" y="5.5" width="8" height="8" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M3.5 10.5h-.3A1.2 1.2 0 0 1 2 9.3V3.2A1.2 1.2 0 0 1 3.2 2h6.1a1.2 1.2 0 0 1 1.2 1.2v.3" fill="none" stroke="currentColor" stroke-width="1.4"/>`),
+    del: svg(`<path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>`),
+    prev: svg(`<path d="M10.5 3.5 6 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`),
+    next: svg(`<path d="M5.5 3.5 10 8l-4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>`),
+    stop: svg(`<rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor"/>`),
+    menu: svg(`<g fill="currentColor"><circle cx="3.5" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="12.5" cy="8" r="1.3"/></g>`)
+  };
 
   /* ---------------- sincronizare (sync.js) ---------------- */
   const S = window.KSYNC || null;
@@ -37,7 +51,8 @@
     if (!cloud()) return;
     const cur = segs()[state.live.idx];
     S.live({ mode: state.mode, advance: state.advance || "manual", running: !!state.live.running, idx: state.live.idx,
-      curId: cur ? cur.id : null, itemStart: state.live.itemStart || 0, showStart: state.live.showStart || 0 });
+      curId: cur ? cur.id : null, itemStart: state.live.itemStart || 0, showStart: state.live.showStart || 0,
+      ended: !!state.live.ended, endedAt: state.live.endedAt || 0 });
   }
 
   /* ---------------- stare ---------------- */
@@ -71,7 +86,7 @@
       }
     } catch (e) { /* stocare indisponibilă */ }
     if (!LEGACY) {   // un rundown nou vine din cloud; până atunci pagina e goală
-      return { show: { title: "Se încarcă…", date: "", start: "18:00", venue: "" }, items: [], mode: "plan", advance: "manual",
+      return { show: { title: "Loading…", date: "", start: "18:00", venue: "" }, items: [], mode: "plan", advance: "manual",
         live: { running: false, idx: -1, itemStart: 0, showStart: 0 } };
     }
     return fromDefault();
@@ -88,10 +103,10 @@
 
   function undo() {
     const prev = undoStack.pop();
-    if (!prev) return toast("Nimic de anulat");
+    if (!prev) return toast("Nothing to undo");
     state.items = JSON.parse(prev);
     save(); pushItems(); renderTable(); tick();
-    toast("Anulat");
+    toast("Undone");
   }
 
   // alt tab din același browser a schimbat ceva
@@ -138,7 +153,7 @@
     const h = Math.floor(s / 3600); s -= h * 3600;
     const m = Math.floor(s / 60); s -= m * 60;
     let body = h || days ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
-    if (days) body = `${days}z ${pad(h)}:${pad(m)}:${pad(s)}`;
+    if (days) body = `${days}d ${pad(h)}:${pad(m)}:${pad(s)}`;
     return (neg ? "−" : withSign ? "+" : "") + body;
   }
 
@@ -147,16 +162,23 @@
     const list = segs(); const off = plannedOffsets();
     if (!list.length) return { cur: null, next: null, list, off };
 
+    if (state.mode === "live" && state.live.ended) {
+      return { mode: "post", ended: true, list, off, idx: list.length, cur: null, next: null, after: null };
+    }
     if (state.mode === "live" && state.live.running) {
       const idx = Math.min(Math.max(state.live.idx, 0), list.length - 1);
       const cur = list[idx];
       const elapsed = now - state.live.itemStart;
       const durMs = (Number(cur.min) || 0) * 60000;
-      const plannedStartMs = off[cur.id] * 60000;
-      const actualStartMs = state.live.itemStart - state.live.showStart;
+      // întârzierea se măsoară față de ora din program (14:45 + offset) când show-ul rulează în ziua lui,
+      // altfel (repetiție în altă zi) față de momentul în care s-a apăsat Start show
+      const sched = showStartDate().getTime() + off[cur.id] * 60000;
+      const vsSchedule = Math.abs(state.live.itemStart - sched) < 6 * 3600000;
+      const base = vsSchedule ? state.live.itemStart - sched : (state.live.itemStart - state.live.showStart) - off[cur.id] * 60000;
+      // depășirea segmentului curent se adaugă la întârziere, ca statusul să nu spună „la timp” cu timerul pe minus
+      const drift = base + Math.max(0, elapsed - durMs);
       return { mode: "live", list, off, idx, cur, next: list[idx + 1] || null, after: list[idx + 2] || null,
-        remain: durMs - elapsed, elapsed, durMs, drift: actualStartMs - plannedStartMs,
-        nextInMs: durMs - elapsed };
+        remain: durMs - elapsed, elapsed, durMs, drift, vsSchedule, nextInMs: durMs - elapsed };
     }
 
     const start = showStartDate().getTime();
@@ -178,7 +200,7 @@
 
   /* ---------------- timeline: tot show-ul pe o bară, un bloc pe fiecare secțiune (nu pe fiecare segment), ca să se citească dintr-o privire ---------------- */
   let tlSecs = [];
-  // categoriile cu culori neutre (alb/gri) nu se văd ca umplere: pe timeline primesc liliachiul KAIROS
+  // categoriile cu culori neutre (alb/gri) nu se văd ca umplere: pe timeline primesc albastrul-gheață KAIROS
   const TL_NEUTRAL = new Set(["platforma", "pauza"]);
   function renderTimeline() {
     const off = plannedOffsets(), total = off.__total || 1;
@@ -214,13 +236,13 @@
     }
     const pct = (m) => (m / total) * 100;
     $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
-      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.section ? x.section + " · " : ""}${x.block || x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segmente`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(!x.keep && x.title === x.title.toUpperCase() ? x.title.charAt(0) + x.title.slice(1).toLowerCase() : x.title)}</span></button>`).join("");
+      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.section ? x.section + " · " : ""}${x.block || x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segments`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(!x.keep && x.title === x.title.toUpperCase() ? x.title.charAt(0) + x.title.slice(1).toLowerCase() : x.title)}</span></button>`).join("");
     const start = showStartDate();
     let ticks = "";
     for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
     $("#tlTicks").innerHTML = ticks;
     $("#tlStart").textContent = hhmm(0); $("#tlEnd").textContent = hhmm(total);
-    $("#tlSum").textContent = `Show · ${Math.floor(total / 60)}h ${pad(total % 60)}m · ${segs().length} segmente`;
+    $("#tlSum").textContent = `Show · ${Math.floor(total / 60)}h ${pad(total % 60)}m · ${segs().length} segments`;
   }
   function tickTimeline(pos) {
     const off = pos.off || plannedOffsets(), total = off.__total || 1;
@@ -234,12 +256,17 @@
       b.classList.toggle("cur", m != null && m >= x.from && m < x.from + x.dur); b.classList.toggle("done", p >= 1);
       b.style.setProperty("--p", `${(p * 100).toFixed(2)}%`);
     });
+    kickSlosh();
   }
   // secțiunea curentă: lichid care „se clatină” (slosh) — corp închis la culoare, front luminos și curbat care se leagănă
   const tlReduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // bucla rulează doar cât există o secțiune curentă, tab-ul se vede și mișcarea nu e redusă; altfel desenează o dată și se oprește
+  let sloshRaf = 0;
+  function kickSlosh() { if (!sloshRaf) sloshRaf = requestAnimationFrame(drawSlosh); }
   function drawSlosh(now) {
-    requestAnimationFrame(drawSlosh);
+    sloshRaf = 0;
     const b = $("#tlBlocks .tl-sec.cur"); if (!b) return;
+    if (!tlReduce && !document.hidden) sloshRaf = requestAnimationFrame(drawSlosh);
     const cv = b.querySelector(".tl-cv"); if (!cv) return;
     const r = cv.getBoundingClientRect(), d = Math.min(devicePixelRatio || 1, 2);
     if (!r.width) return;
@@ -274,7 +301,6 @@
     const gl = x.createLinearGradient(0, 0, 0, h * .45); gl.addColorStop(0, "rgba(255,255,255,.14)"); gl.addColorStop(1, "rgba(255,255,255,0)");
     x.save(); path(); x.clip(); x.fillStyle = gl; x.fillRect(0, 0, w, h * .45); x.restore();
   }
-  requestAnimationFrame(drawSlosh);
 
   $("#tlBlocks").addEventListener("click", (e) => {
     const b = e.target.closest(".tl-sec"); if (!b) return;
@@ -289,7 +315,7 @@
 
   function renderFilters() {
     $("#filters").innerHTML = Object.entries(CATS).map(([k, c]) =>
-      `<button class="chip ${hiddenCats.has(k) ? "off" : ""}" data-cat="${k}" style="${catStyle(k)}" title="Arată / ascunde">${esc(c.label)}</button>`).join("");
+      `<button class="chip ${hiddenCats.has(k) ? "off" : ""}" data-cat="${k}" style="${catStyle(k)}" aria-pressed="${hiddenCats.has(k) ? "false" : "true"}" title="Show / hide">${esc(c.label)}</button>`).join("");
   }
 
   function renderTable() {
@@ -299,33 +325,33 @@
     const html = state.items.map((it) => {
       if (it.type === "header") {
         return `<tr class="header-row" data-id="${it.id}" draggable="false">
-          <td class="drag" title="Trage ca să muți">⋮⋮</td>
-          <td colspan="8"><input class="cell" data-f="title" value="${esc(it.title)}" aria-label="Titlu secțiune"></td>
-          <td><div class="acts"><button class="icon del" data-a="del" title="Șterge secțiunea">✕</button></div></td></tr>`;
+          <td class="drag"><button type="button" class="grip" data-a="grip" title="Drag to move, or focus and use Alt+↑ / Alt+↓" aria-label="Move section ${esc(it.title)}">${IC.grip}</button></td>
+          <td colspan="8"><input class="cell" data-f="title" value="${esc(it.title)}" aria-label="Section title"></td>
+          <td><div class="acts"><button class="icon del" data-a="del" title="Delete section" aria-label="Delete section">${IC.del}</button></div></td></tr>`;
       }
       n++;
       return `<tr class="seg-row" data-id="${it.id}" style="${catStyle(it.cat)}">
-        <td class="drag" title="Trage ca să muți">⋮⋮</td>
-        <td class="num">${n}</td>
+        <td class="drag"><button type="button" class="grip" data-a="grip" title="Drag to move, or focus and use Alt+↑ / Alt+↓" aria-label="Move segment ${n}">${IC.grip}</button></td>
+        <td class="num"><span class="cue">Q${n}</span><span class="cue-state" aria-live="off"></span></td>
         <td class="start"><span data-start>${hhmm(off[it.id])}</span>
-          <select class="cell cat" data-f="cat" aria-label="Tip">${Object.entries(CATS).map(([k, c]) =>
+          <select class="cell cat" data-f="cat" aria-label="Category">${Object.entries(CATS).map(([k, c]) =>
             `<option value="${k}" ${k === it.cat ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select></td>
-        <td><input class="cell dur" data-f="min" inputmode="numeric" value="${esc(it.min)}" aria-label="Durată în minute"></td>
-        <td>
+        <td class="c-durcell" data-l="Min"><input class="cell dur" data-f="min" inputmode="decimal" value="${esc(it.min)}" aria-label="Length in minutes"></td>
+        <td class="c-titlecell">
           <textarea class="cell title-cell" data-f="title" rows="1" aria-label="Segment">${esc(it.title)}</textarea>
           ${musicCell(it)}
         </td>
-        <td><textarea class="cell" data-f="video" rows="1" aria-label="Video">${esc(it.video)}</textarea></td>
-        <td>${visCell(it)}<textarea class="cell" data-f="gfx" rows="1" aria-label="Grafică">${esc(it.gfx)}</textarea></td>
-        <td><textarea class="cell" data-f="talk" rows="1" aria-label="Ce se spune">${esc(it.talk)}</textarea>
-          <textarea class="cell script-cell" data-f="script" rows="1" placeholder="+ script pentru prompter" aria-label="Script prompter">${esc(it.script)}</textarea></td>
-        <td><textarea class="cell" data-f="who" rows="1" aria-label="Cine">${esc(it.who)}</textarea></td>
-        <td><button class="cmt-btn" data-a="cmt" title="Comentarii la acest moment"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M4 4h12a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H9l-4 3v-3H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg><span class="n"></span></button>
-          <div class="acts">
-          <button class="icon jump" data-a="jump" title="Live: sari aici">▶</button>
-          <button class="icon" data-a="add" title="Segment nou dedesubt">＋</button>
-          <button class="icon" data-a="dup" title="Duplică">⧉</button>
-          <button class="icon del" data-a="del" title="Șterge">✕</button>
+        <td data-l="Video"><textarea class="cell" data-f="video" rows="1" aria-label="Video">${esc(it.video)}</textarea></td>
+        <td data-l="Graphics">${visCell(it)}<textarea class="cell" data-f="gfx" rows="1" aria-label="Graphics">${esc(it.gfx)}</textarea></td>
+        <td class="c-talkcell" data-l="What’s said"><textarea class="cell" data-f="talk" rows="1" aria-label="What’s said">${esc(it.talk)}</textarea>
+          <textarea class="cell script-cell" data-f="script" rows="1" placeholder="+ prompter script" aria-label="Prompter script">${esc(it.script)}</textarea></td>
+        <td data-l="Who"><textarea class="cell" data-f="who" rows="1" aria-label="Who">${esc(it.who)}</textarea></td>
+        <td class="c-actcell"><div class="acts">
+          <button class="cmt-btn icon" data-a="cmt" title="Comments on this segment" aria-label="Comments on segment ${n}">${IC.cmt}<span class="n"></span></button>
+          <button class="icon jump" data-a="jump" title="Go live from here" aria-label="Go live from segment ${n}">${IC.jump}</button>
+          <button class="icon" data-a="add" title="New segment below" aria-label="New segment below">${IC.add}</button>
+          <button class="icon" data-a="dup" title="Duplicate" aria-label="Duplicate segment ${n}">${IC.dup}</button>
+          <button class="icon del" data-a="del" title="Delete" aria-label="Delete segment ${n}">${IC.del}</button>
         </div></td></tr>`;
     }).join("");
     $("#rows").innerHTML = html;
@@ -341,15 +367,15 @@
   function visCell(it) {
     const KV = window.KVisual; if (!KV) return "";
     const edit = canEdit();
-    const cur = KV.html(it.visual, edit ? `<span class="vacts"><button type="button" class="icon" data-a="vpick" title="Altă imagine">↻</button><button type="button" class="icon del" data-a="vdel" title="Scoate imaginea">✕</button></span>` : "");
-    return cur || (edit ? `<button type="button" class="madd vadd" data-a="vpick" title="Alege cum arată pe ecran">▣ Preview</button>` : "");
+    const cur = KV.html(it.visual, edit ? `<span class="vacts"><button type="button" class="icon" data-a="vpick" title="Another image" aria-label="Another image">${IC.dup}</button><button type="button" class="icon del" data-a="vdel" title="Remove image" aria-label="Remove image">${IC.del}</button></span>` : "");
+    return cur || (edit ? `<button type="button" class="madd vadd" data-a="vpick" title="Choose how it looks on screen">+ Screen image</button>` : "");
   }
   let visFor = null;
   const visPop = document.createElement("div"); visPop.className = "vpick card"; visPop.hidden = true; document.body.appendChild(visPop);
   function openVisPick(id, anchor) {
     const KV = window.KVisual; visFor = id;
     const it = state.items.find((x) => x.id === id), curKey = it && typeof it.visual === "string" ? it.visual : "";
-    visPop.innerHTML = `<div class="vp-h">Cum arată pe ecran<button type="button" class="icon" data-vp-close title="Închide">✕</button></div><div class="vp-grid">`
+    visPop.innerHTML = `<div class="vp-h">How it looks on screen<button type="button" class="icon" data-vp-close title="Close" aria-label="Close">${IC.del}</button></div><div class="vp-grid">`
       + Object.entries(KV.LIB).map(([k, n]) => `<button type="button" class="vp-it ${k === curKey ? "on" : ""}" data-vp="${k}"><img src="${KV.thumb(k)}" alt="" loading="lazy"><span>${esc(n)}</span></button>`).join("") + `</div>`;
     visPop.hidden = false;
     const r = anchor.getBoundingClientRect(), w = Math.min(560, innerWidth - 24);
@@ -375,12 +401,12 @@
   // muzica segmentului: player (în rundown și în Preview) + încărcare / înlocuire / ștergere pentru cine editează
   function musicCell(it) {
     const up = uploading.get(it.id);
-    if (up != null) return `<div class="music up"><span class="mname">♪ Se încarcă… ${Math.round(up * 100)}%</span><span class="mtrack"><span style="width:${up * 100}%"></span></span></div>`;
+    if (up != null) return `<div class="music up"><span class="mname">♪ Uploading… ${Math.round(up * 100)}%</span><span class="mtrack"><span style="width:${up * 100}%"></span></span></div>`;
     const edit = canEdit() && cloud();
     if (it.music && it.music.url && window.KAudio) {
-      return window.KAudio.html(it.music, edit ? `<div class="macts"><button type="button" class="icon" data-a="mrep" title="Altă piesă">↻</button><button type="button" class="icon del" data-a="mdel" title="Scoate muzica">✕</button></div>` : "", { download: edit });
+      return window.KAudio.html(it.music, edit ? `<div class="macts"><button type="button" class="icon" data-a="mrep" title="Replace track" aria-label="Replace track">${IC.dup}</button><button type="button" class="icon del" data-a="mdel" title="Remove music" aria-label="Remove music">${IC.del}</button></div>` : "", { download: edit });
     }
-    return edit ? `<button type="button" class="madd" data-a="madd" title="Alege un fișier audio sau trage-l peste rând">♪ Muzică</button>` : "";
+    return edit ? `<button type="button" class="madd" data-a="madd" title="Choose an audio file or drop it on the row">+ Music</button>` : "";
   }
   const uploading = new Map();
   let musicFor = null;
@@ -388,7 +414,7 @@
   document.body.appendChild(musicInput);
   musicInput.onchange = () => { const f = musicInput.files[0]; musicInput.value = ""; if (f && musicFor) attachMusic(musicFor, f); };
   async function attachMusic(id, file) {
-    if (!cloud()) return toast("Conectează-te ca să urci muzică");
+    if (!cloud()) return toast("Sign in to upload music");
     const it = state.items.find((x) => x.id === id); if (!it) return;
     const old = it.music;
     uploading.set(id, 0); renderTable();
@@ -401,13 +427,13 @@
       uploading.delete(id);
       const cur = state.items.find((x) => x.id === id); if (!cur) return;
       snapshot(); cur.music = m; save(); S.field(id, "music", m); renderTable();
-      toast(`Muzică adăugată: ${m.name}`);
+      toast(`Music added: ${m.name}`);
       if (old && old.path) S.deleteMusic(old.path);
     } catch (e) {
       uploading.delete(id); renderTable();
       const c = e && (e.message || e.code) || "";
-      toast(c === "not_audio" ? "Fișierul nu e audio (MP3, WAV, M4A…)" : c === "too_big" ? "Fișierul e prea mare (maxim 50 MB)"
-        : /unauthorized|permission/i.test(c) ? "Nu ai drept să urci muzică aici" : /bucket|not-found|no_storage/i.test(c) ? "Stocarea pentru muzică nu e activată încă" : "Muzica nu s-a încărcat");
+      toast(c === "not_audio" ? "That file is not audio (MP3, WAV, M4A…)" : c === "too_big" ? "That file is too large (50 MB max)"
+        : /unauthorized|permission/i.test(c) ? "You don't have permission to upload music here" : /bucket|not-found|no_storage/i.test(c) ? "Music storage isn't enabled yet" : "The music didn't upload. Try again.");
       console.error(e);
     }
   }
@@ -435,7 +461,7 @@
     const off = plannedOffsets();
     const end = hhmm(off.__total);
     const h = Math.floor(off.__total / 60), m = off.__total % 60;
-    $("#totalInfo").textContent = `${state.show.start} → ${end} · ${h}h ${pad(m)}m · ${segs().length} segmente`;
+    $("#totalInfo").textContent = `${state.show.start} → ${end} · ${h}h ${pad(m)}m · ${segs().length} segments`;
   }
 
   function applyFilters() {
@@ -456,7 +482,13 @@
       if (isCur) seen = true;
       tr.classList.toggle("current", isCur);
       tr.classList.toggle("next-row", id === nextId);
-      tr.classList.toggle("past", (pos.mode === "post") || (!!curId && !seen && !isCur));
+      const past = (pos.mode === "post") || (!!curId && !seen && !isCur);
+      tr.classList.toggle("past", past);
+      // starea cue-ului, ca în caietul de regie: GO pe ce rulează, STANDBY pe ce urmează (doar în Live)
+      const cs = tr.querySelector(".cue-state"); if (!cs) return;
+      const live = pos.mode === "live";
+      const st = isCur ? (live ? "GO" : "NOW") : id === nextId ? (live ? "STANDBY" : "NEXT") : "";
+      if (cs.textContent !== st) cs.textContent = st;
     });
   }
 
@@ -487,7 +519,8 @@
     const b = e.target.closest("[data-a]"); if (!b) return;
     const tr = b.closest("tr"); const i = state.items.findIndex((x) => x.id === tr.dataset.id); if (i < 0) return;
     const a = b.dataset.a;
-    if (a === "jump") return jumpTo(state.items[i].id);
+    if (a === "grip") return;
+    if (a === "jump") return jumpTo(state.items[i].id, b);
     if (a === "cmt") return openDrawer(state.items[i].id);
     if (!canEdit()) return;
     if (a === "vpick") { openVisPick(state.items[i].id, b); return; }
@@ -495,7 +528,7 @@
     if (a === "madd" || a === "mrep") { musicFor = state.items[i].id; musicInput.click(); return; }
     if (a === "mdel") {
       const it = state.items[i]; if (!it.music) return;
-      if (!confirm(`Scoți muzica „${it.music.name}” de pe acest segment?`)) return;
+      if (!confirm(`Remove “${it.music.name}” from this segment?`)) return;
       const path = it.music.path; snapshot(); delete it.music; save(); if (cloud()) { S.field(it.id, "music", null); S.deleteMusic(path); }
       if (window.KAudio) window.KAudio.stop(); renderTable(); return;
     }
@@ -503,7 +536,7 @@
     if (a === "del") {
       const it = state.items[i];
       state.items.splice(i, 1);
-      toast(`Șters: ${it.title || "rând"} · Ctrl+Z ca să revii`);
+      toast(`Deleted: ${it.title || "row"} · Ctrl+Z to undo`);
     } else if (a === "dup") {
       state.items.splice(i + 1, 0, { ...clone(state.items[i]), id: uid() });
     } else if (a === "add") {
@@ -513,12 +546,12 @@
     if (a === "add") focusRow(state.items[i + 1].id);
   });
 
-  function newSeg() { return { id: uid(), type: "segment", title: "Segment nou", min: 5, cat: "platforma", video: "", gfx: "", talk: "", script: "", who: "" }; }
+  function newSeg() { return { id: uid(), type: "segment", title: "New segment", min: 5, cat: "platforma", video: "", gfx: "", talk: "", script: "", who: "" }; }
   function focusRow(id) { const t = $(`#rows tr[data-id="${id}"] .title-cell`); if (t) { t.focus(); t.select(); } }
 
   $("#btnAddRow").onclick = () => { snapshot(); const s = newSeg(); state.items.push(s); save(); pushItems(); renderTable(); focusRow(s.id); tick(); };
   $("#btnAddHeader").onclick = () => {
-    snapshot(); const h = { id: uid(), type: "header", title: "SECȚIUNE NOUĂ" }; state.items.push(h); save(); pushItems(); renderTable();
+    snapshot(); const h = { id: uid(), type: "header", title: "NEW SECTION" }; state.items.push(h); save(); pushItems(); renderTable();
     const inp = $(`#rows tr[data-id="${h.id}"] input`); if (inp) { inp.focus(); inp.select(); }
   };
 
@@ -550,6 +583,19 @@
     dragId = null; save(); pushItems(); renderTable(); tick();
   });
   $("#rows").addEventListener("dragend", () => { dragId = null; $$("#rows tr.drag-over").forEach((r) => r.classList.remove("drag-over")); });
+  // aceeași mutare din tastatură: focus pe mâner, apoi Alt+↑ / Alt+↓
+  $("#rows").addEventListener("keydown", (e) => {
+    const g = e.target.closest(".grip"); if (!g || !e.altKey || !canEdit()) return;
+    if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+    e.preventDefault();
+    const id = g.closest("tr").dataset.id, from = state.items.findIndex((x) => x.id === id);
+    const to = from + (e.key === "ArrowUp" ? -1 : 1);
+    if (from < 0 || to < 0 || to >= state.items.length) return;
+    snapshot(); const [moved] = state.items.splice(from, 1); state.items.splice(to, 0, moved);
+    save(); pushItems(); renderTable(); tick();
+    const ng = $(`#rows tr[data-id="${id}"] .grip`); if (ng) ng.focus();
+    toast(`Moved ${e.key === "ArrowUp" ? "up" : "down"}`);
+  });
 
   $("#filters").addEventListener("click", (e) => {
     const c = e.target.closest("[data-cat]"); if (!c) return;
@@ -558,82 +604,144 @@
   });
 
   /* ---------------- live ---------------- */
-  function setMode(m) {
+  // acțiunile care schimbă show-ul pentru toată echipa cer două apăsări: prima „armează” butonul, a doua confirmă (4 s)
+  function armed(btn, label, fn) {
+    if (!btn) return fn();
+    if (btn.dataset.armed === "1") { disarm(btn); return fn(); }
+    $$("[data-armed='1']").forEach(disarm);
+    btn.dataset.armed = "1"; btn.dataset.label = btn.innerHTML; btn.classList.add("armed");
+    btn.innerHTML = esc(label); btn.setAttribute("aria-live", "assertive");
+    btn._t = setTimeout(() => disarm(btn), 4000);
+  }
+  function disarm(btn) {
+    if (btn.dataset.armed !== "1") return;
+    clearTimeout(btn._t); btn.dataset.armed = ""; btn.classList.remove("armed");
+    btn.innerHTML = btn.dataset.label || btn.innerHTML; btn.removeAttribute("aria-live");
+  }
+  function setMode(m, btn) {
+    if (m === state.mode) return;
+    if (m === "live" && cloud() && btn) return armed(btn, "Confirm: Live for everyone", () => setMode("live"));
     state.mode = m;
-    if (m === "plan") state.live.running = false;
+    if (m === "plan") { state.live.running = false; state.live.ended = false; }
     save(); pushLive(); renderMode(); tick();
+    if (m === "live") toast(cloud() ? "Live mode is on for the whole team" : "Live mode is on");
   }
   function renderMode() {
-    $$(".seg-btn[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === state.mode));
-    $$(".seg-btn[data-adv]").forEach((b) => b.classList.toggle("on", b.dataset.adv === (state.advance || "manual")));
+    $$(".seg-btn[data-mode]").forEach((b) => { const on = b.dataset.mode === state.mode; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
+    $$(".seg-btn[data-adv]").forEach((b) => { const on = b.dataset.adv === (state.advance || "manual"); b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
     $("#advSeg").classList.toggle("show", state.mode === "live");
     const live = state.mode === "live";
-    const running = live && state.live.running;
-    $("#btnGo").textContent = !live ? "Treci pe Live" : running ? "Următorul ▶" : "Start show";
-    $("#btnPrev").disabled = !running; $("#btnStop").disabled = !running;
+    const running = live && state.live.running && !state.live.ended;
+    const last = running && state.live.idx >= segs().length - 1;
+    const go = $("#btnGo"); disarm(go);
+    go.innerHTML = !live ? "Go live" : state.live.ended ? "Show ended" : running ? (last ? "End show" : `Next ${IC.next}`) : "Start show";
+    go.disabled = live && !!state.live.ended;
+    go.classList.toggle("end", last);
+    $("#btnPrev").disabled = !running || state.live.idx <= 0; $("#btnStop").disabled = !(live && (state.live.running || state.live.ended));
     document.body.classList.toggle("live-on", running);
+    document.body.classList.toggle("mode-live", live);
   }
-  $$(".seg-btn[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+  $$(".seg-btn[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode, b));
   $$(".seg-btn[data-adv]").forEach((b) => b.onclick = () => {
     state.advance = b.dataset.adv; save(); pushLive(); renderMode(); tick();
-    toast(state.advance === "auto" ? "Auto: la zero trece singur la segmentul următor" : "Manual: la zero timerul devine roșu până apeși „Următorul”");
+    toast(state.advance === "auto" ? "Auto: at zero the next segment starts on its own" : "Manual: at zero the timer runs over until you press Next");
   });
+
+  // ora la care a pornit fiecare segment în Live, ca „Înapoi” să-i redea timpul, nu să-l ia de la zero
+  const liveStarts = new Map();
+  function noteStart() { const cur = segs()[state.live.idx]; if (cur && state.live.running) liveStarts.set(cur.id, state.live.itemStart); }
 
   // Auto: segmentul următor pornește exact când trebuia să se termine cel curent, ca întârzierile să nu se adune
   function autoAdvance(now) {
-    if (state.mode !== "live" || !state.live.running || state.advance !== "auto") return false;
+    if (state.mode !== "live" || !state.live.running || state.live.ended || state.advance !== "auto") return false;
     const list = segs(); let moved = false;
     while (state.live.idx < list.length - 1) {
       const cur = list[state.live.idx];
       const end = state.live.itemStart + (Number(cur.min) || 0) * 60000;
       if (now < end) break;
-      state.live.idx++; state.live.itemStart = end; moved = true;
+      state.live.idx++; state.live.itemStart = end; noteStart(); moved = true;
     }
-    if (moved) { save(); pushLive(); setTimeout(scrollToCurrent, 50); }
+    if (moved) { save(); pushLive(); renderMode(); setTimeout(scrollToCurrent, 50); }
     return moved;
   }
 
-  function go() {
-    if (state.mode !== "live") return setMode("live");
+  let lastGo = 0;
+  // src: nimic = butonul din bara de sus; true = tastatura; un element = butonul care a fost apăsat (și cel din pop-up)
+  function go(src) {
+    const fromKey = src === true;
+    const btn = fromKey ? null : (src && src.nodeType === 1 ? src : $("#btnGo"));
+    if (state.mode !== "live") return setMode("live", btn || $("#btnGo"));
+    if (state.live.ended) return;
     const now = nowMs(); const list = segs();
     if (!state.live.running) {
-      state.live = { running: true, idx: 0, itemStart: now, showStart: now };
-    } else if (state.live.idx < list.length - 1) {
-      state.live.idx++; state.live.itemStart = now;
-    } else {
-      toast("Ăsta e ultimul segment");
+      if (fromKey) return toast("Press Start show to begin");
+      return armed(btn, cloud() ? "Confirm: start for everyone" : "Confirm: start show", () => {
+        const t = nowMs(); state.live = { running: true, idx: 0, itemStart: t, showStart: t, ended: false }; noteStart();
+        lastGo = t; save(); pushLive(); renderMode(); tick(); scrollToCurrent();
+      });
     }
-    save(); pushLive(); renderMode(); tick(); scrollToCurrent();
+    // o apăsare dublă (sau N ținut apăsat) nu mai sare peste un segment
+    if (now - lastGo < 700) return;
+    if (state.live.idx < list.length - 1) {
+      lastGo = now; state.live.idx++; state.live.itemStart = now; noteStart();
+      save(); pushLive(); renderMode(); tick(); scrollToCurrent();
+    } else if (!fromKey) {
+      armed(btn, "Confirm: end show", endShow);
+    } else toast("This is the last segment. Press End show to finish.");
   }
-  function prev() {
-    if (!state.live.running || state.live.idx <= 0) return;
-    state.live.idx--; state.live.itemStart = nowMs(); save(); pushLive(); tick(); scrollToCurrent();
-  }
-  function stop() {
-    if (!state.live.running) return;
-    if (!confirmInline("Oprești modul live? Cronometrul se resetează.")) return;
-    state.live.running = false; save(); pushLive(); renderMode(); tick();
-  }
-  function jumpTo(id) {
-    const idx = segIndex(id); if (idx < 0) return;
-    const now = nowMs();
-    if (state.mode !== "live" || !state.live.running) {
-      state.mode = "live";
-      // pornim show-ul ca și cum ar fi început la ora planificată a segmentului
-      state.live = { running: true, idx, itemStart: now, showStart: now - plannedOffsets()[id] * 60000 };
-    } else { state.live.idx = idx; state.live.itemStart = now; }
+  function endShow() {
+    state.live.ended = true; state.live.running = false; state.live.endedAt = nowMs();
     save(); pushLive(); renderMode(); tick();
   }
-  function confirmInline(msg) { return window.confirm(msg); }
+  function prev() {
+    if (!state.live.running || state.live.ended || state.live.idx <= 0) return;
+    const list = segs(), back = list[state.live.idx - 1];
+    // segmentul anterior își recapătă ora de start reală; dacă nu o știm, presupunem că a mers după plan
+    state.live.itemStart = liveStarts.get(back.id) ?? (state.live.itemStart - (Number(back.min) || 0) * 60000);
+    state.live.idx--; lastGo = nowMs();
+    save(); pushLive(); renderMode(); tick(); scrollToCurrent();
+    toast(`Back to ${back.title || "the previous segment"}`);
+  }
+  function stop() {
+    if (!(state.live.running || state.live.ended)) return;
+    armed($("#btnStop"), "Confirm: reset timer", () => {
+      state.live = { running: false, idx: -1, itemStart: 0, showStart: 0, ended: false }; liveStarts.clear();
+      save(); pushLive(); renderMode(); tick(); toast("Live timer reset. The rundown is unchanged.");
+    });
+  }
+  function jumpTo(id, btn) {
+    const idx = segIndex(id); if (idx < 0) return;
+    const doJump = () => {
+      const now = nowMs();
+      if (state.mode !== "live" || !state.live.running) {
+        state.mode = "live";
+        // pornim show-ul ca și cum ar fi început la ora planificată a segmentului
+        state.live = { running: true, idx, itemStart: now, showStart: now - plannedOffsets()[id] * 60000, ended: false };
+      } else { state.live.idx = idx; state.live.itemStart = now; }
+      noteStart(); lastGo = now; save(); pushLive(); renderMode(); tick();
+    };
+    if (state.mode === "live" && state.live.running && !btn) return doJump();
+    armed(btn, "Go?", doJump);
+  }
   function scrollToCurrent() {
     const tr = $("#rows tr.current"); if (!tr) return;
+    // rândul curent vine sub banda cu timerul (care rămâne lipită sus), nu peste ea
+    const stick = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--stick")) || ($(".topbar")?.offsetHeight || 0);
+    const top = (innerWidth > 900 ? stick + ($(".rundown thead")?.offsetHeight || 0) : ($(".topbar")?.offsetHeight || 0)) + 12;
     const r = tr.getBoundingClientRect();
-    if (r.top < 140 || r.bottom > innerHeight - 40) tr.scrollIntoView({ block: "center", behavior: "smooth" });
+    if (r.top < top || r.bottom > innerHeight - 24) window.scrollBy({ top: r.top - top - 8, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   }
 
-  $("#btnGo").onclick = go; $("#btnPrev").onclick = prev; $("#btnStop").onclick = stop;
+  $("#btnGo").onclick = () => go(); $("#btnPrev").onclick = prev; $("#btnStop").onclick = stop;
 
   /* ---------------- hero + pop-up ---------------- */
+  function driftText(pos) {
+    if (pos.drift == null) return { text: "", cls: "" };
+    const d = pos.drift, ref = pos.vsSchedule ? "vs plan" : "vs start";
+    if (Math.abs(d) < 30000) return { text: "On time", cls: "ok" };
+    return d > 0 ? { text: `+${fmtDur(d)} late ${ref}`, cls: "late" } : { text: `${fmtDur(-d)} ahead ${ref}`, cls: "early" };
+  }
+  let announced = "";
   function tick() {
     const now = new Date(nowMs());
     $("#clock").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
@@ -641,60 +749,70 @@
     const pos = position(now.getTime());
     tickTimeline(pos);
     const nowCard = $(".now");
+    const live = pos.mode === "live";
 
     if (pos.cur) {
-      $("#nowLabel").textContent = pos.mode === "live" ? `ACUM · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "ACUM · DUPĂ PLAN";
+      $("#nowLabel").textContent = live ? `NOW · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "NOW · BY THE PLAN";
+      $("#nowCue").textContent = `Q${pos.idx + 1}`;
       $("#nowTitle").textContent = pos.cur.title || "—";
       $("#nowMeta").innerHTML = `${chip(pos.cur.cat)}<span>${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min</span>${pos.cur.who ? `<span>· ${esc(pos.cur.who)}</span>` : ""}`;
       $("#nowRemain").textContent = fmtDur(pos.remain);
-      const over = pos.remain < 0, warn = false;
-      $("#nowRemain").className = "big-time" + (over ? " over" : warn ? " warn" : "");
-      nowCard.classList.toggle("over", over);
+      const over = pos.remain < 0, last = !over && pos.remain < 60000;
+      $("#nowRemain").className = "big-time" + (over ? " over" : last ? " last" : "");
+      nowCard.classList.toggle("over", over); nowCard.classList.toggle("last", last);
       $("#nowProgress").style.width = Math.min(100, Math.max(0, (pos.elapsed / (pos.durMs || 1)) * 100)) + "%";
       const endAt = new Date(now.getTime() + Math.max(0, pos.remain));
-      $("#nowEnds").textContent = over ? `peste timp cu ${fmtDur(-pos.remain)}` : `${pos.mode === "live" && state.advance === "auto" ? "trece automat la" : "se termină la"} ${pad(endAt.getHours())}:${pad(endAt.getMinutes())}`;
-      if (pos.drift != null) {
-        const d = pos.drift; const el = $("#drift");
-        el.textContent = Math.abs(d) < 30000 ? "pe timp" : d > 0 ? `${fmtDur(d)} în urmă` : `${fmtDur(-d)} înainte`;
-        el.className = "drift " + (Math.abs(d) < 30000 ? "ok" : d > 0 ? "late" : "early");
-      } else { $("#drift").textContent = ""; }
+      $("#nowEnds").textContent = over ? `Over by ${fmtDur(-pos.remain)}` : `${live && state.advance === "auto" ? "Moves on at" : "Ends at"} ${pad(endAt.getHours())}:${pad(endAt.getMinutes())}`;
+      const dt = driftText(pos); const el = $("#drift");
+      el.textContent = dt.text; el.className = "drift " + dt.cls;
       $("#nowTalk").textContent = pos.cur.talk || "";
+      $("#miniRemain").textContent = fmtDur(pos.remain); $("#miniRemain").className = "mini-remain" + (over ? " over" : last ? " last" : "");
     } else {
-      nowCard.classList.remove("over");
-      $("#nowLabel").textContent = pos.mode === "pre" ? "ÎNAINTE DE SHOW" : "SHOW TERMINAT";
-      $("#nowTitle").textContent = pos.mode === "pre" ? "Începem în" : "Mulțumim!";
-      $("#nowMeta").innerHTML = `<span>${esc(state.show.title)} · ${esc(fmtDate())} · ${esc(state.show.start)}</span>`;
+      nowCard.classList.remove("over", "last");
+      $("#nowLabel").textContent = pos.mode === "pre" ? "BEFORE THE SHOW" : "SHOW ENDED";
+      $("#nowCue").textContent = "";
+      $("#nowTitle").textContent = pos.mode === "pre" ? "Starts in" : "Thank you!";
+      const endNote = pos.ended && state.live.endedAt ? ` · ended at ${new Date(state.live.endedAt).toTimeString().slice(0, 5)}` : "";
+      $("#nowMeta").innerHTML = `<span>${esc(state.show.title)} · ${esc(fmtDate())} · ${esc(state.show.start)}${endNote}</span>`;
       $("#nowRemain").textContent = pos.mode === "pre" ? fmtDur(pos.nextInMs) : "00:00";
       $("#nowRemain").className = "big-time";
       $("#nowProgress").style.width = pos.mode === "post" ? "100%" : "0%";
-      $("#nowEnds").textContent = pos.mode === "pre" ? "Apasă Live → Start show la repetiție" : "";
+      $("#nowEnds").textContent = pos.mode === "pre" ? "For a rehearsal: Go live, then Start show" : pos.ended ? "Reset the timer (■) to run it again" : "";
       $("#drift").textContent = ""; $("#nowTalk").textContent = "";
+      $("#miniRemain").textContent = "";
     }
 
+    $("#nextState").textContent = live ? "STANDBY" : "NEXT";
     if (pos.next) {
+      $("#nextCue").textContent = `Q${segIndex(pos.next.id) + 1}`;
       $("#nextTitle").textContent = pos.next.title || "—";
-      $("#nextCat").innerHTML = `${chip(pos.next.cat)} <span style="color:var(--muted);font-size:13px">· ${pos.next.min} min${pos.next.who ? " · " + esc(pos.next.who) : ""}</span>`;
-      $("#nextTalk").textContent = pos.next.talk || "—";
-      $("#nextIn").textContent = pos.nextInMs != null ? (pos.nextInMs >= 0 ? `în ${fmtDur(pos.nextInMs)}` : "acum") : "";
-      $("#afterNext").innerHTML = pos.after ? `<span>Apoi: <b>${esc(pos.after.title)}</b> · ${pos.after.min} min</span>` : "";
+      $("#nextCat").innerHTML = `${chip(pos.next.cat)} <span class="next-len">${pos.next.min} min${pos.next.who ? " · " + esc(pos.next.who) : ""}</span>`;
+      $("#nextTalk").textContent = pos.next.talk || "";
+      $("#nextIn").textContent = pos.nextInMs != null ? (pos.nextInMs >= 0 ? `in ${fmtDur(pos.nextInMs)}` : "due now") : "";
+      $("#afterNext").innerHTML = pos.after ? `<span>Then <b>${esc(pos.after.title)}</b> · ${pos.after.min} min</span>` : "";
+      $(".next").classList.remove("empty");
     } else {
-      $("#nextTitle").textContent = "—"; $("#nextCat").innerHTML = ""; $("#nextTalk").textContent = ""; $("#nextIn").textContent = ""; $("#afterNext").innerHTML = "";
+      $("#nextCue").textContent = ""; $("#nextTitle").textContent = pos.mode === "post" ? "Nothing left to call" : "—";
+      $("#nextCat").innerHTML = ""; $("#nextTalk").textContent = pos.mode === "post" ? `${segs().length} segments, ${state.show.title || "the show"}.` : "";
+      $("#nextIn").textContent = ""; $("#afterNext").innerHTML = "";
+      $(".next").classList.add("empty");
     }
 
-    // culoarea luminilor = culoarea tipului de moment; roșu când segmentul a depășit timpul
-    const hexOf = (it) => (it && CAT_HEX[it.cat]) || "#3d7bff";
+    // culoarea momentului = culoarea categoriei; trece în roșu doar în ultimul minut
     nowCard.style.setProperty("--ac", accentFor(pos));
-    $(".next").style.setProperty("--ac", hexOf(pos.next));
 
     const curKey = pos.cur ? pos.cur.id : pos.mode;
-    if (lastCurKey !== null && curKey !== lastCurKey) playMorph(pos.cur ? pos.cur.title : pos.mode === "post" ? "Mulțumim!" : "");
+    if (lastCurKey !== null && curKey !== lastCurKey) playMorph(pos.cur ? pos.cur.title : pos.mode === "post" ? "Thank you!" : "");
     lastCurKey = curKey;
+    // cititorul de ecran aude doar schimbarea de segment, nu fiecare secundă
+    const say = pos.cur ? `Now: ${pos.cur.title}. ${pos.next ? "Next: " + pos.next.title : ""}` : $("#nowTitle").textContent;
+    if (say !== announced) { announced = say; $("#liveAnnounce").textContent = say; }
 
     markRows(pos);
     renderPopup(pos);
   }
 
-  // în ultimul minut culoarea momentului trece treptat în roșu; la zero e roșu de tot
+  // în ultimul minut culoarea momentului trece treptat în roșu; la zero e roșu de tot. Roșul nu apare nicăieri altundeva.
   const RED = "#ff4d5e";
   function mixHex(a, b, t) {
     const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
@@ -714,14 +832,31 @@
     const n = $(".now"); if (!n || !text) return;
     n.classList.remove("enter"); void n.offsetWidth; n.classList.add("enter");
     setTimeout(() => n.classList.remove("enter"), 1100);
-    const a = $(".now .aurora"); if (a) { a.classList.add("flash"); setTimeout(() => a.classList.remove("flash"), 1600); }
-    if (popupWin && !popupWin.closed) { const b = popupWin.document.body; b.classList.remove("flip"); void b.offsetWidth; b.classList.add("flip"); }
+    // semnătura: cue-ul care tocmai a fost „chemat” se aprinde GO pe rând, iar linia de cue îl leagă de timer
+    const tr = $("#rows tr.current"); if (tr) { tr.classList.remove("called"); void tr.offsetWidth; tr.classList.add("called"); setTimeout(() => tr.classList.remove("called"), 900); }
+    const au = $(".now .aurora"); if (au) { au.classList.add("flash"); setTimeout(() => au.classList.remove("flash"), 1600); }
+    setTimeout(drawCueLine, 480);
+    if (popupWin && !popupWin.closed) { const b = popupWin.document.body; b.classList.remove("flip"); void b.offsetWidth; b.classList.add("flip"); setTimeout(() => b.classList.remove("flip"), 800); }
+  }
+
+  // linia de cue: o riglă de 2px în albastrul semnal, din cutia cue-ului (rândul care rulează) până la timer, apoi se stinge
+  function drawCueLine() {
+    const svgEl = $("#cueLine"), cue = $("#rows tr.current .cue"), timer = $("#nowRemain");
+    if (!svgEl || !cue || !timer || state.mode !== "live") return;
+    const a = cue.getBoundingClientRect(), t = timer.getBoundingClientRect();
+    if (a.bottom < 0 || a.top > innerHeight || !a.width) return;   // rândul nu se vede: nu desenăm nimic
+    const x0 = Math.round(a.left + a.width / 2), y0 = Math.round(a.top), x1 = Math.round(t.left - 10), y1 = Math.round(t.top + t.height / 2);
+    const xm = Math.round(Math.min(x0, x1) - 18);
+    // din cutia cue-ului urcă puțin, merge spre stânga pe lângă banda de cue, apoi intră în timer
+    svgEl.firstChild.setAttribute("d", `M${x0} ${y0} L${x0} ${y0 - 10} L${xm} ${y0 - 10} L${xm} ${y1} L${x1} ${y1}`);
+    svgEl.classList.remove("on"); void svgEl.getBoundingClientRect(); svgEl.classList.add("on");
+    clearTimeout(drawCueLine.t); drawCueLine.t = setTimeout(() => svgEl.classList.remove("on"), 1400);
   }
 
   function fmtDate() { const [y, m, d] = (state.show.date || "").split("-"); return d ? `${d}.${m}.${y}` : ""; }
 
-  // pop-up: Document Picture-in-Picture (mereu deasupra) în Chrome/Edge; altfel fereastră normală
-  const POPUP_CSS = `
+  // ecranul de broadcast (?screen=1): stilul rămâne cel aprobat; nu-l atinge fără acord
+  const SCREEN_CSS = `
     @property --ac{syntax:"<color>";inherits:true;initial-value:#3d7bff}
     @property --nc{syntax:"<color>";inherits:true;initial-value:#3d7bff}
     *{box-sizing:border-box} html,body{margin:0;height:100%;background:#000;color:#f2f4f8;font-family:"Inter Tight","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
@@ -736,7 +871,7 @@
     @keyframes pulse{0%,100%{opacity:var(--o)}50%{opacity:calc(var(--o)*.35)}}
     .main{position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:16px 18px 10px}
     .k{font-size:11px;letter-spacing:.16em;font-weight:700;color:#8a93a6;display:flex;align-items:center;gap:8px}
-    .k .sp{flex:1}.dot{width:7px;height:7px;border-radius:50%;background:#ff4d5e;box-shadow:0 0 10px #ff4d5e}
+    .k .sp{flex:1}.dot{width:7px;height:7px;border-radius:50%;background:#3d7bff;box-shadow:0 0 10px #3d7bff}
     .clock{font-family:"JetBrains Mono",monospace;color:#d6e4ff;letter-spacing:.02em}
     .tg{font:600 11px/1 "Inter Tight",sans-serif;letter-spacing:.06em;color:#d6e4ff;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:5px 10px;cursor:pointer}
     .tg.on{background:color-mix(in srgb,var(--ac) 30%,transparent);border-color:color-mix(in srgb,var(--ac) 70%,transparent);color:#fff}
@@ -793,6 +928,87 @@
     body.screen{cursor:none} body.screen .next.after{opacity:.8}
     body.screen.prompt .time{font-size:min(14vmin,9vw)} body.screen.prompt .t{font-size:clamp(20px,4.5vmin,72px)}`;
 
+  // pop-up-ul (fereastră mică, PiP sau tab pe telefon): caietul de regie la purtător, cu transport pentru regie
+  const MARK_SVG = `<svg class="mk" viewBox="0 0 48 48" aria-hidden="true"><rect x="5" y="9" width="15" height="17" fill="#fff"/><rect x="28" y="22" width="15" height="17" fill="#fff"/><rect x="21" y="4" width="6" height="40" fill="#3D7BFF"/></svg>`;
+  const POPUP_CSS = `
+    @property --ac{syntax:"<color>";inherits:true;initial-value:#3d7bff}
+    :root{--bg:#05070d;--ink:#06175a;--desk:#0a1433;--line:rgba(214,228,255,.13);--ice:#d6e4ff;--text:#eef3ff;--muted:#a3b0cc;--signal:#3d7bff;--standby:#f2b33d;--red:#ff4d5e;
+      --display:"Archivo","Inter Tight",Arial,sans-serif;--ui:"Inter Tight","Helvetica Neue",Arial,sans-serif;--mono:"JetBrains Mono",ui-monospace,monospace;color-scheme:dark}
+    *{box-sizing:border-box} html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--ui);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+    ::selection{background:var(--signal);color:#fff}
+    body{--ac:#3d7bff;display:flex;flex-direction:column;overflow:hidden;min-height:100dvh;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      background:linear-gradient(180deg,var(--bg) 0%,var(--bg) 55%,color-mix(in srgb,var(--ink) 70%,var(--bg)) 100%);transition:--ac .6s linear}
+    button{font:inherit;color:inherit;-webkit-user-select:none;user-select:none;touch-action:manipulation}
+    button:focus-visible{outline:2px solid var(--ice);outline-offset:2px}
+    .ic{width:18px;height:18px;display:block}
+    .k{display:flex;align-items:center;gap:10px;padding:14px 16px 0;font-size:12px;color:var(--muted)}
+    .mk{width:18px;height:18px;flex:none}
+    .st{display:inline-flex;align-items:center;gap:7px;color:var(--ice);font-weight:600}.mrest{display:contents}
+    .dot{width:8px;height:8px;border-radius:50%;background:#56607a}
+    body.is-live .dot{background:var(--signal);outline:3px solid color-mix(in srgb,var(--signal) 30%,transparent)}
+    .cue{font-family:var(--mono);font-size:16px;letter-spacing:0;padding:2px 7px;border:1px solid rgba(214,228,255,.3);border-radius:4px;color:var(--ice)}
+    .sp{flex:1}.clock{font-family:var(--mono);font-size:14px;letter-spacing:0;color:var(--ice);font-variant-numeric:tabular-nums}
+    .main{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:12px 16px 10px}
+    .trow{display:flex;align-items:baseline;gap:10px}.trow .cue{flex:none;position:relative;top:-3px}.cue:empty{display:none}
+    .t{font-family:var(--display);font-stretch:125%;font-size:clamp(20px,6.4vw,30px);font-weight:700;line-height:1.08;letter-spacing:-.01em;text-transform:uppercase;margin:0;text-wrap:balance;overflow-wrap:anywhere}
+    .meta{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px}
+    .drift{font-family:var(--mono);font-weight:600}.drift.late{color:#fff}.drift.early{color:var(--ice)}.drift.ok{color:var(--muted)}
+    .time{font-family:var(--mono);font-size:clamp(56px,21vw,112px);font-weight:500;line-height:.95;letter-spacing:-.04em;color:#fff;font-variant-numeric:tabular-nums}
+    .time.last,.time.over{color:var(--red)}
+    .bar{position:relative;height:3px;background:var(--line);flex:none}
+    .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--ac)}
+    .bar i::after{content:"";position:absolute;right:-1px;top:-5px;width:2px;height:13px;background:#fff}
+    .tw{flex:1;min-height:0;position:relative;margin-top:6px}
+    .talk{position:absolute;inset:0;overflow:hidden}
+    .talk p{margin:0;font-size:clamp(16px,4.6vw,21px);line-height:1.5;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere}
+    .lbl{font-size:11px;letter-spacing:.1em;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase}
+    body.prompt .time{font-size:clamp(34px,11vw,52px)} body.prompt .t{font-size:clamp(15px,4.2vw,20px)} body.prompt .meta{display:none}
+    body.prompt .talk{overflow-y:auto;scrollbar-width:none;-webkit-mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 80%,transparent 100%);mask-image:linear-gradient(180deg,transparent 0,#000 14%,#000 80%,transparent 100%)}
+    body.prompt .talk::-webkit-scrollbar{display:none} body.prompt .lbl{display:none}
+    body.prompt .talk p{font-size:var(--ps,34px);line-height:1.35;font-weight:500;color:#fff;padding:28vh 2px 70vh}
+    body.prompt.mirror .talk p{transform:scaleX(-1)}
+    .guide{display:none;position:absolute;left:-12px;top:calc(28vh + var(--ps,34px) * .7);width:0;height:0;border:7px solid transparent;border-left:9px solid var(--signal);pointer-events:none;z-index:2}
+    body.prompt .guide{display:block}
+    .ctl{display:none;grid-template-columns:repeat(4,1fr);gap:6px;flex:none}
+    body.prompt .ctl{display:grid}
+    .ctl button,.tr button{min-height:44px;border-radius:8px;border:1px solid var(--line);background:var(--desk);color:var(--text);font-weight:600;font-size:14px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:0 10px}
+    .ctl button:active,.tr button:active{transform:translateY(1px)}
+    .ctl .play{grid-column:span 2;background:var(--ink);border-color:color-mix(in srgb,var(--signal) 60%,transparent)}
+    .ctl .v{grid-column:span 2;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:var(--muted)}
+    .tr{display:grid;grid-template-columns:1fr 2.2fr 1fr;gap:8px;padding:0 16px 10px;flex:none}
+    .tr .go{min-height:56px;background:#2b63e6;border-color:#2b63e6;color:#fff;font-size:17px;font-weight:700;letter-spacing:.02em}
+    .tr .go.armed{background:var(--standby);border-color:var(--standby);color:#1a1000}
+    .tr .go.end{background:var(--ink);border-color:var(--ice)}
+    .tr button:disabled{opacity:.4;cursor:default}
+    .tr .ptg.on{background:var(--ink);border-color:var(--ice);color:#fff}
+    body.ro .tr .go,body.ro .tr .back{display:none} body.ro .tr{grid-template-columns:1fr}
+    .next{flex:none;display:flex;align-items:center;gap:10px;padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:color-mix(in srgb,var(--ink) 55%,var(--bg))}
+    .sb{flex:none;font:700 11px/1 var(--ui);letter-spacing:.08em;padding:5px 7px;border-radius:4px;border:1.5px solid var(--standby);color:var(--standby)}
+    body:not(.is-live) .sb{border-color:var(--line);color:var(--muted)}
+    .next .nq{font-family:var(--mono);font-size:12px;color:var(--muted);flex:none}
+    .next .nt{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}
+    .next .ni{font-family:var(--mono);font-size:13px;color:var(--ice);flex:none;font-variant-numeric:tabular-nums}
+    .next.after{display:none}
+    body.flip .main>*{animation:pflip .5s cubic-bezier(.16,1,.3,1)}
+    body.flip .sb{animation:sbgo .6s steps(1)}
+    @keyframes pflip{0%{opacity:.2;transform:translateY(4px)}100%{opacity:1;transform:none}}
+    @keyframes sbgo{0%{background:var(--signal);border-color:var(--signal);color:#fff}100%{background:transparent}}
+    @media (prefers-reduced-motion:reduce){body.flip .main>*{animation:none}}
+    @media (min-width:600px) and (min-height:500px){.t{font-size:32px}.time{font-size:104px}}
+    /* luminile verticale, ca în cardurile din editor */
+    body{position:relative;background:linear-gradient(180deg,#010207 0%,color-mix(in srgb,var(--ac) 8%,#02040c) 70%,color-mix(in srgb,var(--ac) 24%,#02040c) 100%)}
+    body>*:not(.aur){position:relative;z-index:1}
+    .aur{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+    .aur::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.95) 0%,rgba(0,0,0,.72) 38%,rgba(0,0,0,.25) 78%,rgba(0,0,0,.08) 100%)}
+    .beam{position:absolute;top:-8%;bottom:-2%;left:var(--x);width:var(--w);opacity:var(--o);filter:blur(var(--b));mix-blend-mode:screen;transform-origin:50% 100%;
+      background:linear-gradient(180deg,transparent 0%,color-mix(in srgb,var(--ac) 50%,transparent) 40%,var(--ac) 68%,color-mix(in srgb,var(--ac) 55%,#fff) 88%,color-mix(in srgb,var(--ac) 25%,#fff) 100%);
+      animation:sway var(--d) ease-in-out var(--dl) infinite alternate,bpulse var(--p) ease-in-out var(--dl) infinite}
+    @keyframes sway{from{transform:translateX(-14px) scaleX(.8)}to{transform:translateX(14px) scaleX(1.25)}}
+    @keyframes bpulse{0%,100%{opacity:var(--o)}50%{opacity:calc(var(--o)*.35)}}
+    .talk p,.meta{text-shadow:0 1px 14px rgba(0,0,0,.85)}
+    .next{background:rgba(4,6,12,.72)}
+    @media (prefers-reduced-motion:reduce){.beam{animation:none}}`;
+
   const CAT_HEX = { live: "#3d7bff", interviu: "#a78bfa", grafica: "#22d3ee", platforma: "#c9d4ea", caritabil: "#f472b6", ing: "#ff6200", donatii: "#e4f53b", giveaway: "#34d399", pauza: "#8a93a6" };
 
   // setările prompter-ului rămân salvate între sesiuni
@@ -802,19 +1018,21 @@
   prompter.playing = false;
   const savePrompter = () => { try { localStorage.setItem(PROMPT_KEY, JSON.stringify({ ...prompter, playing: false })); } catch (e) {} };
   let promptAcc = 0, promptLast = 0, promptTextKey = "";
+  // viteza ca treaptă (1–40), nu în pixeli pe secundă
+  const speedStep = () => Math.round(prompter.speed / 5);
 
   async function openPopup() {
     if (popupWin && !popupWin.closed) { try { popupWin.focus(); } catch (e) {} return; }
     let w = null;
     try {
       if ("documentPictureInPicture" in window) {
-        w = await window.documentPictureInPicture.requestWindow({ width: 460, height: 680 });
+        w = await window.documentPictureInPicture.requestWindow({ width: 440, height: 720 });
       }
     } catch (e) { w = null; }
     if (!w) {
-      w = window.open("", "ta-rundown-popup", "width=460,height=720");
-      if (!w) return toast("Browserul a blocat pop-up-ul. Permite pop-up-uri pentru pagina asta.");
-      toast("Pop-up deschis. Pentru „mereu deasupra” folosește Chrome sau Edge.");
+      w = window.open("", "ta-rundown-popup", "width=440,height=760");
+      if (!w) return toast("The browser blocked the pop-up. Allow pop-ups for this page.");
+      if (!matchMedia("(max-width: 900px)").matches) toast("Pop-up open. For always-on-top, use Chrome or Edge.");
     }
     mountPopup(w);
   }
@@ -822,25 +1040,57 @@
   // construiește conținutul pop-up-ului într-o fereastră (pop-up, PiP sau ecranul mare din ?screen=1)
   function mountPopup(w) {
     const d = w.document;
-    d.title = "KAIROS · Acum";
-    d.head.innerHTML = `<meta charset="utf-8"><link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet"><style>${POPUP_CSS}</style>`;
-    d.body.innerHTML = `<div class="aur" id="paur"></div>
+    const screen = d.body.classList.contains("screen");
+    d.title = "KAIROS · Now";
+    d.documentElement.lang = "en";
+    const fonts = `<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">`;
+    d.head.innerHTML = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#05070d">${fonts}<style>${screen ? SCREEN_CSS : POPUP_CSS}</style>`;
+    if (screen) {
+      // ecranul de broadcast: același aspect ca până acum, doar textele în engleză și marca KAIROS corectă
+      d.body.innerHTML = `<div class="aur" id="paur"></div>
       <div class="main">
-        <div class="k"><svg viewBox="0 0 40 40" width="14" height="14" style="flex:none;filter:drop-shadow(0 0 5px rgba(61,123,255,.7))"><path d="M27.8 7.2A15 15 0 1 0 34.6 16" fill="none" stroke="#9dbcff" stroke-width="3.4" stroke-linecap="round"/><circle cx="31.9" cy="10.6" r="3.4" fill="#fff"/></svg><span class="dot"></span><span id="pl">ACUM</span><span class="sp"></span><button class="tg" id="ptg" title="Prompter (T)">PROMPTER</button><span class="clock" id="pc"></span></div>
+        <div class="k">${MARK_SVG.replace('class="mk"', 'width="14" height="14" style="flex:none"')}<span class="dot"></span><span id="pl">NOW</span><span class="sp"></span><button class="tg" id="ptg" title="Prompter (T)">PROMPTER</button><span class="clock" id="pc"></span></div>
         <div><div class="t" id="pt">—</div><div class="meta" id="pm"></div></div>
         <div class="time" id="pr">--:--</div>
         <div class="bar"><i id="pb"></i></div>
-        <div class="tw"><div class="talk" id="pk"><div class="lbl">CE SE SPUNE</div><p id="pkt"></p></div><div class="guide"></div></div>
+        <div class="tw"><div class="talk" id="pk"><div class="lbl">WHAT’S SAID</div><p id="pkt"></p></div><div class="guide"></div></div>
         <div class="ctl">
-          <button class="play" id="pp" title="Pornește / oprește (Space)">▶ Start</button>
-          <button id="ps-" title="Mai încet (↓)">−</button><span class="v" id="pv"></span><button id="ps+" title="Mai repede (↑)">+</button>
-          <button id="pa-" title="Text mai mic (-)">A−</button><button id="pa+" title="Text mai mare (+)">A+</button>
-          <button id="pz" title="Înapoi la început (R)">↺</button><button id="pmr" title="Oglindit, pentru ecran cu sticlă (M)">⇋</button>
+          <button class="play" id="pp" title="Start / pause (Space)">▶ Start</button>
+          <button id="ps-" title="Slower (↓)">−</button><span class="v" id="pv"></span><button id="ps+" title="Faster (↑)">+</button>
+          <button id="pa-" title="Smaller text (-)">A−</button><button id="pa+" title="Bigger text (+)">A+</button>
+          <button id="pz" title="Back to the top (R)">↺</button><button id="pmr" title="Mirrored, for a glass prompter (M)">⇋</button>
         </div>
       </div>
-      <div class="next"><span class="nd"></span><span class="nl">URMEAZĂ</span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
-      <div class="next after" id="pafter"><span class="nd"></span><span class="nl">APOI</span><span class="nt" id="nt2">—</span><span class="ni" id="pi2"></span></div>`;
-    buildAurora(d.getElementById("paur"), 911);
+      <div class="next"><span class="nd"></span><span class="nl">NEXT</span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
+      <div class="next after" id="pafter"><span class="nd"></span><span class="nl">THEN</span><span class="nt" id="nt2">—</span><span class="ni" id="pi2"></span></div>`;
+      buildAurora(d.getElementById("paur"), 911);
+    } else {
+      d.body.innerHTML = `<div class="aur" id="paur"></div>
+      <div class="k">${MARK_SVG}<span class="sp"></span><span class="clock" id="pc"></span></div>
+      <div class="main">
+        <div><div class="trow"><span class="cue" id="pq"></span><h1 class="t" id="pt">—</h1></div><div class="meta"><span class="st"><span class="dot"></span><span id="pl">Now</span></span><span class="mrest" id="pm"></span></div></div>
+        <div class="time" id="pr" role="timer" aria-label="Time left">--:--</div>
+        <div class="bar"><i id="pb"></i></div>
+        <div class="tw"><div class="talk" id="pk"><div class="lbl">What’s said</div><p id="pkt"></p></div><div class="guide"></div></div>
+        <div class="ctl" aria-label="Prompter controls">
+          <button class="play" id="pp" title="Start / pause (Space)">Start</button>
+          <span class="v" id="pv"></span>
+          <button id="ps-" title="Slower (↓)" aria-label="Slower">Slower</button><button id="ps+" title="Faster (↑)" aria-label="Faster">Faster</button>
+          <button id="pa-" title="Smaller text (-)" aria-label="Smaller text">A−</button><button id="pa+" title="Bigger text (+)" aria-label="Bigger text">A+</button>
+          <button id="pz" title="Back to the top (R)">Top</button><button id="pmr" title="Mirrored, for a glass prompter (M)">Mirror</button>
+        </div>
+      </div>
+      <div class="tr">
+        <button class="back" id="pback" title="Back (B)" aria-label="Back to the previous segment">${IC.prev}Back</button>
+        <button class="go" id="pgo">Next</button>
+        <button class="ptg" id="ptg" title="Prompter (T)" aria-pressed="false">Prompter</button>
+      </div>
+      <div class="next"><span class="sb" id="psb">STANDBY</span><span class="nq" id="pnq"></span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
+      <div class="next after" id="pafter"><span class="nt" id="nt2"></span><span class="ni" id="pi2"></span></div>`;
+      buildAurora(d.getElementById("paur"), 911);
+      d.getElementById("pgo").onclick = (e) => go(e.currentTarget);
+      d.getElementById("pback").onclick = prev;
+    }
     popupWin = w;
     promptTextKey = "";
 
@@ -849,9 +1099,9 @@
     const sync = () => {
       d.body.classList.toggle("prompt", prompter.on);
       d.body.classList.toggle("mirror", prompter.mirror);
-      g("ptg").classList.toggle("on", prompter.on);
-      g("pp").textContent = prompter.playing ? "❚❚ Pauză" : "▶ Start";
-      g("pv").textContent = `${prompter.speed}px/s`;
+      g("ptg").classList.toggle("on", prompter.on); g("ptg").setAttribute("aria-pressed", prompter.on);
+      g("pp").textContent = screen ? (prompter.playing ? "❚❚ Pause" : "▶ Start") : (prompter.playing ? "Pause" : "Start");
+      g("pv").textContent = screen ? `${prompter.speed}px/s` : `Speed ${speedStep()}`;
       d.body.style.setProperty("--ps", prompter.size + "px");
       savePrompter();
     };
@@ -871,6 +1121,7 @@
     g("pz").onclick = act.top; g("pmr").onclick = act.mirror;
     d.addEventListener("keydown", (e) => {
       const k = e.key;
+      if (e.repeat && (k === "n" || k === "N" || k === "b" || k === "B")) return;
       if (k === " ") { e.preventDefault(); act.play(); }
       else if (k === "ArrowUp") { e.preventDefault(); act.faster(); }
       else if (k === "ArrowDown") { e.preventDefault(); act.slower(); }
@@ -879,23 +1130,25 @@
       else if (k === "r" || k === "R") act.top();
       else if (k === "t" || k === "T") act.toggle();
       else if (k === "m" || k === "M") act.mirror();
-      else if ((k === "n" || k === "N") && !SCREEN) { if (state.mode === "live") go(); }
+      else if ((k === "n" || k === "N") && !SCREEN) { if (state.mode === "live") go(true); }
+      else if ((k === "b" || k === "B") && !SCREEN) prev();
       else if (k === "f" || k === "F") { const el = d.documentElement; if (d.fullscreenElement) d.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); }
     });
-    // derularea prompter-ului, lină, pe ceasul ferestrei pop-up
+    // derularea prompter-ului, lină, pe ceasul ferestrei; bucla rulează doar cât prompterul chiar derulează
+    let raf = 0;
     const step = (ts) => {
-      if (!popupWin || popupWin.closed) return;
-      if (prompter.on && prompter.playing) {
-        if (promptLast) {
-          promptAcc += prompter.speed * (ts - promptLast) / 1000;
-          const whole = Math.floor(promptAcc);
-          if (whole) { talk.scrollTop += whole; promptAcc -= whole; }
-        }
-        promptLast = ts;
-      } else promptLast = 0;
-      w.requestAnimationFrame(step);
+      raf = 0;
+      if (!popupWin || popupWin.closed || !(prompter.on && prompter.playing)) { promptLast = 0; return; }
+      if (promptLast) {
+        promptAcc += prompter.speed * (ts - promptLast) / 1000;
+        const whole = Math.floor(promptAcc);
+        if (whole) { talk.scrollTop += whole; promptAcc -= whole; }
+      }
+      promptLast = ts; raf = w.requestAnimationFrame(step);
     };
-    w.requestAnimationFrame(step);
+    const kick = () => { if (!raf && prompter.on && prompter.playing) raf = w.requestAnimationFrame(step); };
+    w.__kick = kick;
+    const play = act.play; act.play = () => { play(); kick(); }; g("pp").onclick = act.play;
     w.addEventListener("pagehide", () => { popupWin = null; });
     sync();
     tick();
@@ -904,29 +1157,45 @@
   function renderPopup(pos) {
     if (!popupWin || popupWin.closed) return;
     const d = popupWin.document; const g = (id) => d.getElementById(id); if (!g("pt")) return;
-    const now = new Date();
+    const screen = d.body.classList.contains("screen");
+    const now = new Date(nowMs());
     g("pc").textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
     const hexOf = (it) => (it && CAT_HEX[it.cat]) || "#3d7bff";
     d.body.style.setProperty("--ac", accentFor(pos));
     d.body.style.setProperty("--nc", hexOf(pos.next));
+    d.body.classList.toggle("is-live", pos.mode === "live");
+    d.body.classList.toggle("ro", !canEdit());
     let text = "";
     if (pos.cur) {
-      g("pl").textContent = pos.mode === "live" ? `ACUM · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "ACUM · DUPĂ PLAN";
+      g("pl").textContent = screen ? (pos.mode === "live" ? `NOW · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "NOW · BY THE PLAN")
+        : (pos.mode === "live" ? `Live · ${state.advance === "auto" ? "Auto" : "Manual"}` : "Plan");
+      if (g("pq")) g("pq").textContent = `Q${pos.idx + 1}`;
       g("pt").textContent = pos.cur.title;
-      let meta = `${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min${pos.cur.who ? " · " + esc(pos.cur.who) : ""}`;
-      if (pos.drift != null && Math.abs(pos.drift) >= 30000) meta += ` · <span class="drift ${pos.drift > 0 ? "late" : "early"}">${pos.drift > 0 ? fmtDur(pos.drift) + " în urmă" : fmtDur(-pos.drift) + " înainte"}</span>`;
-      g("pm").innerHTML = meta;
+      let meta = `<span>${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min</span>${pos.cur.who ? `<span>${esc(pos.cur.who)}</span>` : ""}`;
+      const dt = driftText(pos);
+      if (dt.text && (screen ? dt.cls !== "ok" : true)) meta += `<span class="drift ${dt.cls}">${esc(dt.text)}</span>`;
+      if (!screen) g("pm").innerHTML = meta;
+      else g("pm").innerHTML = `${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min${pos.cur.who ? " · " + esc(pos.cur.who) : ""}${dt.cls === "late" || dt.cls === "early" ? ` · <span class="drift ${dt.cls}">${esc(dt.text)}</span>` : ""}`;
       g("pr").textContent = fmtDur(pos.remain);
-      g("pr").className = "time" + (pos.remain < 0 ? " over" : "");
+      g("pr").className = "time" + (pos.remain < 0 ? " over" : pos.remain < 60000 ? " last" : "");
       g("pb").style.width = Math.min(100, Math.max(0, (pos.elapsed / (pos.durMs || 1)) * 100)) + "%";
       text = prompter.on ? ((pos.cur.script || "").trim() || pos.cur.talk || "") : (pos.cur.talk || "");
     } else {
-      g("pl").textContent = pos.mode === "pre" ? "ÎNAINTE DE SHOW" : "SHOW TERMINAT";
-      g("pt").textContent = pos.mode === "pre" ? "Începem în" : "Mulțumim!";
+      g("pl").textContent = screen ? (pos.mode === "pre" ? "BEFORE THE SHOW" : "SHOW ENDED") : (pos.mode === "pre" ? "Before the show" : "Show ended");
+      if (g("pq")) g("pq").textContent = "";
+      g("pt").textContent = pos.mode === "pre" ? "Starts in" : "Thank you!";
       g("pm").textContent = ""; g("pr").textContent = pos.mode === "pre" ? fmtDur(pos.nextInMs) : "00:00"; g("pr").className = "time";
-      g("pb").style.width = "0%";
+      g("pb").style.width = pos.mode === "post" ? "100%" : "0%";
     }
     { const t = g("pr"); t.classList.toggle("long", t.textContent.length > 6); }   // timp lung (ore/zile): mai mic, ca să rămână pe un rând
+    // butonul mare din pop-up urmează butonul din bara de sus
+    const pgo = g("pgo");
+    if (pgo && pgo.dataset.armed !== "1") {
+      const live = state.mode === "live", running = live && state.live.running && !state.live.ended, last = running && state.live.idx >= segs().length - 1;
+      pgo.textContent = !live ? "Go live" : state.live.ended ? "Show ended" : running ? (last ? "End show" : "Next") : "Start show";
+      pgo.disabled = live && !!state.live.ended; pgo.classList.toggle("end", last);
+      g("pback").disabled = !running || state.live.idx <= 0;
+    }
     // textul se schimbă doar când se schimbă segmentul sau modul, ca să nu sară derularea
     const key = (pos.cur ? pos.cur.id : pos.mode) + "|" + prompter.on + "|" + text;
     if (key !== promptTextKey) {
@@ -935,10 +1204,13 @@
       g("pkt").textContent = text;
       if (segChanged) { g("pk").scrollTop = 0; promptAcc = 0; }
     }
+    if (popupWin.__kick) popupWin.__kick();
     if (pos.next) {
-      g("pi").textContent = pos.nextInMs != null && pos.nextInMs >= 0 ? `în ${fmtDur(pos.nextInMs)}` : "acum";
+      g("pi").textContent = pos.nextInMs != null && pos.nextInMs >= 0 ? `in ${fmtDur(pos.nextInMs)}` : "due now";
       g("nt").textContent = pos.next.title;
-    } else { g("pi").textContent = ""; g("nt").textContent = "—"; }
+      if (g("pnq")) g("pnq").textContent = `Q${segIndex(pos.next.id) + 1}`;
+      if (g("psb")) { g("psb").textContent = pos.mode === "live" ? "STANDBY" : "NEXT"; g("psb").hidden = false; }
+    } else { g("pi").textContent = ""; g("nt").textContent = "—"; if (g("pnq")) g("pnq").textContent = ""; if (g("psb")) g("psb").hidden = true; }
     // al doilea eveniment de după cel activ (se vede doar pe ecranul mare, cu prompterul oprit)
     const after = pos.next ? pos.after : null;
     g("pafter").style.visibility = after ? "" : "hidden";
@@ -946,19 +1218,20 @@
       d.body.style.setProperty("--nc2", hexOf(after));
       g("nt2").textContent = after.title;
       const inMs = pos.nextInMs != null ? Math.max(0, pos.nextInMs) + (pos.next.min || 0) * 60000 : null;
-      g("pi2").textContent = inMs != null ? `în ${fmtDur(inMs)}` : "";
+      g("pi2").textContent = inMs != null ? `in ${fmtDur(inMs)}` : "";
     }
   }
 
   $("#btnPopup").onclick = openPopup;
 
   /* ---------------- meniu, setări, import/export ---------------- */
-  $("#btnMenu").onclick = (e) => { e.stopPropagation(); $("#menuList").hidden = !$("#menuList").hidden; };
-  document.addEventListener("click", () => { $("#menuList").hidden = true; });
+  const setMenu = (open) => { $("#menuList").hidden = !open; $("#btnMenu").setAttribute("aria-expanded", open); if (open) { const f = $("#menuList button:not([hidden])"); if (f && !mqMobile.matches) f.focus(); } };
+  $("#btnMenu").onclick = (e) => { e.stopPropagation(); setMenu($("#menuList").hidden); };
+  document.addEventListener("click", (e) => { if (!e.target.closest("#menuList")) setMenu(false); });
   // avatarul deschide același meniu (pe mobil e singurul buton din dreapta sus)
   $("#account").addEventListener("click", (e) => {
     if (!e.target.closest(".who-chip")) return;
-    e.stopPropagation(); $("#menuList").hidden = !$("#menuList").hidden;
+    e.stopPropagation(); setMenu($("#menuList").hidden);
   });
   // mobil: Plan/Live și Auto/Manual intră în meniu, iar meniul devine bottom sheet
   // (îl mutăm în <body>, pentru că backdrop-filter de pe topbar strică position:fixed)
@@ -978,6 +1251,8 @@
   $("#menuList").addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const a = b.dataset.act;
+    setMenu(false);
+    if (a === "keys") $("#keysDlg").showModal();
     if (a === "export") exportJSON();
     if (a === "import") $("#importFile").click();
     if (a === "importScripts") $("#scriptsFile").click();
@@ -989,9 +1264,9 @@
     if (a === "home") location.href = "./";
     if (a === "preview") window.open($("#btnPreview").href, "_blank", "noopener");
     if (a === "signout" && S) S.signOut();
-    if (a === "reset" && window.confirm("Înlocuiești rundown-ul curent cu cel implicit? Exportă-l înainte dacă vrei să-l păstrezi.")) {
+    if (a === "reset" && window.confirm(`Replace “${state.show.title || "this rundown"}” with the sample rundown${cloud() ? " for the whole team" : ""}? You can undo with Ctrl+Z right after.`)) {
       snapshot(); const keep = { mode: state.mode, advance: state.advance, live: state.live }; state = { ...fromDefault(), ...keep };
-      save(); pushItems(); renderAll(); toast(cloud() ? "Rundown-ul implicit a fost încărcat pentru toată echipa" : "Rundown-ul implicit a fost încărcat");
+      save(); pushItems(); renderAll(); toast(cloud() ? "The default rundown is loaded for the whole team · Ctrl+Z to undo" : "The default rundown is loaded · Ctrl+Z to undo");
     }
   });
 
@@ -1007,12 +1282,12 @@
     const f = e.target.files[0]; if (!f) return;
     try {
       const d = JSON.parse(await f.text());
-      if (!Array.isArray(d.items)) throw new Error("fără items");
+      if (!Array.isArray(d.items)) throw new Error("no items");
       snapshot();
       state.show = { ...state.show, ...(d.show || {}) };
       state.items = d.items.map((it) => ({ id: uid(), type: "segment", min: 5, cat: "platforma", title: "", video: "", gfx: "", talk: "", who: "", ...it }));
-      save(); pushItems(); renderAll(); toast(`Importat: ${segs().length} segmente`);
-    } catch (err) { toast("Fișierul nu e un rundown valid"); }
+      save(); pushItems(); renderAll(); toast(`Imported: ${segs().length} segments`);
+    } catch (err) { toast("That file isn't a KAIROS rundown (JSON export)"); }
     e.target.value = "";
   });
 
@@ -1020,18 +1295,18 @@
   // atinge doar câmpul Script, potrivit după titlu; ID-urile, comentariile și muzica rămân neatinse
   $("#scriptsFile").addEventListener("change", async (e) => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-    if (!canEdit()) return toast("Doar editorii pot schimba scripturile");
+    if (!canEdit()) return toast("Only editors can change scripts");
     let map;
     try { const d = JSON.parse(await f.text()); map = d && typeof d.scripts === "object" ? d.scripts : d; if (!map || typeof map !== "object" || Array.isArray(map)) throw 0; }
-    catch (err) { return toast("Fișierul nu e un fișier de scripturi valid"); }
+    catch (err) { return toast("That file isn't a scripts file ({ \"scripts\": { \"Segment title\": \"text\" } })"); }
     const norm = (s) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
     const byTitle = new Map(segs().map((it) => [norm(it.title), it]));
     const hits = [], miss = [];
     for (const [t, v] of Object.entries(map)) { const it = byTitle.get(norm(t)); if (it && typeof v === "string") hits.push([it, v]); else miss.push(t); }
     const changed = hits.filter(([it, v]) => (it.script || "") !== v);
-    if (!changed.length) return toast(miss.length ? `Niciun script nou. Titluri negăsite: ${miss.length}` : "Scripturile sunt deja la zi");
-    const msg = `Înlocuiești scriptul la ${changed.length} segmente? Restul rundown-ului rămâne neatins.`
-      + (miss.length ? `\n\nNu am găsit în rundown: ${miss.join(", ")}` : "");
+    if (!changed.length) return toast(miss.length ? `No new scripts. Titles not found: ${miss.length}` : "Scripts are already up to date");
+    const msg = `Replace the script on ${changed.length} segments? The rest of the rundown stays as it is.`
+      + (miss.length ? `\n\nNot found in the rundown: ${miss.join(", ")}` : "");
     if (!confirm(msg)) return;
     snapshot();
     for (const [it, v] of changed) {
@@ -1039,7 +1314,7 @@
       if (cloud()) { localDirty.set(`${it.id}.script`, v); S.field(it.id, "script", v); }
     }
     save(); renderTable(); tick();
-    toast(`Scripturi actualizate: ${changed.length}${miss.length ? ` · negăsite: ${miss.length}` : ""}`);
+    toast(`Scripts updated: ${changed.length}${miss.length ? ` · not found: ${miss.length}` : ""}`);
   });
 
   function openSettings() {
@@ -1055,8 +1330,15 @@
 
   let toastT = null;
   function toast(msg) {
-    let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); }
-    t.textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 2600);
+    let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+    t.textContent = msg; clearTimeout(toastT); toastT = setTimeout(() => t.remove(), 3200);
+  }
+  // erorile Firebase devin propoziții: ce nu a mers și ce poți face, fără coduri tehnice
+  function friendlyErr(what, err) {
+    const c = String((err && (err.code || err.message)) || "");
+    if (/permission|unauth/i.test(c)) return `${what}: you don't have permission for this rundown.`;
+    if (/unavailable|network|offline|deadline/i.test(c)) return `${what}: no connection. Check the internet and try again.`;
+    return `${what}. Try again.`;
   }
 
   /* ---------------- tastatură ---------------- */
@@ -1064,12 +1346,15 @@
     const typing = e.target.closest && e.target.closest("input, textarea, select");
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !typing) { e.preventDefault(); return undo(); }
     if (typing || e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key === "n" || e.key === "N") { if (state.mode === "live") go(); }
+    if (e.repeat) return;
+    if (e.key === "n" || e.key === "N") { if (state.mode === "live") go(true); }
     if (e.key === "b" || e.key === "B") prev();
     if (e.key === "p" || e.key === "P") openPopup();
+    if (e.key === "Escape") { if (!$("#menuList").hidden) { setMenu(false); $("#btnMenu").focus(); } $$("[data-armed='1']").forEach(disarm); }
+    if (e.key === "?") $("#keysDlg").showModal();
   });
 
-  /* ---------------- aurora (fundalul cardurilor de sus) ---------------- */
+  /* ---------------- aurora (fundalul cardurilor de sus și al ecranului de broadcast) ---------------- */
   function buildAurora(el, seed) {
     let r = seed;
     const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; };
@@ -1082,7 +1367,6 @@
     }
     el.innerHTML = html;
   }
-  $$(".aurora").forEach((el, i) => buildAurora(el, 17 + i * 101));
 
   /* ---------------- cloud: rundown comun, Live comun, cont ---------------- */
   let needsRender = false;
@@ -1091,8 +1375,8 @@
 
   function applyRemote(data) {
     if (!data) {                       // cloud gol: primul editor urcă rundown-ul lui
-      if (LEGACY && cloud() && canEdit()) { pushItems(); toast("Rundown-ul a fost urcat în cloud pentru toată echipa"); }
-      else if (!LEGACY && cloud()) toast("Rundown-ul nu există sau nu ai acces la el.");
+      if (LEGACY && cloud() && canEdit()) { pushItems(); toast("The rundown is now shared with the whole team"); }
+      else if (!LEGACY && cloud()) toast("This rundown doesn't exist, or you don't have access to it.");
       return;
     }
     const items = data.items.map((it) => {
@@ -1115,21 +1399,22 @@
     state.mode = d.mode || "plan"; state.advance = d.advance || "manual";
     let idx = Number.isFinite(d.idx) ? d.idx : -1;
     if (d.curId) { const i = segIndex(d.curId); if (i >= 0) idx = i; }
-    state.live = { running: !!d.running, idx, itemStart: d.itemStart || 0, showStart: d.showStart || 0 };
+    state.live = { running: !!d.running, idx, itemStart: d.itemStart || 0, showStart: d.showStart || 0, ended: !!d.ended, endedAt: d.endedAt || 0 };
+    noteStart();
     save(); renderMode(); tick();
     if (prevKey !== `${state.live.running}|${state.live.idx}|${state.live.itemStart}`) scrollToCurrent();
   }
 
-  const ROLE_LABEL = { owner: "Proprietar", editor: "Editor", viewer: "Doar citire", local: "" };
+  const ROLE_LABEL = { owner: "Owner", editor: "Editor", viewer: "Read only", local: "" };
   function renderAccount() {
     const el = $("#account"); if (!el) return;
     const st = S ? S.status : "local";
     if (!S || !S.ready) { el.innerHTML = ""; return; }
     if (!S.user) {
-      el.innerHTML = `<button class="btn" data-signin title="Conectează-te ca să lucrezi pe rundown-ul comun">Conectare Google</button>`;
+      el.innerHTML = `<button class="btn" data-signin title="Sign in to work on the shared rundown">Sign in with Google</button>`;
     } else {
       const u = S.user; const ini = esc((u.name || u.email || "?").trim().charAt(0).toUpperCase());
-      el.innerHTML = `<span class="sync-dot ${st}" title="${st === "online" ? "Sincronizat" : st === "error" ? "Eroare de sincronizare" : "Se conectează…"}"></span>
+      el.innerHTML = `<span class="sync-dot ${st}" role="img" aria-label="${st === "online" ? "Synced" : st === "error" ? "Sync error" : "Connecting…"}" title="${st === "online" ? "Synced" : st === "error" ? "Sync error" : "Connecting…"}"></span>
         <span class="who-chip" title="${esc(u.email)}">${u.photo ? `<img src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${ini}</i>`}<span>${esc((u.name || "").split(" ")[0])}</span><em>${ROLE_LABEL[S.role] || ""}</em></span>`;
     }
     document.body.classList.toggle("cloud", !!S.user);
@@ -1139,7 +1424,7 @@
   }
   document.addEventListener("click", async (e) => {
     if (!e.target.closest("[data-signin]") || !S) return;
-    try { await S.signIn(); } catch (err) { toast("Conectarea n-a mers: " + (err && err.code ? err.code : "eroare")); }
+    try { await S.signIn(); } catch (err) { toast(err && /popup-closed|cancelled/.test(err.code || "") ? "Sign-in was cancelled" : "Sign-in didn't work. Check your connection and try again."); }
   });
 
   function openTeam() {
@@ -1149,8 +1434,8 @@
     dlg.showModal();
     dlg.onclose = async () => {
       if (dlg.returnValue !== "ok") return;
-      try { await S.setEditors(f.emails.value.split(/[\s,;]+/)); toast("Lista de editori a fost salvată"); }
-      catch (err) { toast("N-am putut salva lista: " + (err.code || "eroare")); }
+      try { await S.setEditors(f.emails.value.split(/[\s,;]+/)); toast("Editors saved"); }
+      catch (err) { toast(friendlyErr("Couldn't save the editors", err)); }
     };
   }
   // linkul de invitație: îl generezi și îl trimiți, cine îl acceptă devine editor
@@ -1158,16 +1443,16 @@
     try {
       const r = await S.createInvite({ showId: S.showId, showTitle: state.show.title || "", team: $("#inviteTeam").checked });
       $("#inviteUrl").value = r.url; $("#inviteCopy").disabled = false; $("#inviteUrl").select();
-      toast("Link generat, valabil 7 zile");
-    } catch (err) { toast("N-am putut genera linkul: " + (err.code || "eroare")); }
+      toast("Link created, valid for 7 days");
+    } catch (err) { toast(friendlyErr("Couldn't create the link", err)); }
   };
   $("#inviteCopy").onclick = async () => {
     const v = $("#inviteUrl").value; if (!v) return;
-    try { await navigator.clipboard.writeText(v); toast("Link copiat"); } catch (e) { $("#inviteUrl").select(); toast("Selectat: apasă Ctrl+C"); }
+    try { await navigator.clipboard.writeText(v); toast("Link copied"); } catch (e) { $("#inviteUrl").select(); toast("Selected: press Ctrl+C"); }
   };
   $("#inviteRevoke").onclick = async () => {
-    try { const n = await S.revokeInvites(S.showId); $("#inviteUrl").value = ""; $("#inviteCopy").disabled = true; toast(n ? "Linkurile de invitație au fost dezactivate" : "Nu aveai linkuri active"); }
-    catch (err) { toast("N-a mers: " + (err.code || "eroare")); }
+    try { const n = await S.revokeInvites(S.showId); $("#inviteUrl").value = ""; $("#inviteCopy").disabled = true; toast(n ? "Your invite links are disabled" : "You had no active links"); }
+    catch (err) { toast(friendlyErr("That didn't work", err)); }
   };
 
   /* ---------------- comentarii ---------------- */
@@ -1185,8 +1470,8 @@
   }
   function timeAgo(ms) {
     const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
-    if (s < 60) return "acum"; if (s < 3600) return `acum ${Math.floor(s / 60)} min`;
-    if (s < 86400) return `acum ${Math.floor(s / 3600)} h`;
+    if (s < 60) return "just now"; if (s < 3600) return `${Math.floor(s / 60)} min ago`;
+    if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
     const d = new Date(ms); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
   function openDrawer(segId) {
@@ -1199,8 +1484,8 @@
   function renderDrawer() {
     if ($("#drawer").hidden) return;
     const seg = drawerSeg && state.items.find((i) => i.id === drawerSeg);
-    $("#drawerLabel").textContent = seg ? `COMENTARII · ${hhmm(plannedOffsets()[seg.id] || 0)}` : "COMENTARII";
-    $("#drawerTitle").textContent = seg ? (seg.title || "Moment") : "Toate momentele";
+    $("#drawerTitle").textContent = seg ? (seg.title || "Segment") : "Comments";
+    $("#drawerLabel").textContent = seg ? `Comments · Q${segIndex(seg.id) + 1} · ${hhmm(plannedOffsets()[seg.id] || 0)}` : "All segments";
     $("#drawerAll").hidden = !seg;
     const showRes = $("#showResolved").checked;
     const list = (S ? S.comments : []).filter((c) => (!seg || c.segId === seg.id) && (showRes || !c.resolved));
@@ -1209,20 +1494,20 @@
       const segNow = state.items.find((i) => i.id === c.segId);
       return `<article class="cmt ${c.resolved ? "resolved" : ""}" data-id="${esc(c.id)}">
         <header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${esc((c.name || "?").charAt(0).toUpperCase())}</i>`}
-          <b>${esc(c.name || "Anonim")}</b><span>${esc(timeAgo(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Sugestie de text</span>` : ""}</header>
-        ${!seg ? `<button class="seg-link" data-goto="${esc(c.segId)}">${esc(segNow ? segNow.title : c.segTitle || "moment șters")}</button>` : ""}
+          <b>${esc(c.name || "Anonymous")}</b><span>${esc(timeAgo(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Script suggestion</span>` : ""}</header>
+        ${!seg ? `<button class="seg-link" data-goto="${esc(c.segId)}">${esc(segNow ? segNow.title : c.segTitle || "deleted segment")}</button>` : ""}
         <p>${esc(c.text)}</p>
         <footer>
-          ${canEdit() && cloud() && c.kind === "text" && segNow ? `<button class="mini" data-c="apply">Pune textul în „Ce se spune”</button>` : ""}
-          ${canEdit() && cloud() ? `<button class="mini" data-c="resolve">${c.resolved ? "Redeschide" : "Rezolvat"}</button>` : ""}
-          ${cloud() && (canEdit() || c.uid === me) ? `<button class="mini del" data-c="del">Șterge</button>` : ""}
+          ${canEdit() && cloud() && c.kind === "text" && segNow ? `<button class="mini" data-c="apply">Use as “What’s said”</button>` : ""}
+          ${canEdit() && cloud() ? `<button class="mini" data-c="resolve">${c.resolved ? "Reopen" : "Resolve"}</button>` : ""}
+          ${cloud() && (canEdit() || c.uid === me) ? `<button class="mini del" data-c="del">Delete</button>` : ""}
         </footer></article>`;
-    }).join("") : `<p class="empty">${seg ? "Niciun comentariu la acest moment." : "Niciun comentariu deschis."}</p>`;
+    }).join("") : `<p class="empty">${seg ? "No comments on this segment yet." : "No open comments."}</p>`;
     const signed = !!(S && S.user);
     $("#composer").hidden = !signed || !seg;
     $("#signinBox").hidden = signed || !(S && S.ready);
-    $("#composerHint").textContent = signed && seg ? `ca ${S.user.name || S.user.email}` : "";
-    if (signed && !seg) $("#cmtList").insertAdjacentHTML("beforeend", `<p class="empty">Ca să scrii un comentariu, deschide-l de la momentul la care se referă (iconița de lângă rând).</p>`);
+    $("#composerHint").textContent = signed && seg ? `as ${S.user.name || S.user.email}` : "";
+    if (signed && !seg) $("#cmtList").insertAdjacentHTML("beforeend", `<p class="empty">To write a comment, open it from its segment (the speech-bubble button on the row).</p>`);
   }
   $("#btnComments").onclick = () => openDrawer(null);
   $("#drawerClose").onclick = closeDrawer;
@@ -1235,13 +1520,13 @@
     const id = b.closest(".cmt").dataset.id; const c = S.comments.find((x) => x.id === id); if (!c) return;
     try {
       if (b.dataset.c === "resolve") await S.resolveComment(id, !c.resolved);
-      if (b.dataset.c === "del" && window.confirm("Ștergi comentariul?")) await S.deleteComment(id);
+      if (b.dataset.c === "del" && window.confirm("Delete this comment?")) await S.deleteComment(id);
       if (b.dataset.c === "apply") {
         const it = state.items.find((i) => i.id === c.segId); if (!it) return;
         snapshot(); it.talk = c.text; save(); pushItems(); renderTable(); tick();
-        await S.resolveComment(id, true); toast("Textul a fost pus în „Ce se spune”");
+        await S.resolveComment(id, true); toast("Moved into “What’s said”");
       }
-    } catch (err) { toast("N-a mers: " + (err.code || "eroare")); }
+    } catch (err) { toast(friendlyErr("That didn't work", err)); }
   });
   $("#composer").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1249,8 +1534,8 @@
     const seg = state.items.find((i) => i.id === drawerSeg);
     const kind = $("#composer").querySelector("input[name=kind]:checked").value;
     $("#cmtSend").disabled = true;
-    try { await S.addComment({ segId: drawerSeg, segTitle: seg ? seg.title : "", text, kind }); $("#cmtText").value = ""; toast("Comentariu trimis"); }
-    catch (err) { toast("Comentariul nu s-a trimis: " + (err.code || err.message || "eroare")); }
+    try { await S.addComment({ segId: drawerSeg, segTitle: seg ? seg.title : "", text, kind }); $("#cmtText").value = ""; toast("Comment sent"); }
+    catch (err) { toast(friendlyErr("The comment wasn't sent", err)); }
     $("#cmtSend").disabled = false;
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#drawer").hidden) closeDrawer(); });
@@ -1264,6 +1549,18 @@
   }
 
   if (S && !LEGACY) { const pv = $("#btnPreview"); if (pv) pv.href = `client.html?id=${encodeURIComponent(S.showId)}`; }
+
+  $$(".hero .aurora").forEach((el, i) => buildAurora(el, 17 + i * 101));
+  // luminile se opresc când tab-ul nu se vede (economisește bateria laptopului de regie)
+  document.addEventListener("visibilitychange", () => document.body.classList.toggle("paused", document.hidden));
+
+  // capul de tabel rămâne lipit sub bara de sus (și sub banda cu timerul, în Live)
+  const setStick = () => {
+    const tb = $(".topbar").offsetHeight, h = $(".hero"), live = document.body.classList.contains("mode-live") && innerWidth > 900;
+    document.documentElement.style.setProperty("--stick", `${tb + (live ? h.offsetHeight + 16 : 0)}px`);
+  };
+  new ResizeObserver(setStick).observe($(".hero")); new MutationObserver(setStick).observe(document.body, { attributes: true, attributeFilter: ["class"] });
+  addEventListener("resize", setStick);
 
   /* ---------------- pornire ---------------- */
   function renderAll() {
@@ -1279,12 +1576,12 @@
   }
   async function copyScreenLink() {
     const url = screenUrl();
-    try { await navigator.clipboard.writeText(url); toast("Linkul pentru ecran e copiat. Deschide-l pe calculatorul de la ecran, conectat cu Google."); }
-    catch (e) { prompt("Linkul pentru ecran:", url); }
+    try { await navigator.clipboard.writeText(url); toast("Screen link copied. Open it on the screen computer, signed in with Google."); }
+    catch (e) { prompt("Screen link:", url); }
   }
   function mountScreen() {
     document.documentElement.style.overflow = "hidden";
-    const f = Object.assign(document.createElement("iframe"), { title: "KAIROS · Ecran" });
+    const f = Object.assign(document.createElement("iframe"), { title: "KAIROS · Screen" });
     f.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;border:0;z-index:2147483647;background:#000";
     document.body.appendChild(f);
     const fd = f.contentDocument; fd.open(); fd.write("<!doctype html><html><head></head><body></body></html>"); fd.close();
@@ -1301,7 +1598,7 @@
     const keepAwake = async () => { try { if ("wakeLock" in navigator && document.visibilityState === "visible") wake = await navigator.wakeLock.request("screen"); } catch (e) {} };
     keepAwake(); document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
 
-    fd.title = document.title = `KAIROS · Ecran · ${state.show.title || ""}`;
+    fd.title = document.title = `KAIROS · Screen · ${state.show.title || ""}`;
     f.contentWindow.focus();
     // dublu-clic = ecran complet
     fd.addEventListener("dblclick", () => { const el = fd.documentElement; if (fd.fullscreenElement) fd.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); });

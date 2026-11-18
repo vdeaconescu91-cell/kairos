@@ -5,23 +5,23 @@
 (() => {
   "use strict";
   const LIB = {
-    "starting-soon": "Starting soon", "lower-third": "Lower third", "partener": "Popup partener", "ing": "Card ING",
-    "reguli": "Regulile turneului", "tragerea": "Tragerea la sorți", "interviu": "PiP interviu", "donatii": "Bara donații",
-    "game-intro": "Game intro", "scor-teren": "Scor teren", "scor-meci": "Scor meci", "clasament": "Clasament grupă",
-    "eliminatorie": "Faza eliminatorie", "road-to-final": "Road to the final", "brb": "Be right back",
-    "campioni": "Campioni", "sponsori": "Sponsori", "thanks": "Thanks for watching",
+    "starting-soon": "Starting soon", "lower-third": "Lower third", "partener": "Partner pop-up", "ing": "ING card",
+    "reguli": "Tournament rules", "tragerea": "The draw", "interviu": "Interview PiP", "donatii": "Donations bar",
+    "game-intro": "Game intro", "scor-teren": "Court score", "scor-meci": "Match score", "clasament": "Group standings",
+    "eliminatorie": "Knockout stage", "road-to-final": "Road to the final", "brb": "Be right back",
+    "campioni": "Champions", "sponsori": "Sponsors", "thanks": "Thanks for watching",
   };
   const V = "3";
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function resolve(v) {
     if (!v) return null;
     if (typeof v === "string") return LIB[v] ? { url: `hero/previews/${v}.webp?v=${V}`, name: LIB[v], key: v } : null;
-    return v.url ? { url: v.url, name: v.name || "Imagine", key: "" } : null;
+    return v.url ? { url: v.url, name: v.name || "Image", key: "" } : null;
   }
   // miniatura; `extra` = butoanele de editare
   function html(v, extra = "", cls = "") {
     const r = resolve(v); if (!r) return "";
-    return `<figure class="vis ${cls}"><button type="button" class="vthumb" data-vis="${esc(r.url)}" data-vname="${esc(r.name)}" title="Vezi mare: ${esc(r.name)}">`
+    return `<figure class="vis ${cls}"><button type="button" class="vthumb" data-vis="${esc(r.url)}" data-vname="${esc(r.name)}" title="View larger: ${esc(r.name)}" aria-label="View larger: ${esc(r.name)}">`
       + `<img src="${esc(r.url)}" alt="${esc(r.name)}" loading="lazy" decoding="async"></button><figcaption>${esc(r.name)}${extra}</figcaption></figure>`;
   }
   // lightbox

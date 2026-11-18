@@ -7,11 +7,11 @@
 <meta name="description" content="KAIROS: live rundowns for shows and broadcasts. One shared clock, a prompter for the hosts and notes from your clients.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500;125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="kairos-home.css?v=202611100130">
+<link rel="stylesheet" href="kairos-home.css?v=202611181900">
+<meta name="theme-color" content="#05070d">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
-<div class="aurora" id="aurora" aria-hidden="true"></div>
 
 <!-- ——— neconectat: login ——— -->
 <div class="login" id="login">
@@ -23,7 +23,7 @@
       <p class="sub">Live rundowns for shows and broadcasts.</p>
       <button class="btn google" type="button" data-signin><span class="g"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 7.2-9.6 7.2-16.8z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.3-8.8 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg></span>Continue with Google</button>
       <div class="or"><span>no passwords, no codes</span></div>
-      <p class="hint">Invited to a project? Open the link your producer sent you, then sign in with the same Google account.</p>
+      <p class="hint">Invited to a rundown? Open the link your producer sent you, then sign in with the same Google account.</p>
       <p class="foot">Chronos counts the seconds. <b>Kairos is the instant to act.</b></p>
     </section>
     <section class="a-right" id="aRight" aria-hidden="true"></section>
@@ -40,7 +40,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.8 1.7 1l.4 2.5h4l.4-2.5c.6-.2 1.2-.6 1.7-1l2.4 1 2-3.4-2-1.6Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
       </button>
     </div>
-    <div class="me"><span id="who"></span><button class="btn small ghost" id="btnOut" type="button" title="Sign out">Clock out</button></div>
+    <div class="me"><span id="who"></span><button class="btn small ghost" id="btnOut" type="button" title="Sign out">Sign out</button></div>
   </header>
 
   <div class="d-grid">
@@ -51,7 +51,7 @@
     </section>
 
     <button class="g-new" id="btnNew" type="button">
-      <span class="t">Start a new project</span>
+      <span class="t">Start a new rundown</span>
       <span class="s" id="newSub">Empty, copied from another one, or imported from CSV, JSON or Excel</span>
       <span class="go" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 11 11 5M6 5h5v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
     </button>
@@ -63,9 +63,9 @@
         <div class="time" id="cTime">00:00:00</div>
       </div>
       <div class="proj">
-        <div class="p-head"><span class="lbl">Your projects</span><span class="ctl"><span id="pCount"></span>
-          <button class="icon-btn sm" id="pPrev" type="button" aria-label="Previous project"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
-          <button class="icon-btn sm" id="pNext" type="button" aria-label="Next project"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></div>
+        <div class="p-head"><h2 class="lbl">Your rundowns</h2><span class="ctl"><span id="pCount"></span>
+          <button class="icon-btn sm" id="pPrev" type="button" aria-label="Previous rundown"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          <button class="icon-btn sm" id="pNext" type="button" aria-label="Next rundown"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button></span></div>
         <div class="stack" id="stack"></div>
       </div>
     </section>
@@ -74,7 +74,7 @@
 
 <dialog id="newDlg">
   <form method="dialog" id="newForm">
-    <h3>New project</h3>
+    <h2 class="dlg-h">New rundown</h2>
     <label class="drop" id="drop">
       <input type="file" id="nfFile" accept=".csv,.tsv,.txt,.json,.xlsx,.xls">
       <b>Import a rundown</b>
@@ -93,8 +93,8 @@
 
 <dialog id="teamDlg">
   <form method="dialog">
-    <h3>Your team</h3>
-    <p class="note">One Google email per line. These people can start new projects. On a specific project you add editors from inside that project.</p>
+    <h2 class="dlg-h">Your team</h2>
+    <p class="note">One Google email per line. These people can start new rundowns. Editors for one rundown are added from inside that rundown.</p>
     <label>Emails <textarea name="emails" rows="7" id="teamEmails"></textarea></label>
     <div class="dlg-actions"><button value="cancel" class="btn ghost">Cancel</button><button value="ok" class="btn primary">Save</button></div>
   </form>
@@ -104,8 +104,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>window.KSYNC_MODE = "landing";</script>
-<script src="sync.js?v=202611140030"></script>
-<script src="kairos-flower.js?v=202611100130"></script>
+<script src="sync.js?v=202611181900"></script>
+<script src="kairos-flower.js?v=202611181900"></script>
 <script src="kairos-import.js?v=202611091500"></script>
 <script>
 (() => {
@@ -118,10 +118,7 @@
   const ROLE = { owner: "Owner", editor: "Editor", admin: "Admin" };
   let shows = [], stop = null, migrated = false, idx = 0, imported = null;
 
-  // fundalul paginii de proiecte: luminile verticale (aurora) din prima versiune
-  (() => { let r = 77; const rnd = () => { r = (r * 9301 + 49297) % 233280; return r / 233280; }; let h = "";
-    for (let i = 0; i < 18; i++) h += `<span class="beam" style="--x:${((i / 18) * 100 + rnd() * 5 - 2).toFixed(1)}%;--w:${(24 + rnd() * 90) | 0}px;--b:${(10 + rnd() * 22) | 0}px;--o:${(0.35 + rnd() * 0.6).toFixed(2)};--d:${(6 + rnd() * 9).toFixed(1)}s;--p:${(4 + rnd() * 6).toFixed(1)}s;--dl:${(-rnd() * 10).toFixed(1)}s"></span>`;
-    $("#aurora").innerHTML = h; })();
+  // fundalul paginii: negru regie plin, fără luminile animate de altădată
   function toast(m) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); } t.textContent = m; clearTimeout(toast.t); toast.t = setTimeout(() => t.remove(), 3200); }
 
 
@@ -224,7 +221,7 @@
       const days = Math.round((new Date(startMs(next)).setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / 864e5);
       const when = days === 0 ? `today at ${next.show.start}` : days === 1 ? `tomorrow at ${next.show.start}` : `${DAYS[new Date(startMs(next)).getDay()]} at ${next.show.start}, in ${days} days`;
       msg = `Next up: ${next.show.title}, ${when}. ${next.segments} moments are waiting for their cue.`;
-    } else msg = shows.length ? "Nothing scheduled ahead. A quiet moment is a good one to plan the next show." : "No shows yet. Start your first project, or open the invite link your producer sent you.";
+    } else msg = shows.length ? "Nothing scheduled ahead. A quiet moment is a good one to plan the next show." : "No shows yet. Start your first rundown, or open the invite link your producer sent you.";
     $("#hiLine").textContent = msg;
   }
 
@@ -238,13 +235,13 @@
     renderTeam();
     const canCreate = S.isTeam;
     $("#btnNew").disabled = !canCreate;
-    $("#newSub").textContent = canCreate ? "Empty, copied from another one, or imported from CSV, JSON or Excel" : "Ask an admin to add you to the team to start projects. You can still open the ones you were invited to.";
+    $("#newSub").textContent = canCreate ? "Empty, copied from another one, or imported from CSV, JSON or Excel" : "Ask an admin to add you to the team to start rundowns. You can still open the ones you were invited to.";
     const keep = shows[idx] && shows[idx].id;
     shows.sort((a, b) => (startMs(a) || 9e15) - (startMs(b) || 9e15));
     idx = Math.max(0, shows.findIndex((s) => s.id === keep));
     // teancul arată mereu trei straturi: dacă sunt mai puțin de trei proiecte, golurile se umplu cu carduri goale în spate
     const ghosts = shows.length ? Array.from({ length: Math.max(0, 3 - shows.length) }, (_, k) => `<div class="pc pc-ghost" data-pos="${shows.length + k}" aria-hidden="true"></div>`).join("") : "";
-    $("#stack").innerHTML = shows.length ? shows.map(cardHTML).join("") + ghosts : `<p class="empty">No projects yet. ${canCreate ? "Start one on the left, or ask a colleague for an invite link." : "Ask whoever runs the show for an invite link."}</p>`;
+    $("#stack").innerHTML = shows.length ? shows.map(cardHTML).join("") + ghosts : `<p class="empty">No rundowns yet. ${canCreate ? "Start one on the left, or ask a colleague for an invite link." : "Ask whoever runs the show for an invite link."}</p>`;
     layoutStack();
     welcomeLine();
     tickClock();
@@ -296,23 +293,23 @@
   $("#newDlg").addEventListener("close", async () => {
     if ($("#newDlg").returnValue !== "ok") return;
     const title = $("#nfTitle").value.trim(); if (!title) return;
-    toast("Creating the project…");
+    toast("Creating the rundown…");
     try {
       const id = await S.createShow({ title, date: $("#nfDate").value, start: $("#nfStart").value || "18:00", venue: $("#nfVenue").value.trim(),
         copyFrom: imported ? "" : $("#nfCopy").value, items: imported ? imported.items : null });
       location.href = `rundown.html?id=${encodeURIComponent(id)}`;
-    } catch (err) { toast("Couldn't create the project: " + (err.code || err.message || "error")); }
+    } catch (err) { toast("Couldn't create the rundown. Check your connection and try again."); }
   });
 
   $("#btnTeam").onclick = () => { $("#teamEmails").value = (S.team || []).join("\n"); $("#teamDlg").showModal(); };
   $("#teamDlg").addEventListener("close", async () => {
     if ($("#teamDlg").returnValue !== "ok") return;
-    try { await S.setTeam($("#teamEmails").value.split(/[\s,;]+/)); toast("Team saved"); renderTeam(); } catch (err) { toast("Couldn't save the team: " + (err.code || "error")); }
+    try { await S.setTeam($("#teamEmails").value.split(/[\s,;]+/)); toast("Team saved"); renderTeam(); } catch (err) { toast("Couldn't save the team. Check your connection and try again."); }
   });
   $("#btnOut").onclick = () => S.signOut();
   document.addEventListener("click", async (e) => {
     if (!e.target.closest("[data-signin]")) return;
-    try { await S.signIn(); } catch (err) { toast("Sign-in didn't go through: " + (err.code || "error")); }
+    try { await S.signIn(); } catch (err) { toast("Sign-in didn't go through. Try again."); }
   });
 
   setInterval(() => { if (!$("#dash").hidden) tickClock(); }, 1000);
@@ -321,7 +318,7 @@
     S.on("auth", () => {
       if (stop) { stop(); stop = null; }
       if (S.user) stop = S.listShows(async (list, err) => {
-        if (err) { toast("Couldn't load your projects: " + (err.code || "error")); return; }
+        if (err) { toast("Couldn't load your rundowns. Check your connection and reload."); return; }
         shows = list || [];
         if (S.isAdmin && !migrated) {
           migrated = true;

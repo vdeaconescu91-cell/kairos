@@ -117,3 +117,15 @@ canvas.mark { width: 32px; height: 32px; filter: none; display: block; }
 .card .cd.soon b { color: #8fb0ff; }
 .card .cd.live { color: #3d7bff; font-weight: 600; letter-spacing: .06em; }
 .card .cd.done { color: var(--dim); }
+
+/* ——— 18.11.2026 · pagina de invitație în lumea editorului: negru regie, masa albastră, fără lumini animate și fără text cu gradient ——— */
+:root { --bg: #05070d; --muted: #a3b0cc; --dim: #8592b3; --line: rgba(214,228,255,.10); --line-2: rgba(214,228,255,.20); --desk: #0a1433; --desk-2: #0f1b45; }
+::selection { background: var(--blue); color: #fff; }
+.hero { background: var(--bg); }
+.aurora { display: none; }
+h1 { background: none; -webkit-background-clip: border-box; background-clip: border-box; color: var(--text); font-family: "Archivo", "Inter Tight", Arial, sans-serif; font-stretch: 125%; font-weight: 700; letter-spacing: -.01em; }
+.btn { border-radius: 8px; background: var(--desk); min-height: 44px; }
+.btn:hover { background: var(--desk-2); }
+.btn.primary { background: #2b63e6; border-color: #2b63e6; box-shadow: none; }
+.who { border-radius: 8px; }
+.wordmark-img { height: 20px; width: auto; display: block; }

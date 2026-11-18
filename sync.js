@@ -299,7 +299,7 @@
     }
     const owner = K.user.email;
     await showsCol.doc(id).set({
-      show: { title: title || "Rundown nou", date: date || "", start: start || "18:00", venue: venue || "" },
+      show: { title: title || "New rundown", date: date || "", start: start || "18:00", venue: venue || "" },
       order, items: map, ownerEmail: owner, editors: [], access: [owner],
       createdAt: TS(), updatedAt: TS(), updatedBy: owner
     });

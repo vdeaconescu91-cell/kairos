@@ -1,197 +1,236 @@
 <!doctype html>
-<html lang="ro">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#05070d">
 <title>KAIROS · Rundown</title>
-<meta name="description" content="Rundown live pentru Turneul Artiștilor · Charity Padel Cup">
+<meta name="description" content="KAIROS live rundown">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=202611140410">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=202611181900">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
+<a class="skip" href="#rundown">Skip to the rundown</a>
 <div class="glow glow-a" aria-hidden="true"></div>
 <div class="glow glow-b" aria-hidden="true"></div>
 
 <header class="topbar">
   <div class="brand">
-    <a class="home-link" href="./" title="Toate rundown-urile"><img class="wordmark-img" src="brand/wordmark.svg?v=202611050530" alt="KAIROS"></a>
+    <a class="home-link" href="./" title="All rundowns"><img class="wordmark-img" src="brand/wordmark.svg?v=202611050530" alt="KAIROS · all rundowns"></a>
     <span class="brand-sep" aria-hidden="true"></span>
     <div class="brand-text">
-      <div class="brand-title" id="showTitle">Turneul Artiștilor</div>
-      <div class="brand-sub" id="showMeta">15.11.2026 · Padel One</div>
+      <div class="brand-title" id="showTitle">Rundown</div>
+      <div class="brand-sub" id="showMeta"></div>
     </div>
   </div>
 
-  <div class="clock" id="clock" title="Ora curentă">--:--:--</div>
+  <div class="clockbox">
+    <span class="mode-badge" aria-hidden="true">Live</span>
+    <div class="clock" id="clock" role="timer" aria-label="Current time">--:--:--</div>
+    <span class="mini-remain" id="miniRemain" aria-hidden="true"></span>
+  </div>
 
   <div class="controls">
    <div class="ctl-main">
-    <div class="seg" id="modeSeg" role="tablist" aria-label="Mod">
-      <button class="seg-btn" data-mode="plan" role="tab">Plan</button>
-      <button class="seg-btn" data-mode="live" role="tab">Live</button>
+    <div class="seg" id="modeSeg" role="group" aria-label="Mode">
+      <button class="seg-btn" data-mode="plan" aria-pressed="true" title="Plan: the rundown follows the clock">Plan</button>
+      <button class="seg-btn" data-mode="live" aria-pressed="false" title="Live: you call each segment">Live</button>
     </div>
-    <div class="seg adv" id="advSeg" role="tablist" aria-label="Trecerea la segmentul următor">
-      <button class="seg-btn" data-adv="auto" title="La zero trece singur la segmentul următor">Auto</button>
-      <button class="seg-btn" data-adv="manual" title="La zero timerul devine roșu până apasă regia „Următorul”">Manual</button>
+    <div class="seg adv" id="advSeg" role="group" aria-label="At zero">
+      <button class="seg-btn" data-adv="auto" aria-pressed="false" title="At zero the next segment starts on its own">Auto</button>
+      <button class="seg-btn" data-adv="manual" aria-pressed="true" title="At zero the timer runs over until you press Next">Manual</button>
     </div>
-    <button class="btn ghost" id="btnPrev" title="Segmentul anterior">◀</button>
-    <button class="btn primary" id="btnGo">Start show</button>
-    <button class="btn ghost" id="btnStop" title="Oprește modul live">■</button>
-    <a class="btn ghost" id="btnPreview" href="client.html" target="_blank" rel="noopener" title="Pagina pentru clienți: citesc rundown-ul și lasă comentarii cu contul Google">Preview</a>
-    <button class="btn accent" id="btnPopup" title="Fereastră mereu deasupra cu ce urmează">Pop-up</button>
+    <div class="transport">
+      <button class="btn icon-btn" id="btnPrev" title="Back to the previous segment (B)" aria-label="Back to the previous segment"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.5 3.5 6 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="btn primary" id="btnGo">Go live</button>
+      <button class="btn icon-btn" id="btnStop" title="Reset the live timer" aria-label="Reset the live timer"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="4" width="8" height="8" rx="1" fill="currentColor"/></svg></button>
+    </div>
    </div>
    <div class="ctl-user">
+    <button class="btn" id="btnPopup" title="Pop-up with now, next and the prompter (P)">Pop-up</button>
     <div class="account" id="account"></div>
     <div class="menu">
-      <button class="btn ghost" id="btnMenu" aria-haspopup="true" aria-label="Meniu">⋯</button>
+      <button class="btn icon-btn" id="btnMenu" aria-haspopup="true" aria-expanded="false" aria-label="Menu"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><g fill="currentColor"><circle cx="3.5" cy="8" r="1.3"/><circle cx="8" cy="8" r="1.3"/><circle cx="12.5" cy="8" r="1.3"/></g></svg></button>
       <div class="menu-list" id="menuList" hidden>
         <div class="menu-mobile">
-          <div class="mm-row"><span>Mod</span><div id="mmMode"></div></div>
-          <div class="mm-row"><span>La zero</span><div id="mmAdv"></div></div>
-          <button data-act="preview">Preview pentru clienți</button>
+          <div class="mm-row"><span>Mode</span><div id="mmMode"></div></div>
+          <div class="mm-row"><span>At zero</span><div id="mmAdv"></div></div>
           <hr>
         </div>
-        <button data-act="settings">Setări show</button>
-        <button data-act="home">Toate rundown-urile</button>
-        <button data-act="team" class="owner-only">Cine poate edita acest rundown</button>
-        <button data-act="export">Exportă JSON</button>
-        <button data-act="import">Importă JSON</button>
-        <button data-act="importScripts">Importă scripturi</button>
-        <button data-act="print">Printează</button>
-        <button data-act="screen">Link pentru ecran mare</button>
-        <button data-act="prompter">Prompter pe acest ecran</button>
+        <div class="menu-h">Show</div>
+        <button data-act="preview">Client preview</button>
+        <button data-act="screen">Copy the big-screen link</button>
+        <button data-act="prompter">Prompter on this screen</button>
+        <button data-act="settings">Show settings</button>
+        <button data-act="team" class="owner-only">Who can edit this rundown</button>
         <hr>
-        <button data-act="reset" class="danger">Revino la rundown-ul implicit</button>
-        <button data-act="signout" class="cloud-only">Deconectare</button>
+        <div class="menu-h">File</div>
+        <button data-act="export">Export rundown (JSON)</button>
+        <button data-act="import">Import rundown (JSON)</button>
+        <button data-act="importScripts">Import prompter scripts</button>
+        <button data-act="print">Print</button>
+        <hr>
+        <button data-act="keys">Keyboard shortcuts <kbd>?</kbd></button>
+        <button data-act="home">All rundowns</button>
+        <button data-act="signout" class="cloud-only">Sign out</button>
+        <hr>
+        <button data-act="reset" class="danger">Load the sample rundown…</button>
       </div>
     </div>
    </div>
   </div>
+  <a class="btn hidden-link" id="btnPreview" href="client.html" target="_blank" rel="noopener" hidden>Preview</a>
 </header>
 
 <main>
-  <section class="tl card" id="tl" aria-label="Timeline-ul show-ului">
+  <section class="tl card" id="tl" aria-label="Show timeline">
     <div class="tl-head"><span id="tlStart">--:--</span><span class="tl-sum" id="tlSum"></span><span id="tlEnd">--:--</span></div>
     <div class="tl-track" id="tlTrack"><div class="tl-blocks" id="tlBlocks"></div></div>
     <div class="tl-ticks" id="tlTicks"></div>
   </section>
-  <section class="hero" aria-live="polite">
+  <section class="hero" aria-label="Now and next">
     <article class="now card glass">
       <div class="aurora" aria-hidden="true"></div>
-      <div class="label"><span class="dot"></span><span id="nowLabel">ACUM</span></div>
+      <div class="label"><span class="dot"></span><span id="nowLabel">NOW</span><span class="cue-tag" id="nowCue"></span></div>
       <h1 class="now-title" id="nowTitle">—</h1>
       <div class="now-meta" id="nowMeta"></div>
       <div class="now-timer">
-        <div class="big-time" id="nowRemain">--:--</div>
+        <div class="big-time" id="nowRemain" role="timer" aria-label="Time left in this segment">--:--</div>
         <div class="timer-side">
           <div class="drift" id="drift"></div>
           <div class="ends" id="nowEnds"></div>
         </div>
       </div>
-      <div class="progress"><span id="nowProgress"></span></div>
+      <div class="progress" aria-hidden="true"><span id="nowProgress"></span></div>
       <p class="now-talk" id="nowTalk"></p>
     </article>
 
     <article class="next card glass">
       <div class="aurora soft" aria-hidden="true"></div>
-      <div class="label">URMEAZĂ <span class="in" id="nextIn"></span></div>
+      <div class="label"><span class="sb" id="nextState">NEXT</span><span class="cue-tag" id="nextCue"></span><span class="in" id="nextIn"></span></div>
       <h2 class="next-title" id="nextTitle">—</h2>
       <div class="next-cat" id="nextCat"></div>
       <p class="next-talk" id="nextTalk"></p>
       <div class="after" id="afterNext"></div>
     </article>
   </section>
+  <div class="sr-only" aria-live="polite" id="liveAnnounce"></div>
 
   <section class="toolbar">
     <div class="filters" id="filters"></div>
     <div class="toolbar-right">
       <span class="total" id="totalInfo"></span>
-      <button class="btn small" id="btnComments">Comentarii <b id="cmtCount"></b></button>
-      <button class="btn small" id="btnAddHeader">+ Secțiune</button>
+      <button class="btn small" id="btnComments">Comments <b id="cmtCount"></b></button>
+      <button class="btn small" id="btnAddHeader">+ Section</button>
       <button class="btn small" id="btnAddRow">+ Segment</button>
     </div>
   </section>
 
-  <section class="table-wrap">
+  <section class="table-wrap" aria-label="Rundown">
     <table class="rundown" id="rundown">
       <thead>
         <tr>
-          <th class="c-drag"></th>
-          <th class="c-num">#</th>
+          <th class="c-drag"><span class="sr-only">Move</span></th>
+          <th class="c-num">Cue</th>
           <th class="c-start">Start</th>
           <th class="c-dur">Min</th>
           <th class="c-title">Segment</th>
           <th class="c-video">Video</th>
-          <th class="c-gfx">Grafică</th>
-          <th class="c-talk">Ce se spune</th>
-          <th class="c-who">Cine</th>
-          <th class="c-act"></th>
+          <th class="c-gfx">Graphics</th>
+          <th class="c-talk">What’s said</th>
+          <th class="c-who">Who</th>
+          <th class="c-act"><span class="sr-only">Actions</span></th>
         </tr>
       </thead>
       <tbody id="rows"></tbody>
     </table>
   </section>
 
-  <p class="foot">Modificările se salvează automat în acest browser. Pentru alt calculator: ⋯ → Exportă JSON, apoi Importă JSON pe celălalt. Scurtături: <kbd>N</kbd> următorul segment în live, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> anulează.</p>
+  <p class="foot">Changes save on their own. Shortcuts: <kbd>N</kbd> next, <kbd>B</kbd> back, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo, <kbd>?</kbd> all shortcuts.</p>
 </main>
+<svg class="cue-line" id="cueLine" aria-hidden="true"><path d=""/></svg>
 
-<aside class="drawer" id="drawer" hidden aria-label="Comentarii">
+<aside class="drawer" id="drawer" hidden aria-label="Comments">
   <div class="drawer-head">
-    <div><div class="label" id="drawerLabel">COMENTARII</div><div class="drawer-title" id="drawerTitle">Toate momentele</div></div>
-    <button class="icon" id="drawerClose" title="Închide">✕</button>
+    <div><h2 class="drawer-title" id="drawerTitle">Comments</h2><div class="drawer-sub" id="drawerLabel">All segments</div></div>
+    <button class="icon" id="drawerClose" title="Close (Esc)" aria-label="Close comments"><svg class="ic" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></button>
   </div>
   <div class="drawer-tools">
-    <button class="chip-btn" id="drawerAll">Toate</button>
-    <label class="chk"><input type="checkbox" id="showResolved"> Arată rezolvate</label>
+    <button class="chip-btn" id="drawerAll">All segments</button>
+    <label class="chk"><input type="checkbox" id="showResolved"> Show resolved</label>
   </div>
   <div class="cmt-list" id="cmtList"></div>
   <form class="composer" id="composer">
-    <div class="kind" role="radiogroup" aria-label="Tip">
-      <label><input type="radio" name="kind" value="comment" checked> Comentariu</label>
-      <label><input type="radio" name="kind" value="text"> Sugestie pentru „Ce se spune”</label>
+    <div class="kind" role="radiogroup" aria-label="Type">
+      <label><input type="radio" name="kind" value="comment" checked> Comment</label>
+      <label><input type="radio" name="kind" value="text"> Suggest “What’s said”</label>
     </div>
-    <textarea id="cmtText" rows="3" maxlength="4000" placeholder="Scrie aici…"></textarea>
-    <div class="composer-foot"><span class="hint" id="composerHint"></span><button class="btn primary small" id="cmtSend" type="submit">Trimite</button></div>
+    <textarea id="cmtText" rows="3" maxlength="4000" placeholder="Write here…" aria-label="Comment"></textarea>
+    <div class="composer-foot"><span class="hint" id="composerHint"></span><button class="btn primary small" id="cmtSend" type="submit">Send</button></div>
   </form>
   <div class="signin-box" id="signinBox" hidden>
-    <p>Conectează-te cu Google ca să comentezi.</p>
-    <button class="btn primary" data-signin type="button">Conectare cu Google</button>
+    <p>Sign in with Google to comment.</p>
+    <button class="btn primary" data-signin type="button">Sign in with Google</button>
   </div>
 </aside>
 
-<dialog id="teamDlg" class="glass">
+<dialog id="teamDlg">
   <form method="dialog">
-    <h3>Cine poate edita acest rundown</h3>
-    <p class="dlg-note">Un email Google pe rând. Ei editează rundown-ul și controlează Live-ul. Ceilalți care primesc linkul doar citesc și comentează. Tu, ca proprietar, poți edita oricum.</p>
-    <textarea name="emails" rows="6" placeholder="misu@exemplu.ro"></textarea>
+    <h3>Who can edit this rundown</h3>
+    <p class="dlg-note">One Google email per line. They edit the rundown and run Live. Anyone else with the link can only read and comment. As the owner, you can always edit.</p>
+    <textarea name="emails" rows="6" placeholder="name@example.com" aria-label="Editor emails"></textarea>
     <div class="invite-box">
-      <div class="invite-head"><b>Link de invitație</b><span>valabil 7 zile</span></div>
-      <p class="dlg-note">Cine deschide linkul și se conectează cu Google devine editor al acestui rundown.</p>
-      <label class="chk admin-only"><input type="checkbox" id="inviteTeam"> Poate porni și rundown-uri noi</label>
-      <div class="invite-row"><input id="inviteUrl" readonly placeholder="Apasă „Generează link”"><button type="button" class="btn small" id="inviteCopy" disabled>Copiază</button></div>
-      <div class="invite-row"><button type="button" class="btn small primary" id="inviteMake">Generează link</button><button type="button" class="btn small ghost" id="inviteRevoke">Dezactivează linkurile mele</button></div>
+      <div class="invite-head"><b>Invite link</b><span>valid for 7 days</span></div>
+      <p class="dlg-note">Whoever opens the link and signs in with Google becomes an editor of this rundown.</p>
+      <label class="chk admin-only"><input type="checkbox" id="inviteTeam"> Can also start new rundowns</label>
+      <div class="invite-row"><input id="inviteUrl" readonly placeholder="Press “Create link”" aria-label="Invite link"><button type="button" class="btn small" id="inviteCopy" disabled>Copy</button></div>
+      <div class="invite-row"><button type="button" class="btn small primary" id="inviteMake">Create link</button><button type="button" class="btn small ghost" id="inviteRevoke">Disable my links</button></div>
     </div>
     <div class="dlg-actions">
-      <button value="cancel" class="btn ghost">Renunță</button>
-      <button value="ok" class="btn primary">Salvează</button>
+      <button value="cancel" class="btn ghost">Cancel</button>
+      <button value="ok" class="btn primary">Save</button>
     </div>
   </form>
 </dialog>
 
-<dialog id="settingsDlg" class="glass">
+<dialog id="settingsDlg">
   <form method="dialog">
-    <h3>Setări show</h3>
-    <label>Titlu <input name="title"></label>
-    <label>Data <input name="date" type="date"></label>
-    <label>Ora de start <input name="start" type="time"></label>
-    <label>Locația <input name="venue"></label>
+    <h3>Show settings</h3>
+    <label>Title <input name="title"></label>
+    <label>Date <input name="date" type="date"></label>
+    <label>Starts at <input name="start" type="time"></label>
+    <label>Venue <input name="venue"></label>
     <div class="dlg-actions">
-      <button value="cancel" class="btn ghost">Renunță</button>
-      <button value="ok" class="btn primary">Salvează</button>
+      <button value="cancel" class="btn ghost">Cancel</button>
+      <button value="ok" class="btn primary">Save</button>
     </div>
+  </form>
+</dialog>
+
+<dialog id="keysDlg">
+  <form method="dialog">
+    <h3>Keyboard shortcuts</h3>
+    <dl class="keys">
+      <div><dt><kbd>N</kbd></dt><dd>Next segment (Live, after Start show)</dd></div>
+      <div><dt><kbd>B</kbd></dt><dd>Back to the previous segment, with its real start time</dd></div>
+      <div><dt><kbd>P</kbd></dt><dd>Open the pop-up</dd></div>
+      <div><dt><kbd>Ctrl</kbd> <kbd>Z</kbd></dt><dd>Undo a rundown edit</dd></div>
+      <div><dt><kbd>Alt</kbd> <kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Move a row (focus its handle first)</dd></div>
+      <div><dt><kbd>Esc</kbd></dt><dd>Close menus and cancel a pending confirmation</dd></div>
+    </dl>
+    <h3 class="keys-h">In the pop-up</h3>
+    <dl class="keys">
+      <div><dt><kbd>T</kbd></dt><dd>Prompter on / off</dd></div>
+      <div><dt><kbd>Space</kbd></dt><dd>Start / pause the prompter</dd></div>
+      <div><dt><kbd>↑</kbd> <kbd>↓</kbd></dt><dd>Faster / slower</dd></div>
+      <div><dt><kbd>+</kbd> <kbd>−</kbd></dt><dd>Bigger / smaller text</dd></div>
+      <div><dt><kbd>R</kbd> · <kbd>M</kbd> · <kbd>F</kbd></dt><dd>Back to top · mirror · full screen</dd></div>
+    </dl>
+    <p class="dlg-note">Go live, Start show, End show and Reset ask for a second press, so one stray click never changes the show for the team.</p>
+    <div class="dlg-actions"><button value="ok" class="btn primary">Done</button></div>
   </form>
 </dialog>
 
@@ -202,12 +241,10 @@
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
-<script src="kairos-audio.js?v=202611140110"></script>
-<script src="kairos-visual.js?v=202611122040"></script>
-<script src="sync.js?v=202611140030"></script>
+<script src="kairos-audio.js?v=202611181900"></script>
+<script src="kairos-visual.js?v=202611181900"></script>
+<script src="sync.js?v=202611181900"></script>
 <script src="rundown-data.js?v=202611040403"></script>
-<script src="app.js?v=202611140340"></script>
-<script src="kairos-sphere.js?v=202611050600"></script>
-<script src="kairos-orb.js?v=202611042130"></script>
+<script src="app.js?v=202611181900"></script>
 </body>
 </html>

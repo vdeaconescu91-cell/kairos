@@ -11,8 +11,8 @@
     document.querySelectorAll("[data-music]").forEach((b) => {
       const on = b.dataset.music === cur && !audio.paused;
       b.classList.toggle("playing", on);
-      b.setAttribute("aria-label", on ? "Oprește muzica" : "Ascultă muzica");
-      b.title = on ? "Oprește" : "Ascultă muzica asignată";
+      b.setAttribute("aria-label", on ? "Stop the music" : "Play the music");
+      b.title = on ? "Stop" : "Play this segment’s music";
       const box = b.closest(".music"), tm = box && box.querySelector("[data-music-time]"), bar = box && box.querySelector("[data-music-bar]");
       if (tm) tm.textContent = b.dataset.music === cur ? `${fmt(audio.currentTime)} / ${fmt(audio.duration)}` : "";
       if (bar) bar.style.width = b.dataset.music === cur && audio.duration ? `${(audio.currentTime / audio.duration) * 100}%` : "0%";
@@ -73,11 +73,11 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function html(m, extra = "", opts = {}) {   // opts.download: arată butonul ↓ (doar pentru cine are acces de editare)
     if (!m || !m.url) return "";
-    return `<div class="music"><button type="button" class="mplay" data-music="${esc(m.url)}" aria-label="Ascultă muzica" title="Ascultă muzica asignată">`
+    return `<div class="music"><button type="button" class="mplay" data-music="${esc(m.url)}" aria-label="Play the music" title="Play this segment’s music">`
       + `<svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5v11l9-5.5z"/></svg><svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 2.5h3v11H4zm5 0h3v11H9z"/></svg></button>`
       + `<div class="mmeta"><span class="mname" title="${esc(m.name)}">♪ ${esc(m.name)}</span><span class="mtime" data-music-time></span>`
       + `<span class="mtrack" data-music-track><span data-music-bar></span></span></div>`
-      + (opts.download ? `<button type="button" class="mdl" data-music-dl="${esc(m.url)}" data-name="${esc(m.name)}" data-path="${esc(m.path || "")}" aria-label="Descarcă muzica" title="Descarcă ${esc(m.name)}">`
+      + (opts.download ? `<button type="button" class="mdl" data-music-dl="${esc(m.url)}" data-name="${esc(m.name)}" data-path="${esc(m.path || "")}" aria-label="Download the music" title="Download ${esc(m.name)}">`
       + `<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8m0 0L4.5 6.5M8 10l3.5-3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>` : "") + `${extra}</div>`;
   }
   window.KAudio = { toggle, stop, html, paint, download, dispo };
