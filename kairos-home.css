@@ -299,3 +299,14 @@ dialog { border-radius: 12px; background: var(--desk); border: 1px solid var(--l
 dialog .dlg-h { margin: 0 0 16px; font-family: var(--display); font-stretch: 125%; font-size: 18px; font-weight: 700; }
 @media (max-width: 720px) { dialog .dlg-h { font-size: 17px; } }
 .p-head h2.lbl { margin: 0; }
+
+/* limba interfeței */
+.lang-float { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 5; }
+.lang-select { font: 500 13px/1 "Inter Tight", "Helvetica Neue", Arial, sans-serif; color: #eef3ff; background-color: rgba(10, 20, 51, .72); border: 1px solid rgba(214, 228, 255, .22);
+  border-radius: 6px; padding: 8px 28px 8px 10px; min-height: 36px; cursor: pointer; appearance: none; -webkit-appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #a3b0cc 50%), linear-gradient(135deg, #a3b0cc 50%, transparent 50%);
+  background-position: calc(100% - 15px) 50%, calc(100% - 10px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+.lang-select:hover { border-color: #d6e4ff; }
+.lang-select:focus-visible { outline: 2px solid #d6e4ff; outline-offset: 2px; }
+.lang-select option { background: #0a1433; color: #eef3ff; }
+.lang-select.sm { min-height: 32px; padding-block: 6px; }

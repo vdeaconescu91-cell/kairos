@@ -7,7 +7,7 @@
 <meta name="description" content="KAIROS: live rundowns for shows and broadcasts. One shared clock, a prompter for the hosts and notes from your clients.">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,500;125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
-<link rel="stylesheet" href="kairos-home.css?v=202611181900">
+<link rel="stylesheet" href="kairos-home.css?v=202611250200">
 <meta name="theme-color" content="#05070d">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
@@ -24,10 +24,11 @@
       <button class="btn google" type="button" data-signin><span class="g"><svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.9 6.1C12.5 13.6 17.8 9.5 24 9.5z"/><path fill="#4285F4" d="M46.1 24.6c0-1.6-.1-3.1-.4-4.6H24v9h12.4c-.5 2.9-2.2 5.3-4.6 6.9l7.1 5.5c4.2-3.9 7.2-9.6 7.2-16.8z"/><path fill="#FBBC05" d="M10.6 28.6c-.5-1.4-.8-3-.8-4.6s.3-3.2.8-4.6l-7.9-6.1C1 16.6 0 20.2 0 24s1 7.4 2.7 10.7l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.1-5.5c-2 1.4-4.6 2.3-8.8 2.3-6.2 0-11.5-4.1-13.4-9.9l-7.9 6.1C6.6 42.6 14.6 48 24 48z"/></svg></span>Continue with Google</button>
       <div class="or"><span>no passwords, no codes</span></div>
       <p class="hint">Invited to a rundown? Open the link your producer sent you, then sign in with the same Google account.</p>
-      <p class="foot">Chronos counts the seconds. <b>Kairos is the instant to act.</b></p>
+      <p class="foot" data-i18n-html>Chronos counts the seconds. <b>Kairos is the instant to act.</b></p>
     </section>
     <section class="a-right" id="aRight" aria-hidden="true"></section>
   </main>
+  <div class="lang-float" id="langLogin"></div>
 </div>
 
 <!-- ——— conectat: proiectele ——— -->
@@ -40,7 +41,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7.4 7.4 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.6 7.6 0 0 0 0 2l-2 1.6 2 3.4 2.4-1c.5.4 1.1.8 1.7 1l.4 2.5h4l.4-2.5c.6-.2 1.2-.6 1.7-1l2.4 1 2-3.4-2-1.6Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
       </button>
     </div>
-    <div class="me"><span id="who"></span><button class="btn small ghost" id="btnOut" type="button" title="Sign out">Sign out</button></div>
+    <div class="me"><span id="langDash"></span><span id="who"></span><button class="btn small ghost" id="btnOut" type="button" title="Sign out">Sign out</button></div>
   </header>
 
   <div class="d-grid">
@@ -100,13 +101,15 @@
   </form>
 </dialog>
 
+<script src="kairos-i18n-dict.js?v=202611250200"></script>
+<script src="kairos-i18n.js?v=202611250200"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script>window.KSYNC_MODE = "landing";</script>
 <script src="sync.js?v=202611181900"></script>
 <script src="kairos-flower.js?v=202611181900"></script>
-<script src="kairos-import.js?v=202611091500"></script>
+<script src="kairos-import.js?v=202611250200"></script>
 <script>
 (() => {
   const S = window.KSYNC;
@@ -115,7 +118,10 @@
   const pad = (n) => String(n).padStart(2, "0");
   const now = () => (S && S.now ? S.now() : Date.now());
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const ROLE = { owner: "Owner", editor: "Editor", admin: "Admin" };
+  const T = (s, v) => (window.KI18N ? window.KI18N.t(s, v) : String(s).replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m)));
+  const LOC = window.KI18N ? window.KI18N.locale() : "en-GB";
+  const ROLE = { owner: T("Owner"), editor: T("Editor"), admin: T("Admin") };
+  if (window.KI18N) { $("#langLogin").append(window.KI18N.select()); $("#langDash").append(window.KI18N.select("sm")); }
   let shows = [], stop = null, migrated = false, idx = 0, imported = null;
 
   // fundalul paginii: negru regie plin, fără luminile animate de altădată
@@ -123,19 +129,21 @@
 
 
   // ——— ceasul ———
-  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-  const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  // zilele și lunile vin din browser, în limba interfeței
+  const fDay = new Intl.DateTimeFormat(LOC, { weekday: "long" }), fDate = new Intl.DateTimeFormat(LOC, { day: "numeric", month: "long", year: "numeric" });
+  const fShort = new Intl.DateTimeFormat(LOC, { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+  const cap = (x) => x.charAt(0).toUpperCase() + x.slice(1);
   function tickClock() {
     const d = new Date(now());
-    $("#cDay").textContent = DAYS[d.getDay()];
-    $("#cDate").textContent = `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    $("#cDay").textContent = cap(fDay.format(d));
+    $("#cDate").textContent = fDate.format(d);
     $("#cTime").textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     tickCountdowns();
   }
 
   // ——— proiectele ———
   const endTime = (s) => { const [H, M] = (s.show.start || "00:00").split(":").map(Number); const t = H * 60 + M + (s.minutes || 0); return `${pad(Math.floor(t / 60) % 24)}:${pad(t % 60)}`; };
-  const fmtDate = (d) => { if (!d) return "No date yet"; const [y, m, dd] = d.split("-").map(Number); return `${DAYS[new Date(y, m - 1, dd).getDay()].slice(0, 3)} ${dd} ${MONTHS[m - 1].slice(0, 3)} ${y}`; };
+  const fmtDate = (d) => { if (!d) return T("No date yet"); const [y, m, dd] = d.split("-").map(Number); return fShort.format(new Date(y, m - 1, dd)); };
   const startMs = (s) => { if (!s.show.date) return ""; const [y, m, d] = s.show.date.split("-").map(Number); const [H, M] = (s.show.start || "00:00").split(":").map(Number); return new Date(y, m - 1, d, H, M).getTime(); };
   function roleOf(s) {
     const me = S.user.email;
@@ -146,13 +154,13 @@
   function tickCountdowns() {
     document.querySelectorAll(".pc .cd").forEach((el) => {
       const st = Number(el.dataset.start), en = Number(el.dataset.end);
-      if (!st) { el.innerHTML = "<span>Set a date to start the countdown</span>"; el.className = "cd"; return; }
+      if (!st) { el.innerHTML = `<span>${T("Set a date to start the countdown")}</span>`; el.className = "cd"; return; }
       const t = now();
-      if (t >= en && en > st) { el.innerHTML = "<span>Show finished</span>"; el.className = "cd done"; return; }
-      if (t >= st) { el.innerHTML = "<span class='live'>● Live now</span>"; el.className = "cd"; return; }
+      if (t >= en && en > st) { el.innerHTML = `<span>${T("Show finished")}</span>`; el.className = "cd done"; return; }
+      if (t >= st) { el.innerHTML = `<span class='live'>● ${T("Live now")}</span>`; el.className = "cd"; return; }
       let r = Math.floor((st - t) / 1000);
       const dd = Math.floor(r / 86400); r %= 86400;
-      el.innerHTML = `<span>Starts in</span><b>${dd ? `${dd}d ` : ""}${pad(Math.floor(r / 3600))}:${pad(Math.floor(r % 3600 / 60))}:${pad(r % 60)}</b>`;
+      el.innerHTML = `<span>${T("Starts in")}</span><b>${dd ? `${dd}d ` : ""}${pad(Math.floor(r / 3600))}:${pad(Math.floor(r % 3600 / 60))}:${pad(r % 60)}</b>`;
       el.className = "cd" + (st - t < 3600000 ? " soon" : "");
     });
   }
@@ -160,10 +168,10 @@
     const role = roleOf(s), href = `rundown.html?id=${encodeURIComponent(s.id)}`, st = startMs(s);
     return `<article class="pc" data-href="${href}" tabindex="-1">
       <div class="pc-top"><span class="pc-date">${esc(fmtDate(s.show.date))}</span>${role ? `<span class="role">${ROLE[role]}</span>` : ""}</div>
-      <h3>${esc(s.show.title || "Untitled")}</h3>
+      <h3>${esc(s.show.title || T("Untitled"))}</h3>
       <div class="cd" data-start="${st}" data-end="${st ? st + (s.minutes || 0) * 60000 : ""}"></div>
-      <div class="pc-facts"><span><b>${esc(s.show.start || "--:--")}–${endTime(s)}</b></span><span>${s.segments} moments</span>${s.show.venue ? `<span>${esc(s.show.venue)}</span>` : ""}</div>
-      <div class="pc-links"><a class="btn small primary" href="${href}">Open</a><a class="btn small ghost" href="client.html?id=${encodeURIComponent(s.id)}" target="_blank" rel="noopener" title="The page you send to clients">Client view</a></div>
+      <div class="pc-facts"><span><b>${esc(s.show.start || "--:--")}–${endTime(s)}</b></span><span>${T("{n} moments", { n: s.segments })}</span>${s.show.venue ? `<span>${esc(s.show.venue)}</span>` : ""}</div>
+      <div class="pc-links"><a class="btn small primary" href="${href}">${T("Open")}</a><a class="btn small ghost" href="client.html?id=${encodeURIComponent(s.id)}" target="_blank" rel="noopener" title="${T("The page you send to clients")}">${T("Client view")}</a></div>
     </article>`;
   }
   function layoutStack(dir = 1) {
@@ -206,7 +214,7 @@
 
   function renderTeam() {
     const team = S.team || [];
-    $("#teamAvs").innerHTML = team.slice(0, 6).map((e) => `<i title="${esc(e)}">${esc(e.charAt(0).toUpperCase())}</i>`).join("") + (team.length > 6 ? `<i class="more">+${team.length - 6}</i>` : "") + (team.length ? "" : `<span class="none">${S.isAdmin ? "Only you so far" : ""}</span>`);
+    $("#teamAvs").innerHTML = team.slice(0, 6).map((e) => `<i title="${esc(e)}">${esc(e.charAt(0).toUpperCase())}</i>`).join("") + (team.length > 6 ? `<i class="more">+${team.length - 6}</i>` : "") + (team.length ? "" : `<span class="none">${S.isAdmin ? T("Only you so far") : ""}</span>`);
     $("#btnTeam").hidden = !S.isAdmin;
   }
 
@@ -216,12 +224,13 @@
     const live = shows.find((s) => { const st = startMs(s); return st && t >= st && t < st + (s.minutes || 0) * 60000; });
     const next = shows.filter((s) => startMs(s) > t).sort((a, b) => startMs(a) - startMs(b))[0];
     let msg;
-    if (live) msg = `${live.show.title} is on air right now. Your crew is already on the clock.`;
+    if (live) msg = T("{t} is on air right now. Your crew is already on the clock.", { t: live.show.title });
     else if (next) {
       const days = Math.round((new Date(startMs(next)).setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / 864e5);
-      const when = days === 0 ? `today at ${next.show.start}` : days === 1 ? `tomorrow at ${next.show.start}` : `${DAYS[new Date(startMs(next)).getDay()]} at ${next.show.start}, in ${days} days`;
-      msg = `Next up: ${next.show.title}, ${when}. ${next.segments} moments are waiting for their cue.`;
-    } else msg = shows.length ? "Nothing scheduled ahead. A quiet moment is a good one to plan the next show." : "No shows yet. Start your first rundown, or open the invite link your producer sent you.";
+      const when = days === 0 ? T("today at {t}", { t: next.show.start }) : days === 1 ? T("tomorrow at {t}", { t: next.show.start })
+        : T("{day} at {t}, in {n} days", { day: cap(fDay.format(new Date(startMs(next)))), t: next.show.start, n: days });
+      msg = T("Next up: {t}, {when}. {n} moments are waiting for their cue.", { t: next.show.title, when, n: next.segments });
+    } else msg = shows.length ? T("Nothing scheduled ahead. A quiet moment is a good one to plan the next show.") : T("No shows yet. Start your first rundown, or open the invite link your producer sent you.");
     $("#hiLine").textContent = msg;
   }
 
@@ -231,17 +240,17 @@
     document.body.classList.toggle("signed", signed);
     if (!signed) return;
     $("#who").innerHTML = `<span class="who">${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${esc(S.user.name.charAt(0))}</i>`}<span>${esc(S.user.email)}</span></span>`;
-    $("#hiName").textContent = (S.user.name || "").split(" ")[0] || "there";
+    $("#hiName").textContent = (S.user.name || "").split(" ")[0] || T("there");
     renderTeam();
     const canCreate = S.isTeam;
     $("#btnNew").disabled = !canCreate;
-    $("#newSub").textContent = canCreate ? "Empty, copied from another one, or imported from CSV, JSON or Excel" : "Ask an admin to add you to the team to start rundowns. You can still open the ones you were invited to.";
+    $("#newSub").textContent = canCreate ? T("Empty, copied from another one, or imported from CSV, JSON or Excel") : T("Ask an admin to add you to the team to start rundowns. You can still open the ones you were invited to.");
     const keep = shows[idx] && shows[idx].id;
     shows.sort((a, b) => (startMs(a) || 9e15) - (startMs(b) || 9e15));
     idx = Math.max(0, shows.findIndex((s) => s.id === keep));
     // teancul arată mereu trei straturi: dacă sunt mai puțin de trei proiecte, golurile se umplu cu carduri goale în spate
     const ghosts = shows.length ? Array.from({ length: Math.max(0, 3 - shows.length) }, (_, k) => `<div class="pc pc-ghost" data-pos="${shows.length + k}" aria-hidden="true"></div>`).join("") : "";
-    $("#stack").innerHTML = shows.length ? shows.map(cardHTML).join("") + ghosts : `<p class="empty">No rundowns yet. ${canCreate ? "Start one on the left, or ask a colleague for an invite link." : "Ask whoever runs the show for an invite link."}</p>`;
+    $("#stack").innerHTML = shows.length ? shows.map(cardHTML).join("") + ghosts : `<p class="empty">${T("No rundowns yet.")} ${canCreate ? T("Start one on the left, or ask a colleague for an invite link.") : T("Ask whoever runs the show for an invite link.")}</p>`;
     layoutStack();
     welcomeLine();
     tickClock();
@@ -260,16 +269,16 @@
   // ——— proiect nou, cu import ———
   function openNew() {
     imported = null;
-    $("#nfCopy").innerHTML = `<option value="">An empty rundown</option>` + shows.map((s) => `<option value="${esc(s.id)}">Copy of: ${esc(s.show.title || s.id)}</option>`).join("");
+    $("#nfCopy").innerHTML = `<option value="">${T("An empty rundown")}</option>` + shows.map((s) => `<option value="${esc(s.id)}">${T("Copy of: {t}", { t: esc(s.show.title || s.id) })}</option>`).join("");
     $("#newForm").reset(); $("#nfStart").value = "18:00"; $("#copyRow").hidden = false;
-    $("#dropInfo").textContent = "Drop a CSV, JSON or Excel file here, or click to choose one. Optional.";
+    $("#dropInfo").textContent = T("Drop a CSV, JSON or Excel file here, or click to choose one. Optional.");
     $("#drop").classList.remove("ok", "bad");
     $("#newDlg").showModal(); setTimeout(() => $("#nfTitle").focus(), 30);
   }
   $("#btnNew").onclick = openNew;
   async function takeFile(file) {
     if (!file) return;
-    $("#dropInfo").textContent = `Reading ${file.name}…`;
+    $("#dropInfo").textContent = T("Reading {name}…", { name: file.name });
     try {
       const r = await window.KImport.parseFile(file);
       imported = r;
@@ -279,11 +288,11 @@
       if (r.show.venue && !$("#nfVenue").value) $("#nfVenue").value = r.show.venue;
       $("#copyRow").hidden = true;
       $("#drop").classList.add("ok"); $("#drop").classList.remove("bad");
-      $("#dropInfo").textContent = `${file.name}: ${r.stats.segments} moments, ${r.stats.headers} block titles, ${r.stats.minutes} min in total.${r.stats.skipped ? ` ${r.stats.skipped} empty rows skipped.` : ""}`;
+      $("#dropInfo").textContent = `${file.name}: ` + T("{n} moments, {h} block titles, {m} min in total.", { n: r.stats.segments, h: r.stats.headers, m: r.stats.minutes }) + (r.stats.skipped ? " " + T("{n} empty rows skipped.", { n: r.stats.skipped }) : "");
     } catch (err) {
       imported = null; $("#copyRow").hidden = false;
       $("#drop").classList.add("bad"); $("#drop").classList.remove("ok");
-      $("#dropInfo").textContent = `${file.name}: ${err.message || "I couldn't read this file."}`;
+      $("#dropInfo").textContent = `${file.name}: ${err.message || T("I couldn't read this file.")}`;
     }
   }
   $("#nfFile").addEventListener("change", (e) => takeFile(e.target.files[0]));
@@ -293,23 +302,23 @@
   $("#newDlg").addEventListener("close", async () => {
     if ($("#newDlg").returnValue !== "ok") return;
     const title = $("#nfTitle").value.trim(); if (!title) return;
-    toast("Creating the rundown…");
+    toast(T("Creating the rundown…"));
     try {
       const id = await S.createShow({ title, date: $("#nfDate").value, start: $("#nfStart").value || "18:00", venue: $("#nfVenue").value.trim(),
         copyFrom: imported ? "" : $("#nfCopy").value, items: imported ? imported.items : null });
       location.href = `rundown.html?id=${encodeURIComponent(id)}`;
-    } catch (err) { toast("Couldn't create the rundown. Check your connection and try again."); }
+    } catch (err) { toast(T("Couldn't create the rundown. Check your connection and try again.")); }
   });
 
   $("#btnTeam").onclick = () => { $("#teamEmails").value = (S.team || []).join("\n"); $("#teamDlg").showModal(); };
   $("#teamDlg").addEventListener("close", async () => {
     if ($("#teamDlg").returnValue !== "ok") return;
-    try { await S.setTeam($("#teamEmails").value.split(/[\s,;]+/)); toast("Team saved"); renderTeam(); } catch (err) { toast("Couldn't save the team. Check your connection and try again."); }
+    try { await S.setTeam($("#teamEmails").value.split(/[\s,;]+/)); toast(T("Team saved")); renderTeam(); } catch (err) { toast(T("Couldn't save the team. Check your connection and try again.")); }
   });
   $("#btnOut").onclick = () => S.signOut();
   document.addEventListener("click", async (e) => {
     if (!e.target.closest("[data-signin]")) return;
-    try { await S.signIn(); } catch (err) { toast("Sign-in didn't go through. Try again."); }
+    try { await S.signIn(); } catch (err) { toast(T("Sign-in didn't go through. Try again.")); }
   });
 
   setInterval(() => { if (!$("#dash").hidden) tickClock(); }, 1000);
@@ -318,7 +327,7 @@
     S.on("auth", () => {
       if (stop) { stop(); stop = null; }
       if (S.user) stop = S.listShows(async (list, err) => {
-        if (err) { toast("Couldn't load your rundowns. Check your connection and reload."); return; }
+        if (err) { toast(T("Couldn't load your rundowns. Check your connection and reload.")); return; }
         shows = list || [];
         if (S.isAdmin && !migrated) {
           migrated = true;
@@ -330,7 +339,7 @@
       else { shows = []; }
       render();
     });
-  } else { toast("Can't reach the server. Check your connection."); }
+  } else { toast(T("Can't reach the server. Check your connection.")); }
   render();
 })();
 </script>

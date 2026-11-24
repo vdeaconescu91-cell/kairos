@@ -29,6 +29,8 @@
   </div>
 </header>
 
+<script src="kairos-i18n-dict.js?v=202611250200"></script>
+<script src="kairos-i18n.js?v=202611250200"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -39,27 +41,28 @@
   const S = window.KSYNC, $ = (s) => document.querySelector(s);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const t = new URLSearchParams(location.search).get("t") || "";
+  const T = (s, v) => (window.KI18N ? window.KI18N.t(s, v) : String(s).replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m)));
 
   const show = (h, msg, act = "") => { $("#h").textContent = h; $("#msg").innerHTML = msg; $("#act").innerHTML = act; };
-  const signinBtn = `<button class="btn primary" data-signin>Sign in with Google</button>`;
+  const signinBtn = `<button class="btn primary" data-signin>${T("Sign in with Google")}</button>`;
 
-  if (!/^[a-z0-9]{10,40}$/.test(t)) { show("This link is incomplete", "The invite link was cut off. Ask whoever sent it for a new one.", `<a class="btn" href="./">Go to KAIROS</a>`); return; }
-  if (!S || !S.ready) { show("Can’t connect", "Check your internet connection and reload the page."); return; }
+  if (!/^[a-z0-9]{10,40}$/.test(t)) { show(T("This link is incomplete"), T("The invite link was cut off. Ask whoever sent it for a new one."), `<a class="btn" href="./">${T("Go to KAIROS")}</a>`); return; }
+  if (!S || !S.ready) { show(T("Can’t connect"), T("Check your internet connection and reload the page.")); return; }
 
   async function run() {
-    if (!S.user) { show("You’re invited to KAIROS", "Sign in with Google to see the invite.", signinBtn); return; }
-    show("Checking the invite…", "");
+    if (!S.user) { show(T("You’re invited to KAIROS"), T("Sign in with Google to see the invite."), signinBtn); return; }
+    show(T("Checking the invite…"), "");
     let inv = null;
     try { inv = await S.getInvite(t); } catch (e) { inv = null; }
-    if (!inv) { show("This invite doesn’t exist", "The link was copied wrong or was deleted. Ask for a new one.", `<a class="btn" href="./">Go to KAIROS</a>`); return; }
-    if (!inv.active || inv.expiresAt < Date.now()) { show("This invite has expired", "The link is no longer valid. Ask whoever sent it for a new one.", `<a class="btn" href="./">Go to KAIROS</a>`); return; }
-    show("You’re invited to edit",
-      `<span class="show">${esc(inv.showTitle || "a rundown")}</span>, from ${esc(inv.createdBy)}.${inv.team ? " You’ll also be able to start new rundowns." : ""}<br><br>You’re joining as <b>${esc(S.user.email)}</b>.`,
-      `<button class="btn primary" id="accept">Accept the invite</button><button class="btn ghost" id="other">Use another account</button>`);
+    if (!inv) { show(T("This invite doesn’t exist"), T("The link was copied wrong or was deleted. Ask for a new one."), `<a class="btn" href="./">${T("Go to KAIROS")}</a>`); return; }
+    if (!inv.active || inv.expiresAt < Date.now()) { show(T("This invite has expired"), T("The link is no longer valid. Ask whoever sent it for a new one."), `<a class="btn" href="./">${T("Go to KAIROS")}</a>`); return; }
+    show(T("You’re invited to edit"),
+      T("{show}, from {from}.", { show: `<span class="show">${esc(inv.showTitle || T("a rundown"))}</span>`, from: esc(inv.createdBy) }) + (inv.team ? " " + T("You’ll also be able to start new rundowns.") : "") + "<br><br>" + T("You’re joining as {email}.", { email: `<b>${esc(S.user.email)}</b>` }),
+      `<button class="btn primary" id="accept">${T("Accept the invite")}</button><button class="btn ghost" id="other">${T("Use another account")}</button>`);
     $("#accept").onclick = async () => {
       $("#accept").disabled = true;
       try { const id = await S.acceptInvite(t); location.href = `rundown.html?id=${encodeURIComponent(id)}`; }
-      catch (e) { $("#accept").disabled = false; show("That didn’t work", "We couldn’t add you to the team. The invite may have expired or been disabled. Ask for a new link.", `<a class="btn" href="./">Go to KAIROS</a>`); console.error(e); }
+      catch (e) { $("#accept").disabled = false; show(T("That didn’t work"), T("We couldn’t add you to the team. The invite may have expired or been disabled. Ask for a new link."), `<a class="btn" href="./">${T("Go to KAIROS")}</a>`); console.error(e); }
     };
     $("#other").onclick = () => S.signOut();
   }

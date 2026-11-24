@@ -4,24 +4,25 @@
    Clic pe miniatură = imaginea mare (Esc sau clic ca s-o închizi). */
 (() => {
   "use strict";
+  const T = (s, v) => (window.KI18N ? window.KI18N.t(s, v) : String(s).replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m)));
   const LIB = {
-    "starting-soon": "Starting soon", "lower-third": "Lower third", "partener": "Partner pop-up", "ing": "ING card",
-    "reguli": "Tournament rules", "tragerea": "The draw", "interviu": "Interview PiP", "donatii": "Donations bar",
-    "game-intro": "Game intro", "scor-teren": "Court score", "scor-meci": "Match score", "clasament": "Group standings",
-    "eliminatorie": "Knockout stage", "road-to-final": "Road to the final", "brb": "Be right back",
-    "campioni": "Champions", "sponsori": "Sponsors", "thanks": "Thanks for watching",
+    "starting-soon": T("Starting soon"), "lower-third": T("Lower third"), "partener": T("Partner pop-up"), "ing": T("ING card"),
+    "reguli": T("Tournament rules"), "tragerea": T("The draw"), "interviu": T("Interview PiP"), "donatii": T("Donations bar"),
+    "game-intro": T("Game intro"), "scor-teren": T("Court score"), "scor-meci": T("Match score"), "clasament": T("Group standings"),
+    "eliminatorie": T("Knockout stage"), "road-to-final": T("Road to the final"), "brb": T("Be right back"),
+    "campioni": T("Champions"), "sponsori": T("Sponsors"), "thanks": T("Thanks for watching"),
   };
   const V = "3";
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   function resolve(v) {
     if (!v) return null;
     if (typeof v === "string") return LIB[v] ? { url: `hero/previews/${v}.webp?v=${V}`, name: LIB[v], key: v } : null;
-    return v.url ? { url: v.url, name: v.name || "Image", key: "" } : null;
+    return v.url ? { url: v.url, name: v.name || T("Image"), key: "" } : null;
   }
   // miniatura; `extra` = butoanele de editare
   function html(v, extra = "", cls = "") {
     const r = resolve(v); if (!r) return "";
-    return `<figure class="vis ${cls}"><button type="button" class="vthumb" data-vis="${esc(r.url)}" data-vname="${esc(r.name)}" title="View larger: ${esc(r.name)}" aria-label="View larger: ${esc(r.name)}">`
+    return `<figure class="vis ${cls}"><button type="button" class="vthumb" data-vis="${esc(r.url)}" data-vname="${esc(r.name)}" title="${T("View larger: {name}", { name: esc(r.name) })}" aria-label="${T("View larger: {name}", { name: esc(r.name) })}">`
       + `<img src="${esc(r.url)}" alt="${esc(r.name)}" loading="lazy" decoding="async"></button><figcaption>${esc(r.name)}${extra}</figcaption></figure>`;
   }
   // lightbox

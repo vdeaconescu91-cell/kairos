@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=202611181900">
+<link rel="stylesheet" href="styles.css?v=202611250200">
 <link rel="icon" href="brand/favicon.svg" type="image/svg+xml"><link rel="alternate icon" href="brand/favicon.ico"><link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
 </head>
 <body>
@@ -22,8 +22,8 @@
     <a class="home-link" href="./" title="All rundowns"><img class="wordmark-img" src="brand/wordmark.svg?v=202611050530" alt="KAIROS · all rundowns"></a>
     <span class="brand-sep" aria-hidden="true"></span>
     <div class="brand-text">
-      <div class="brand-title" id="showTitle">Rundown</div>
-      <div class="brand-sub" id="showMeta"></div>
+      <div class="brand-title" id="showTitle" data-ni>Rundown</div>
+      <div class="brand-sub" id="showMeta" data-ni></div>
     </div>
   </div>
 
@@ -73,6 +73,7 @@
         <button data-act="importScripts">Import prompter scripts</button>
         <button data-act="print">Print</button>
         <hr>
+        <div class="menu-lang"><span>Language</span><span id="langSlot"></span></div>
         <button data-act="keys">Keyboard shortcuts <kbd>?</kbd></button>
         <button data-act="home">All rundowns</button>
         <button data-act="signout" class="cloud-only">Sign out</button>
@@ -149,7 +150,7 @@
     </table>
   </section>
 
-  <p class="foot">Changes save on their own. Shortcuts: <kbd>N</kbd> next, <kbd>B</kbd> back, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo, <kbd>?</kbd> all shortcuts.</p>
+  <p class="foot" data-i18n-html>Changes save on their own. Shortcuts: <kbd>N</kbd> next, <kbd>B</kbd> back, <kbd>P</kbd> pop-up, <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo, <kbd>?</kbd> all shortcuts.</p>
 </main>
 <svg class="cue-line" id="cueLine" aria-hidden="true"><path d=""/></svg>
 
@@ -237,14 +238,16 @@
 <input type="file" id="importFile" accept="application/json" hidden>
 <input type="file" id="scriptsFile" accept="application/json,.json" hidden>
 
+<script src="kairos-i18n-dict.js?v=202611250200"></script>
+<script src="kairos-i18n.js?v=202611250200"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-storage-compat.js"></script>
-<script src="kairos-audio.js?v=202611181900"></script>
-<script src="kairos-visual.js?v=202611181900"></script>
+<script src="kairos-audio.js?v=202611250200"></script>
+<script src="kairos-visual.js?v=202611250200"></script>
 <script src="sync.js?v=202611181900"></script>
 <script src="rundown-data.js?v=202611040403"></script>
-<script src="app.js?v=202611181900"></script>
+<script src="app.js?v=202611250200"></script>
 </body>
 </html>

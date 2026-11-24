@@ -25,6 +25,10 @@ button,textarea,input { font:inherit; color:inherit; }
 .bar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; min-height:40px; }
 .acct { margin-left:auto; display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); }
 .acct img { width:26px; height:26px; border-radius:50%; }
+.lang-select { font:500 13px/1 var(--ui); color:var(--fg); background-color:var(--desk); border:1px solid var(--rule-2); border-radius:6px; padding:7px 26px 7px 9px; min-height:32px; cursor:pointer; appearance:none; -webkit-appearance:none;
+  background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%); background-position:calc(100% - 14px) 50%,calc(100% - 9px) 50%; background-size:5px 5px; background-repeat:no-repeat; }
+.lang-select:focus-visible { outline:2px solid var(--ice); outline-offset:2px; }
+.lang-select option { background:#0b0f1a; color:#eef1f7; }
 h1 { margin:6px 0 0; font-family:var(--display); font-stretch:125%; font-size:clamp(26px,5vw,44px); font-weight:700; letter-spacing:-.005em; line-height:1.06; text-transform:uppercase; text-wrap:balance; }
 .sub { font-size:14px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ice); }
 .facts { display:flex; flex-wrap:wrap; gap:6px 20px; color:var(--muted); font-size:14px; }
@@ -107,36 +111,40 @@ summary { cursor:pointer; min-height:28px; display:flex; align-items:center; }
 <header class="top"><div class="wrap">
   <div class="bar"><img class="wordmark-img" src="brand/wordmark.svg?v=202611050530" alt="KAIROS">
     <div class="acct" id="acct"></div></div>
-  <div><h1 id="title">—</h1></div><div class="sub" id="sub"></div>
+  <div><h1 id="title" data-ni>—</h1></div><div class="sub" id="sub" data-ni></div>
   <div class="facts" id="facts"></div>
-  <p class="how">This is the show’s rundown, segment by segment. On any segment you can leave a <strong>comment</strong> or <strong>suggest what’s said</strong> on air. Only you and the production team see your comments.</p>
+  <p class="how" data-i18n-html>This is the show’s rundown, segment by segment. On any segment you can leave a <strong>comment</strong> or <strong>suggest what’s said</strong> on air. Only you and the production team see your comments.</p>
   <div class="banner" id="signinBanner" hidden><p>Sign in with Google to see the latest version and leave comments.</p><button class="btn" data-signin>Sign in with Google</button></div>
   <div class="legend" id="legend"></div>
 </div></header>
 <main class="wrap" id="list"></main>
 
+<script src="kairos-i18n-dict.js?v=202611250200"></script>
+<script src="kairos-i18n.js?v=202611250200"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-<script src="kairos-audio.js?v=202611181900"></script>
-<script src="kairos-visual.js?v=202611181900"></script>
+<script src="kairos-audio.js?v=202611250200"></script>
+<script src="kairos-visual.js?v=202611250200"></script>
 <script src="sync.js?v=202611181900"></script>
 <script src="rundown-data.js?v=202611040403"></script>
 <script>
 (() => {
   const S = window.KSYNC;
-  const CATS = { live:["Live match","#3d7bff"], interviu:["Interview","#a78bfa"], grafica:["Graphics","#22d3ee"], platforma:["Platform","#c9d4ea"],
-    caritabil:["Charity","#f472b6"], ing:["ING","#ff6200"], donatii:["Donations","#e4f53b"], giveaway:["Giveaway","#34d399"], pauza:["Break / buffer","#9aa3b5"] };
+  const T = (s, v) => (window.KI18N ? window.KI18N.t(s, v) : String(s).replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m)));
+  const LOC = window.KI18N ? window.KI18N.locale() : "en-GB";
+  const CATS = { live:[T("Live match"),"#3d7bff"], interviu:[T("Interview"),"#a78bfa"], grafica:[T("Graphics"),"#22d3ee"], platforma:[T("Platform"),"#c9d4ea"],
+    caritabil:[T("Charity"),"#f472b6"], ing:["ING","#ff6200"], donatii:[T("Donations"),"#e4f53b"], giveaway:[T("Giveaway"),"#34d399"], pauza:[T("Break / buffer"),"#9aa3b5"] };
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
   const $ = (s) => document.querySelector(s);
   const d0 = window.TA_DEFAULT_RUNDOWN;
-  const blank = () => (S && !S.isLegacy) ? { show: { title: "Rundown", date: "", start: "18:00", venue: "" }, items: [] } : { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) };
+  const blank = () => (S && !S.isLegacy) ? { show: { title: T("Rundown"), date: "", start: "18:00", venue: "" }, items: [] } : { show: d0.show, items: d0.items.map((it, i) => ({ id: "d" + i, ...it })) };
   let data = blank(), live = false, liveNow = null;
   const open = new Set();
 
   function toast(m) { let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); } t.textContent = m; clearTimeout(toast.t); toast.t = setTimeout(() => t.remove(), 2600); }
   function hhmm(min) { const [H, M] = (data.show.start || "15:00").split(":").map(Number); const t = H * 60 + M + min; return `${String(Math.floor(t / 60) % 24).padStart(2, "0")}:${String(t % 60).padStart(2, "0")}`; }
-  function ago(ms) { const s = Math.max(0, (Date.now() - ms) / 1000 | 0); return s < 60 ? "just now" : s < 3600 ? `${s / 60 | 0} min ago` : s < 86400 ? `${s / 3600 | 0} h ago` : new Date(ms).toLocaleString("en-GB", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
+  function ago(ms) { const s = Math.max(0, (Date.now() - ms) / 1000 | 0); return s < 60 ? T("just now") : s < 3600 ? T("{n} min ago", { n: s / 60 | 0 }) : s < 86400 ? T("{n} h ago", { n: s / 3600 | 0 }) : new Date(ms).toLocaleString(LOC, { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }); }
 
   function renderHead() {
     const [name, ...rest] = (data.show.title || "").split(" · ");
@@ -144,14 +152,15 @@ summary { cursor:pointer; min-height:28px; display:flex; align-items:center; }
     document.title = `${name} · KAIROS`;
     let t = 0, n = 0; for (const it of data.items) if (it.type !== "header") { t += Number(it.min) || 0; n++; }
     const [y, m, d] = (data.show.date || "").split("-");
-    $("#facts").innerHTML = `<span>Date <b>${d}.${m}.${y}</b></span><span>On air <b>${esc(data.show.start)} – ${hhmm(t)}</b></span><span>Venue <b>${esc(data.show.venue || "")}</b></span><span><b>${n}</b> segments</span>${live ? "" : `<span class="stale">Sample copy · sign in for the latest version</span>`}`;
+    $("#facts").innerHTML = `<span>${T("Date")} <b>${d}.${m}.${y}</b></span><span>${T("On air")} <b>${esc(data.show.start)} – ${hhmm(t)}</b></span><span>${T("Venue")} <b data-ni>${esc(data.show.venue || "")}</b></span><span>${T("{n} segments", { n: `<b>${n}</b>` })}</span>${live ? "" : `<span class="stale">${T("Sample copy · sign in for the latest version")}</span>`}`;
     $("#legend").innerHTML = Object.values(CATS).map(([l, c]) => `<span class="chip" style="--c:${c}">${esc(l)}</span>`).join("");
   }
   function renderAcct() {
     const signed = !!(S && S.user);
     $("#signinBanner").hidden = signed || !(S && S.ready);
-    $("#acct").innerHTML = signed ? `${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<span>${esc(S.user.name)}</span><button class="btn ghost" id="out">Sign out</button>`
-      : (S && S.ready ? `<button class="btn" data-signin>Sign in with Google</button>` : "");
+    $("#acct").innerHTML = signed ? `${S.user.photo ? `<img src="${esc(S.user.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<span>${esc(S.user.name)}</span><button class="btn ghost" id="out">${T("Sign out")}</button>`
+      : (S && S.ready ? `<button class="btn" data-signin>${T("Sign in with Google")}</button>` : "");
+    if (window.KI18N) $("#acct").prepend(window.KI18N.select());
     const o = $("#out"); if (o) o.onclick = () => S.signOut();
   }
   function thread(it) {
@@ -159,13 +168,13 @@ summary { cursor:pointer; min-height:28px; display:flex; align-items:center; }
     const openN = all.filter((c) => !c.resolved).length;
     const isOpen = open.has(it.id);
     const me = S && S.user ? S.user.uid : null;
-    const label = all.length ? `${openN ? openN + " open comment" + (openN > 1 ? "s" : "") : "Comments"} (${all.length})` : "Leave a comment";
-    let h = `<div class="thread"><button class="thread-toggle" data-tog="${esc(it.id)}">${isOpen ? "Hide comments" : label}</button>`;
+    const label = all.length ? `${openN ? T(openN > 1 ? "{n} open comments" : "{n} open comment", { n: openN }) : T("Comments")} (${all.length})` : T("Leave a comment");
+    let h = `<div class="thread"><button class="thread-toggle" data-tog="${esc(it.id)}">${isOpen ? T("Hide comments") : label}</button>`;
     if (isOpen) {
-      h += all.map((c) => `<div class="cm ${c.resolved ? "resolved" : ""}"><header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<b>${esc(c.name)}</b><span>${esc(ago(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Script suggestion</span>` : ""}${c.resolved ? `<span>· resolved</span>` : ""}</header><p>${esc(c.text)}</p>${c.uid === me ? `<button class="del" data-del="${esc(c.id)}">Delete</button>` : ""}</div>`).join("");
+      h += all.map((c) => `<div class="cm ${c.resolved ? "resolved" : ""}"><header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : ""}<b>${esc(c.name)}</b><span>${esc(ago(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">${T("Script suggestion")}</span>` : ""}${c.resolved ? `<span>· ${T("resolved")}</span>` : ""}</header><p>${esc(c.text)}</p>${c.uid === me ? `<button class="del" data-del="${esc(c.id)}">${T("Delete")}</button>` : ""}</div>`).join("");
       h += S && S.user && live
-        ? `<form class="compose" data-seg="${esc(it.id)}"><div class="kind"><label><input type="radio" name="k${esc(it.id)}" value="comment" checked> Comment</label><label><input type="radio" name="k${esc(it.id)}" value="text"> Suggest what’s said</label></div><textarea rows="3" maxlength="4000" placeholder="Write here…" aria-label="Comment"></textarea><div class="row"><button class="btn" type="submit">Send</button></div></form>`
-        : `<div class="banner"><p>Sign in with Google to comment.</p><button class="btn" data-signin>Sign in with Google</button></div>`;
+        ? `<form class="compose" data-seg="${esc(it.id)}"><div class="kind"><label><input type="radio" name="k${esc(it.id)}" value="comment" checked> ${T("Comment")}</label><label><input type="radio" name="k${esc(it.id)}" value="text"> ${T("Suggest what’s said")}</label></div><textarea rows="3" maxlength="4000" placeholder="${T("Write here…")}" aria-label="${T("Comment")}"></textarea><div class="row"><button class="btn" type="submit">${T("Send")}</button></div></form>`
+        : `<div class="banner"><p>${T("Sign in with Google to comment.")}</p><button class="btn" data-signin>${T("Sign in with Google")}</button></div>`;
     }
     return h + `</div>`;
   }
@@ -177,22 +186,22 @@ summary { cursor:pointer; min-height:28px; display:flex; align-items:center; }
       const [label, color] = CATS[it.cat] || CATS.platforma; const startMin = t; const start = hhmm(t); t += Number(it.min) || 0; q++;
       const isNow = liveNow && liveNow === it.id;
       const script = (it.script || "").trim();
-      html += `<article class="seg${isNow ? " now" : ""}" id="m-${esc(it.id)}" style="--c:${color}"><div class="when"><span class="cue">Q${q}</span><span class="time">${start}</span><span class="dur">${esc(it.min)} min</span></div><div class="body">
-        <div class="head">${isNow ? `<span class="nowtag">On air now</span>` : ""}<span class="chip">${esc(label)}</span>${it.who ? `<span class="who">${esc(it.who)}</span>` : ""}</div><h3>${esc(it.title)}</h3>
+      html += `<article class="seg${isNow ? " now" : ""}" id="m-${esc(it.id)}" style="--c:${color}"><div class="when"><span class="cue">Q${q}</span><span class="time">${start}</span><span class="dur">${T("{n} min", { n: esc(it.min) })}</span></div><div class="body">
+        <div class="head">${isNow ? `<span class="nowtag">${T("On air now")}</span>` : ""}<span class="chip">${esc(label)}</span>${it.who ? `<span class="who">${esc(it.who)}</span>` : ""}</div><h3>${esc(it.title)}</h3>
         ${it.music && window.KAudio ? window.KAudio.html(it.music) : ""}
         ${it.visual && window.KVisual ? window.KVisual.html(it.visual, "", "big") : ""}
-        ${it.talk ? `<div class="say"><div class="k">What’s said</div><p>${esc(it.talk)}</p></div>` : ""}
-        ${script ? `<details class="script"><summary>Full script</summary><p>${esc(script)}</p></details>` : ""}
-        <dl class="prod">${it.video ? `<div><dt>Video</dt><dd>${esc(it.video)}</dd></div>` : ""}${it.gfx ? `<div><dt>Graphics</dt><dd>${esc(it.gfx)}</dd></div>` : ""}</dl>
+        ${it.talk ? `<div class="say"><div class="k">${T("What’s said")}</div><p>${esc(it.talk)}</p></div>` : ""}
+        ${script ? `<details class="script"><summary>${T("Full script")}</summary><p>${esc(script)}</p></details>` : ""}
+        <dl class="prod">${it.video ? `<div><dt>${T("Video")}</dt><dd>${esc(it.video)}</dd></div>` : ""}${it.gfx ? `<div><dt>${T("Graphics")}</dt><dd>${esc(it.gfx)}</dd></div>` : ""}</dl>
         ${live ? thread(it) : ""}</div></article>`;
     }
-    $("#list").innerHTML = html + (sec ? "</section>" : "") + `<p class="foot">Times can change until the event.</p>`;
+    $("#list").innerHTML = html + (sec ? "</section>" : "") + `<p class="foot">${T("Times can change until the event.")}</p>`;
   }
 
   document.addEventListener("click", async (e) => {
-    if (e.target.closest("[data-signin]")) { try { await S.signIn(); } catch (err) { toast("Sign-in didn’t work. Try again."); } return; }
+    if (e.target.closest("[data-signin]")) { try { await S.signIn(); } catch (err) { toast(T("Sign-in didn’t work. Try again.")); } return; }
     const tg = e.target.closest("[data-tog]"); if (tg) { const id = tg.dataset.tog; open.has(id) ? open.delete(id) : open.add(id); render(); const f = document.querySelector(`form[data-seg="${id}"] textarea`); if (f) f.focus(); return; }
-    const dl = e.target.closest("[data-del]"); if (dl && confirm("Delete this comment?")) { try { await S.deleteComment(dl.dataset.del); } catch (err) { toast("Couldn’t delete it. Try again."); } }
+    const dl = e.target.closest("[data-del]"); if (dl && confirm(T("Delete this comment?"))) { try { await S.deleteComment(dl.dataset.del); } catch (err) { toast(T("Couldn’t delete it. Try again.")); } }
   });
   document.addEventListener("submit", async (e) => {
     const f = e.target.closest("form.compose"); if (!f) return; e.preventDefault();
@@ -200,8 +209,8 @@ summary { cursor:pointer; min-height:28px; display:flex; align-items:center; }
     const seg = data.items.find((i) => i.id === f.dataset.seg);
     const kind = f.querySelector("input[type=radio]:checked").value;
     f.querySelector("button").disabled = true;
-    try { await S.addComment({ segId: f.dataset.seg, segTitle: seg ? seg.title : "", text, kind }); toast("Thanks! The team has your comment."); }
-    catch (err) { toast("The comment wasn’t sent. Try again."); f.querySelector("button").disabled = false; }
+    try { await S.addComment({ segId: f.dataset.seg, segTitle: seg ? seg.title : "", text, kind }); toast(T("Thanks! The team has your comment.")); }
+    catch (err) { toast(T("The comment wasn’t sent. Try again.")); f.querySelector("button").disabled = false; }
   });
 
   if (S) {

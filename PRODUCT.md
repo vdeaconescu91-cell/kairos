@@ -29,12 +29,13 @@ Tagline: "Call the moment." The live timer is server-synchronised and shared acr
 
 ## Capabilities and Constraints
 
-- Static site on GitHub Pages (`vdeaconescu91-cell/ta-rundown`, branch `main`), no build step; Firebase compat SDK 10.14.1 from CDN (auth, Firestore, Storage), project `kairos-rundown`. Without Firebase the app runs locally with the default rundown.
+- Static site on GitHub Pages (`vdeaconescu91-cell/kairos`, branch `main`), no build step; Firebase compat SDK 10.14.1 from CDN (auth, Firestore, Storage), project `kairos-rundown`. Without Firebase the app runs locally with the default rundown.
 - Pages: `index.html` (sign-in, projects), `rundown.html` (editor, Plan/Live, pop-up `P`, prompter `T`), `client.html` (client read + comment), `join.html` (invite), `preview.html` (generated static preview).
 - CSS/JS links carry `?v=` cache-busting that must be bumped on every change.
 - `ADMINS` in `sync.js` and `isAdmin()` in `firestore.rules` must stay identical.
 - The screen (broadcast) version keeps its current look: next 2 events when the prompter is off, only the next one when it is on.
-- Undecided: a 6-language selector (EN, RO, FR, ES, IT, RU) translating everything, including rundown content; per-segment Auto/Manual; rundown templates; repo rename / own domain.
+- Interface language selector (EN, RO, FR, ES, IT, RU), since 25.11.2026: `kairos-i18n.js` + `kairos-i18n-dict.js`. It translates the interface only; rundown content (titles, scripts, names, comments) always stays in the language it was written in, which is the language of the stream. The choice is per browser (localStorage `kairos-lang`) and changing it reloads the page.
+- Undecided: per-segment Auto/Manual; rundown templates.
 
 ## Brand Commitments
 
@@ -42,7 +43,7 @@ Tagline: "Call the moment." The live timer is server-synchronised and shared acr
 - Brand colours: control-room black #05070D, signal #3D7BFF, ink #06175A, ice #D6E4FF. Fonts in the brand guide: Archivo Expanded, Inter Tight, JetBrains Mono.
 - Red appears only in the last minute of the timer. Segment categories are never red.
 - No unproven superlatives ("first", "biggest") in copy.
-- Interface language: English everywhere (decided 18.11.2026).
+- Interface language: English by default, with a selector for RO, FR, ES, IT, RU (25.11.2026). Rundown content is never translated.
 
 ## Evidence on Hand
 

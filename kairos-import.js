@@ -4,6 +4,7 @@
    încărcat doar când e nevoie. */
 (() => {
   "use strict";
+  const T = (s, v) => (window.KI18N ? window.KI18N.t(s, v) : String(s).replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m)));
   const XLSX_URL = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
   const norm = (s) => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
   const ALIAS = {
@@ -59,11 +60,11 @@
 
   function fromRows(rows) {
     rows = rows.filter((r) => r && typeof r === "object");
-    if (!rows.length) throw new Error("The file has no rows I can read.");
+    if (!rows.length) throw new Error(T("The file has no rows I can read."));
     const keys = [...new Set(rows.flatMap((r) => Object.keys(r)))];
     const K = {}; Object.keys(ALIAS).forEach((f) => (K[f] = pickKey(keys, f)));
-    if (!K.title) throw new Error("I couldn't find a column for the moment name (title, moment, segment, titlu…).");
-    if (!K.min && !K.start) throw new Error("I couldn't find a duration column (min, duration, durata…) or a start time column (start, ora…).");
+    if (!K.title) throw new Error(T("I couldn't find a column for the moment name (title, moment, segment, titlu…)."));
+    if (!K.min && !K.start) throw new Error(T("I couldn't find a duration column (min, duration, durata…) or a start time column (start, ora…)."));
     const get = (r, f) => (K[f] ? r[K[f]] : "");
     let skipped = 0;
     const raw = [];
@@ -91,7 +92,7 @@
     const first = segs.find((x) => x.start != null);
     const stats = { segments: segs.length, headers: raw.length - segs.length, skipped,
       minutes: Math.round(items.reduce((a, it) => a + (it.min || 0), 0)) };
-    if (!stats.segments) throw new Error("I found only block titles, no moments with a duration.");
+    if (!stats.segments) throw new Error(T("I found only block titles, no moments with a duration."));
     return { show: { start: first ? hhmm(first.start) : "" }, items, stats };
   }
 
@@ -110,17 +111,17 @@
     }
     if (cell || row.length) { row.push(cell); rows.push(row); }
     const lines = rows.filter((r) => r.some((c) => String(c).trim()));
-    if (lines.length < 2) throw new Error("The file needs a header row and at least one moment.");
+    if (lines.length < 2) throw new Error(T("The file needs a header row and at least one moment."));
     const head = lines[0].map((h) => h.trim());
     return lines.slice(1).map((r) => Object.fromEntries(head.map((h, i) => [h || `col${i + 1}`, (r[i] ?? "").trim()])));
   }
 
   function fromJSON(text) {
-    let d; try { d = JSON.parse(text.replace(/^﻿/, "")); } catch (e) { throw new Error("This isn't valid JSON."); }
+    let d; try { d = JSON.parse(text.replace(/^﻿/, "")); } catch (e) { throw new Error(T("This isn't valid JSON.")); }
     const show = (d && d.show) || {};
     // formatul KAIROS: { show, items: [...] } sau { show, order, items: {id: item} }
     let list = Array.isArray(d) ? d : Array.isArray(d.items) ? d.items : (d.order && d.items) ? d.order.map((id) => d.items[id]).filter(Boolean) : null;
-    if (!list) throw new Error("I expected a list of moments, or an object with an items list.");
+    if (!list) throw new Error(T("I expected a list of moments, or an object with an items list."));
     const native = list.every((x) => x && (x.type === "header" || "min" in x));
     const r = native
       ? { items: list.map((x) => x.type === "header" ? { type: "header", title: String(x.title || "") } : { type: "segment", title: String(x.title || ""), min: Number(x.min) || 0, cat: x.cat || "platforma", video: x.video || "", gfx: x.gfx || "", talk: x.talk || "", who: x.who || "", script: x.script || "" }),
@@ -134,13 +135,13 @@
   let xlsxP = null;
   function loadXLSX() {
     if (window.XLSX) return Promise.resolve(window.XLSX);
-    xlsxP = xlsxP || new Promise((ok, bad) => { const s = document.createElement("script"); s.src = XLSX_URL; s.onload = () => ok(window.XLSX); s.onerror = () => bad(new Error("I couldn't load the Excel reader. Check your connection, or save the sheet as CSV.")); document.head.appendChild(s); });
+    xlsxP = xlsxP || new Promise((ok, bad) => { const s = document.createElement("script"); s.src = XLSX_URL; s.onload = () => ok(window.XLSX); s.onerror = () => bad(new Error(T("I couldn't load the Excel reader. Check your connection, or save the sheet as CSV."))); document.head.appendChild(s); });
     return xlsxP;
   }
 
   async function parseFile(file) {
     const name = (file.name || "").toLowerCase();
-    if (file.size > 5 * 1024 * 1024) throw new Error("The file is larger than 5 MB.");
+    if (file.size > 5 * 1024 * 1024) throw new Error(T("The file is larger than 5 MB."));
     let r;
     if (/\.(xlsx|xls)$/.test(name)) {
       const X = await loadXLSX();
@@ -150,7 +151,7 @@
       for (const sn of wb.SheetNames) {
         try { r = fromRows(X.utils.sheet_to_json(wb.Sheets[sn], { defval: "", raw: true })); break; } catch (e) { lastErr = e; }
       }
-      if (!r) throw lastErr || new Error("The workbook is empty.");
+      if (!r) throw lastErr || new Error(T("The workbook is empty."));
     } else if (/\.json$/.test(name)) {
       r = fromJSON(await file.text());
     } else {

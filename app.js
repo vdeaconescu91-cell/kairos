@@ -3,20 +3,22 @@
 (() => {
   "use strict";
 
+  // limba interfeței: textele de mai jos trec prin T(); conținutul rundown-ului rămâne neatins
+  const T = (s, v) => (window.KI18N ? window.KI18N.t(s, v) : String(s).replace(/\{(\w+)\}/g, (m, k) => (v && k in v ? v[k] : m)));
   const KS0 = window.KSYNC;
   const LEGACY = !KS0 || KS0.isLegacy;
   // fiecare rundown își are copia lui locală; cel vechi (ta-2026) păstrează cheia de la început
   const STORE_KEY = LEGACY ? "ta-rundown-v1" : `ta-rundown-v1:${KS0.showId}`;
   const CATS = {
-    live:      { label: "Live match", var: "--c-live" },
-    interviu:  { label: "Interview",  var: "--c-interviu" },
-    grafica:   { label: "Graphics",   var: "--c-grafica" },
-    platforma: { label: "Platform",   var: "--c-platforma" },
-    caritabil: { label: "Charity",    var: "--c-caritabil" },
+    live:      { label: T("Live match"), var: "--c-live" },
+    interviu:  { label: T("Interview"),  var: "--c-interviu" },
+    grafica:   { label: T("Graphics"),   var: "--c-grafica" },
+    platforma: { label: T("Platform"),   var: "--c-platforma" },
+    caritabil: { label: T("Charity"),    var: "--c-caritabil" },
     ing:       { label: "ING",         var: "--c-ing" },
-    donatii:   { label: "Donations",  var: "--c-donatii" },
-    giveaway:  { label: "Giveaway",    var: "--c-giveaway" },
-    pauza:     { label: "Break / buffer", var: "--c-pauza" }
+    donatii:   { label: T("Donations"),  var: "--c-donatii" },
+    giveaway:  { label: T("Giveaway"),    var: "--c-giveaway" },
+    pauza:     { label: T("Break / buffer"), var: "--c-pauza" }
   };
 
   const $ = (s, r = document) => r.querySelector(s);
@@ -86,7 +88,7 @@
       }
     } catch (e) { /* stocare indisponibilă */ }
     if (!LEGACY) {   // un rundown nou vine din cloud; până atunci pagina e goală
-      return { show: { title: "Loading…", date: "", start: "18:00", venue: "" }, items: [], mode: "plan", advance: "manual",
+      return { show: { title: T("Loading…"), date: "", start: "18:00", venue: "" }, items: [], mode: "plan", advance: "manual",
         live: { running: false, idx: -1, itemStart: 0, showStart: 0 } };
     }
     return fromDefault();
@@ -103,10 +105,10 @@
 
   function undo() {
     const prev = undoStack.pop();
-    if (!prev) return toast("Nothing to undo");
+    if (!prev) return toast(T("Nothing to undo"));
     state.items = JSON.parse(prev);
     save(); pushItems(); renderTable(); tick();
-    toast("Undone");
+    toast(T("Undone"));
   }
 
   // alt tab din același browser a schimbat ceva
@@ -207,7 +209,7 @@
     tlSecs = []; let g = null;
     for (const it of state.items) {
       if (it.type === "header") { g = { id: it.id, title: (it.title || "").split("·")[0].trim(), segs: [] }; tlSecs.push(g); continue; }
-      if (!g) { g = { id: null, title: "Show", segs: [] }; tlSecs.push(g); }
+      if (!g) { g = { id: null, title: T("Show"), segs: [] }; tlSecs.push(g); }
       g.segs.push(it);
     }
     tlSecs = tlSecs.filter((x) => x.segs.length);
@@ -223,8 +225,8 @@
       parts.forEach((pt, n) => {
         const live = pt.segs.find((s) => s.cat === "live") || pt.segs[Math.floor(pt.segs.length / 2)];
         const mid = (live.title || "").split("·").map((t) => t.trim()).filter((t) => t && t !== pt.title && !/^live$/i.test(t))[0];
-        pt.block = `Match Window ${n + 1}` + (mid ? ` · ${mid}` : "");
-        pt.title = `MW${n + 1}` + (/decid/i.test(mid || "") ? " · Decider" : ""); pt.keep = true;
+        pt.block = T("Match Window {n}", { n: n + 1 }) + (mid ? ` · ${mid}` : "");
+        pt.title = `MW${n + 1}` + (/decid/i.test(mid || "") ? " · " + T("Decider") : ""); pt.keep = true;
       });
       return parts;
     });
@@ -236,13 +238,13 @@
     }
     const pct = (m) => (m / total) * 100;
     $("#tlBlocks").innerHTML = tlSecs.map((x, k) =>
-      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.section ? x.section + " · " : ""}${x.block || x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${x.segs.length} segments`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(!x.keep && x.title === x.title.toUpperCase() ? x.title.charAt(0) + x.title.slice(1).toLowerCase() : x.title)}</span></button>`).join("");
+      `<button type="button" class="tl-sec" data-k="${k}" style="${TL_NEUTRAL.has(x.cat) ? "--cc:#8b6cff" : catStyle(x.cat)};left:${pct(x.from)}%;width:${pct(x.dur)}%" title="${esc(`${x.section ? x.section + " · " : ""}${x.block || x.title} · ${hhmm(x.from)}–${hhmm(x.from + x.dur)} · ${T("{n} segments", { n: x.segs.length })}`)}"><span class="tl-fill"></span><canvas class="tl-cv" aria-hidden="true"></canvas><span class="tl-name">${esc(!x.keep && x.title === x.title.toUpperCase() ? x.title.charAt(0) + x.title.slice(1).toLowerCase() : x.title)}</span></button>`).join("");
     const start = showStartDate();
     let ticks = "";
     for (let m = start.getMinutes() ? 60 - start.getMinutes() : 0; m <= total; m += 60) ticks += `<span style="left:${pct(m)}%">${hhmm(m)}</span>`;
     $("#tlTicks").innerHTML = ticks;
     $("#tlStart").textContent = hhmm(0); $("#tlEnd").textContent = hhmm(total);
-    $("#tlSum").textContent = `Show · ${Math.floor(total / 60)}h ${pad(total % 60)}m · ${segs().length} segments`;
+    $("#tlSum").textContent = T("Show · {h}h {m}m · {n} segments", { h: Math.floor(total / 60), m: pad(total % 60), n: segs().length });
   }
   function tickTimeline(pos) {
     const off = pos.off || plannedOffsets(), total = off.__total || 1;
@@ -315,7 +317,7 @@
 
   function renderFilters() {
     $("#filters").innerHTML = Object.entries(CATS).map(([k, c]) =>
-      `<button class="chip ${hiddenCats.has(k) ? "off" : ""}" data-cat="${k}" style="${catStyle(k)}" aria-pressed="${hiddenCats.has(k) ? "false" : "true"}" title="Show / hide">${esc(c.label)}</button>`).join("");
+      `<button class="chip ${hiddenCats.has(k) ? "off" : ""}" data-cat="${k}" style="${catStyle(k)}" aria-pressed="${hiddenCats.has(k) ? "false" : "true"}" title="${T("Show / hide")}">${esc(c.label)}</button>`).join("");
   }
 
   function renderTable() {
@@ -325,33 +327,33 @@
     const html = state.items.map((it) => {
       if (it.type === "header") {
         return `<tr class="header-row" data-id="${it.id}" draggable="false">
-          <td class="drag"><button type="button" class="grip" data-a="grip" title="Drag to move, or focus and use Alt+↑ / Alt+↓" aria-label="Move section ${esc(it.title)}">${IC.grip}</button></td>
-          <td colspan="8"><input class="cell" data-f="title" value="${esc(it.title)}" aria-label="Section title"></td>
-          <td><div class="acts"><button class="icon del" data-a="del" title="Delete section" aria-label="Delete section">${IC.del}</button></div></td></tr>`;
+          <td class="drag"><button type="button" class="grip" data-a="grip" title="${T("Drag to move, or focus and use Alt+↑ / Alt+↓")}" aria-label="${T("Move section {t}", { t: esc(it.title) })}">${IC.grip}</button></td>
+          <td colspan="8"><input class="cell" data-f="title" value="${esc(it.title)}" aria-label="${T("Section title")}"></td>
+          <td><div class="acts"><button class="icon del" data-a="del" title="${T("Delete section")}" aria-label="${T("Delete section")}">${IC.del}</button></div></td></tr>`;
       }
       n++;
       return `<tr class="seg-row" data-id="${it.id}" style="${catStyle(it.cat)}">
-        <td class="drag"><button type="button" class="grip" data-a="grip" title="Drag to move, or focus and use Alt+↑ / Alt+↓" aria-label="Move segment ${n}">${IC.grip}</button></td>
+        <td class="drag"><button type="button" class="grip" data-a="grip" title="${T("Drag to move, or focus and use Alt+↑ / Alt+↓")}" aria-label="${T("Move segment {n}", { n })}">${IC.grip}</button></td>
         <td class="num"><span class="cue">Q${n}</span><span class="cue-state" aria-live="off"></span></td>
         <td class="start"><span data-start>${hhmm(off[it.id])}</span>
-          <select class="cell cat" data-f="cat" aria-label="Category">${Object.entries(CATS).map(([k, c]) =>
+          <select class="cell cat" data-f="cat" aria-label="${T("Category")}">${Object.entries(CATS).map(([k, c]) =>
             `<option value="${k}" ${k === it.cat ? "selected" : ""}>${esc(c.label)}</option>`).join("")}</select></td>
-        <td class="c-durcell" data-l="Min"><input class="cell dur" data-f="min" inputmode="decimal" value="${esc(it.min)}" aria-label="Length in minutes"></td>
+        <td class="c-durcell" data-l="${T("Min")}"><input class="cell dur" data-f="min" inputmode="decimal" value="${esc(it.min)}" aria-label="${T("Length in minutes")}"></td>
         <td class="c-titlecell">
-          <textarea class="cell title-cell" data-f="title" rows="1" aria-label="Segment">${esc(it.title)}</textarea>
+          <textarea class="cell title-cell" data-f="title" rows="1" aria-label="${T("Segment")}">${esc(it.title)}</textarea>
           ${musicCell(it)}
         </td>
-        <td data-l="Video"><textarea class="cell" data-f="video" rows="1" aria-label="Video">${esc(it.video)}</textarea></td>
-        <td data-l="Graphics">${visCell(it)}<textarea class="cell" data-f="gfx" rows="1" aria-label="Graphics">${esc(it.gfx)}</textarea></td>
-        <td class="c-talkcell" data-l="What’s said"><textarea class="cell" data-f="talk" rows="1" aria-label="What’s said">${esc(it.talk)}</textarea>
-          <textarea class="cell script-cell" data-f="script" rows="1" placeholder="+ prompter script" aria-label="Prompter script">${esc(it.script)}</textarea></td>
-        <td data-l="Who"><textarea class="cell" data-f="who" rows="1" aria-label="Who">${esc(it.who)}</textarea></td>
+        <td data-l="${T("Video")}"><textarea class="cell" data-f="video" rows="1" aria-label="${T("Video")}">${esc(it.video)}</textarea></td>
+        <td data-l="${T("Graphics")}">${visCell(it)}<textarea class="cell" data-f="gfx" rows="1" aria-label="${T("Graphics")}">${esc(it.gfx)}</textarea></td>
+        <td class="c-talkcell" data-l="${T("What’s said")}"><textarea class="cell" data-f="talk" rows="1" aria-label="${T("What’s said")}">${esc(it.talk)}</textarea>
+          <textarea class="cell script-cell" data-f="script" rows="1" placeholder="${T("+ prompter script")}" aria-label="${T("Prompter script")}">${esc(it.script)}</textarea></td>
+        <td data-l="${T("Who")}"><textarea class="cell" data-f="who" rows="1" aria-label="${T("Who")}">${esc(it.who)}</textarea></td>
         <td class="c-actcell"><div class="acts">
-          <button class="cmt-btn icon" data-a="cmt" title="Comments on this segment" aria-label="Comments on segment ${n}">${IC.cmt}<span class="n"></span></button>
-          <button class="icon jump" data-a="jump" title="Go live from here" aria-label="Go live from segment ${n}">${IC.jump}</button>
-          <button class="icon" data-a="add" title="New segment below" aria-label="New segment below">${IC.add}</button>
-          <button class="icon" data-a="dup" title="Duplicate" aria-label="Duplicate segment ${n}">${IC.dup}</button>
-          <button class="icon del" data-a="del" title="Delete" aria-label="Delete segment ${n}">${IC.del}</button>
+          <button class="cmt-btn icon" data-a="cmt" title="${T("Comments on this segment")}" aria-label="${T("Comments on segment {n}", { n })}">${IC.cmt}<span class="n"></span></button>
+          <button class="icon jump" data-a="jump" title="${T("Go live from here")}" aria-label="${T("Go live from segment {n}", { n })}">${IC.jump}</button>
+          <button class="icon" data-a="add" title="${T("New segment below")}" aria-label="${T("New segment below")}">${IC.add}</button>
+          <button class="icon" data-a="dup" title="${T("Duplicate")}" aria-label="${T("Duplicate segment {n}", { n })}">${IC.dup}</button>
+          <button class="icon del" data-a="del" title="${T("Delete")}" aria-label="${T("Delete segment {n}", { n })}">${IC.del}</button>
         </div></td></tr>`;
     }).join("");
     $("#rows").innerHTML = html;
@@ -367,15 +369,15 @@
   function visCell(it) {
     const KV = window.KVisual; if (!KV) return "";
     const edit = canEdit();
-    const cur = KV.html(it.visual, edit ? `<span class="vacts"><button type="button" class="icon" data-a="vpick" title="Another image" aria-label="Another image">${IC.dup}</button><button type="button" class="icon del" data-a="vdel" title="Remove image" aria-label="Remove image">${IC.del}</button></span>` : "");
-    return cur || (edit ? `<button type="button" class="madd vadd" data-a="vpick" title="Choose how it looks on screen">+ Screen image</button>` : "");
+    const cur = KV.html(it.visual, edit ? `<span class="vacts"><button type="button" class="icon" data-a="vpick" title="${T("Another image")}" aria-label="${T("Another image")}">${IC.dup}</button><button type="button" class="icon del" data-a="vdel" title="${T("Remove image")}" aria-label="${T("Remove image")}">${IC.del}</button></span>` : "");
+    return cur || (edit ? `<button type="button" class="madd vadd" data-a="vpick" title="${T("Choose how it looks on screen")}">${T("+ Screen image")}</button>` : "");
   }
   let visFor = null;
   const visPop = document.createElement("div"); visPop.className = "vpick card"; visPop.hidden = true; document.body.appendChild(visPop);
   function openVisPick(id, anchor) {
     const KV = window.KVisual; visFor = id;
     const it = state.items.find((x) => x.id === id), curKey = it && typeof it.visual === "string" ? it.visual : "";
-    visPop.innerHTML = `<div class="vp-h">How it looks on screen<button type="button" class="icon" data-vp-close title="Close" aria-label="Close">${IC.del}</button></div><div class="vp-grid">`
+    visPop.innerHTML = `<div class="vp-h">${T("How it looks on screen")}<button type="button" class="icon" data-vp-close title="${T("Close")}" aria-label="${T("Close")}">${IC.del}</button></div><div class="vp-grid">`
       + Object.entries(KV.LIB).map(([k, n]) => `<button type="button" class="vp-it ${k === curKey ? "on" : ""}" data-vp="${k}"><img src="${KV.thumb(k)}" alt="" loading="lazy"><span>${esc(n)}</span></button>`).join("") + `</div>`;
     visPop.hidden = false;
     const r = anchor.getBoundingClientRect(), w = Math.min(560, innerWidth - 24);
@@ -401,12 +403,12 @@
   // muzica segmentului: player (în rundown și în Preview) + încărcare / înlocuire / ștergere pentru cine editează
   function musicCell(it) {
     const up = uploading.get(it.id);
-    if (up != null) return `<div class="music up"><span class="mname">♪ Uploading… ${Math.round(up * 100)}%</span><span class="mtrack"><span style="width:${up * 100}%"></span></span></div>`;
+    if (up != null) return `<div class="music up"><span class="mname">♪ ${T("Uploading… {p}%", { p: Math.round(up * 100) })}</span><span class="mtrack"><span style="width:${up * 100}%"></span></span></div>`;
     const edit = canEdit() && cloud();
     if (it.music && it.music.url && window.KAudio) {
-      return window.KAudio.html(it.music, edit ? `<div class="macts"><button type="button" class="icon" data-a="mrep" title="Replace track" aria-label="Replace track">${IC.dup}</button><button type="button" class="icon del" data-a="mdel" title="Remove music" aria-label="Remove music">${IC.del}</button></div>` : "", { download: edit });
+      return window.KAudio.html(it.music, edit ? `<div class="macts"><button type="button" class="icon" data-a="mrep" title="${T("Replace track")}" aria-label="${T("Replace track")}">${IC.dup}</button><button type="button" class="icon del" data-a="mdel" title="${T("Remove music")}" aria-label="${T("Remove music")}">${IC.del}</button></div>` : "", { download: edit });
     }
-    return edit ? `<button type="button" class="madd" data-a="madd" title="Choose an audio file or drop it on the row">+ Music</button>` : "";
+    return edit ? `<button type="button" class="madd" data-a="madd" title="${T("Choose an audio file or drop it on the row")}">${T("+ Music")}</button>` : "";
   }
   const uploading = new Map();
   let musicFor = null;
@@ -414,7 +416,7 @@
   document.body.appendChild(musicInput);
   musicInput.onchange = () => { const f = musicInput.files[0]; musicInput.value = ""; if (f && musicFor) attachMusic(musicFor, f); };
   async function attachMusic(id, file) {
-    if (!cloud()) return toast("Sign in to upload music");
+    if (!cloud()) return toast(T("Sign in to upload music"));
     const it = state.items.find((x) => x.id === id); if (!it) return;
     const old = it.music;
     uploading.set(id, 0); renderTable();
@@ -427,13 +429,13 @@
       uploading.delete(id);
       const cur = state.items.find((x) => x.id === id); if (!cur) return;
       snapshot(); cur.music = m; save(); S.field(id, "music", m); renderTable();
-      toast(`Music added: ${m.name}`);
+      toast(T("Music added: {name}", { name: m.name }));
       if (old && old.path) S.deleteMusic(old.path);
     } catch (e) {
       uploading.delete(id); renderTable();
       const c = e && (e.message || e.code) || "";
-      toast(c === "not_audio" ? "That file is not audio (MP3, WAV, M4A…)" : c === "too_big" ? "That file is too large (50 MB max)"
-        : /unauthorized|permission/i.test(c) ? "You don't have permission to upload music here" : /bucket|not-found|no_storage/i.test(c) ? "Music storage isn't enabled yet" : "The music didn't upload. Try again.");
+      toast(T(c === "not_audio" ? "That file is not audio (MP3, WAV, M4A…)" : c === "too_big" ? "That file is too large (50 MB max)"
+        : /unauthorized|permission/i.test(c) ? "You don't have permission to upload music here" : /bucket|not-found|no_storage/i.test(c) ? "Music storage isn't enabled yet" : "The music didn't upload. Try again."));
       console.error(e);
     }
   }
@@ -461,7 +463,7 @@
     const off = plannedOffsets();
     const end = hhmm(off.__total);
     const h = Math.floor(off.__total / 60), m = off.__total % 60;
-    $("#totalInfo").textContent = `${state.show.start} → ${end} · ${h}h ${pad(m)}m · ${segs().length} segments`;
+    $("#totalInfo").textContent = `${state.show.start} → ${end} · ` + T("{h}h {m}m · {n} segments", { h, m: pad(m), n: segs().length });
   }
 
   function applyFilters() {
@@ -487,7 +489,7 @@
       // starea cue-ului, ca în caietul de regie: GO pe ce rulează, STANDBY pe ce urmează (doar în Live)
       const cs = tr.querySelector(".cue-state"); if (!cs) return;
       const live = pos.mode === "live";
-      const st = isCur ? (live ? "GO" : "NOW") : id === nextId ? (live ? "STANDBY" : "NEXT") : "";
+      const st = isCur ? (live ? T("GO") : T("NOW")) : id === nextId ? (live ? T("STANDBY") : T("NEXT")) : "";
       if (cs.textContent !== st) cs.textContent = st;
     });
   }
@@ -528,7 +530,7 @@
     if (a === "madd" || a === "mrep") { musicFor = state.items[i].id; musicInput.click(); return; }
     if (a === "mdel") {
       const it = state.items[i]; if (!it.music) return;
-      if (!confirm(`Remove “${it.music.name}” from this segment?`)) return;
+      if (!confirm(T("Remove “{name}” from this segment?", { name: it.music.name }))) return;
       const path = it.music.path; snapshot(); delete it.music; save(); if (cloud()) { S.field(it.id, "music", null); S.deleteMusic(path); }
       if (window.KAudio) window.KAudio.stop(); renderTable(); return;
     }
@@ -536,7 +538,7 @@
     if (a === "del") {
       const it = state.items[i];
       state.items.splice(i, 1);
-      toast(`Deleted: ${it.title || "row"} · Ctrl+Z to undo`);
+      toast(T("Deleted: {t} · Ctrl+Z to undo", { t: it.title || T("row") }));
     } else if (a === "dup") {
       state.items.splice(i + 1, 0, { ...clone(state.items[i]), id: uid() });
     } else if (a === "add") {
@@ -546,12 +548,12 @@
     if (a === "add") focusRow(state.items[i + 1].id);
   });
 
-  function newSeg() { return { id: uid(), type: "segment", title: "New segment", min: 5, cat: "platforma", video: "", gfx: "", talk: "", script: "", who: "" }; }
+  function newSeg() { return { id: uid(), type: "segment", title: T("New segment"), min: 5, cat: "platforma", video: "", gfx: "", talk: "", script: "", who: "" }; }
   function focusRow(id) { const t = $(`#rows tr[data-id="${id}"] .title-cell`); if (t) { t.focus(); t.select(); } }
 
   $("#btnAddRow").onclick = () => { snapshot(); const s = newSeg(); state.items.push(s); save(); pushItems(); renderTable(); focusRow(s.id); tick(); };
   $("#btnAddHeader").onclick = () => {
-    snapshot(); const h = { id: uid(), type: "header", title: "NEW SECTION" }; state.items.push(h); save(); pushItems(); renderTable();
+    snapshot(); const h = { id: uid(), type: "header", title: T("NEW SECTION") }; state.items.push(h); save(); pushItems(); renderTable();
     const inp = $(`#rows tr[data-id="${h.id}"] input`); if (inp) { inp.focus(); inp.select(); }
   };
 
@@ -594,7 +596,7 @@
     snapshot(); const [moved] = state.items.splice(from, 1); state.items.splice(to, 0, moved);
     save(); pushItems(); renderTable(); tick();
     const ng = $(`#rows tr[data-id="${id}"] .grip`); if (ng) ng.focus();
-    toast(`Moved ${e.key === "ArrowUp" ? "up" : "down"}`);
+    toast(e.key === "ArrowUp" ? T("Moved up") : T("Moved down"));
   });
 
   $("#filters").addEventListener("click", (e) => {
@@ -620,11 +622,11 @@
   }
   function setMode(m, btn) {
     if (m === state.mode) return;
-    if (m === "live" && cloud() && btn) return armed(btn, "Confirm: Live for everyone", () => setMode("live"));
+    if (m === "live" && cloud() && btn) return armed(btn, T("Confirm: Live for everyone"), () => setMode("live"));
     state.mode = m;
     if (m === "plan") { state.live.running = false; state.live.ended = false; }
     save(); pushLive(); renderMode(); tick();
-    if (m === "live") toast(cloud() ? "Live mode is on for the whole team" : "Live mode is on");
+    if (m === "live") toast(cloud() ? T("Live mode is on for the whole team") : T("Live mode is on"));
   }
   function renderMode() {
     $$(".seg-btn[data-mode]").forEach((b) => { const on = b.dataset.mode === state.mode; b.classList.toggle("on", on); b.setAttribute("aria-pressed", on); });
@@ -634,7 +636,7 @@
     const running = live && state.live.running && !state.live.ended;
     const last = running && state.live.idx >= segs().length - 1;
     const go = $("#btnGo"); disarm(go);
-    go.innerHTML = !live ? "Go live" : state.live.ended ? "Show ended" : running ? (last ? "End show" : `Next ${IC.next}`) : "Start show";
+    go.innerHTML = !live ? esc(T("Go live")) : state.live.ended ? esc(T("Show ended")) : running ? (last ? esc(T("End show")) : `${esc(T("Next"))} ${IC.next}`) : esc(T("Start show"));
     go.disabled = live && !!state.live.ended;
     go.classList.toggle("end", last);
     $("#btnPrev").disabled = !running || state.live.idx <= 0; $("#btnStop").disabled = !(live && (state.live.running || state.live.ended));
@@ -644,7 +646,7 @@
   $$(".seg-btn[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode, b));
   $$(".seg-btn[data-adv]").forEach((b) => b.onclick = () => {
     state.advance = b.dataset.adv; save(); pushLive(); renderMode(); tick();
-    toast(state.advance === "auto" ? "Auto: at zero the next segment starts on its own" : "Manual: at zero the timer runs over until you press Next");
+    toast(state.advance === "auto" ? T("Auto: at zero the next segment starts on its own") : T("Manual: at zero the timer runs over until you press Next"));
   });
 
   // ora la care a pornit fiecare segment în Live, ca „Înapoi” să-i redea timpul, nu să-l ia de la zero
@@ -674,8 +676,8 @@
     if (state.live.ended) return;
     const now = nowMs(); const list = segs();
     if (!state.live.running) {
-      if (fromKey) return toast("Press Start show to begin");
-      return armed(btn, cloud() ? "Confirm: start for everyone" : "Confirm: start show", () => {
+      if (fromKey) return toast(T("Press Start show to begin"));
+      return armed(btn, cloud() ? T("Confirm: start for everyone") : T("Confirm: start show"), () => {
         const t = nowMs(); state.live = { running: true, idx: 0, itemStart: t, showStart: t, ended: false }; noteStart();
         lastGo = t; save(); pushLive(); renderMode(); tick(); scrollToCurrent();
       });
@@ -686,8 +688,8 @@
       lastGo = now; state.live.idx++; state.live.itemStart = now; noteStart();
       save(); pushLive(); renderMode(); tick(); scrollToCurrent();
     } else if (!fromKey) {
-      armed(btn, "Confirm: end show", endShow);
-    } else toast("This is the last segment. Press End show to finish.");
+      armed(btn, T("Confirm: end show"), endShow);
+    } else toast(T("This is the last segment. Press End show to finish."));
   }
   function endShow() {
     state.live.ended = true; state.live.running = false; state.live.endedAt = nowMs();
@@ -700,13 +702,13 @@
     state.live.itemStart = liveStarts.get(back.id) ?? (state.live.itemStart - (Number(back.min) || 0) * 60000);
     state.live.idx--; lastGo = nowMs();
     save(); pushLive(); renderMode(); tick(); scrollToCurrent();
-    toast(`Back to ${back.title || "the previous segment"}`);
+    toast(T("Back to {t}", { t: back.title || T("the previous segment") }));
   }
   function stop() {
     if (!(state.live.running || state.live.ended)) return;
-    armed($("#btnStop"), "Confirm: reset timer", () => {
+    armed($("#btnStop"), T("Confirm: reset timer"), () => {
       state.live = { running: false, idx: -1, itemStart: 0, showStart: 0, ended: false }; liveStarts.clear();
-      save(); pushLive(); renderMode(); tick(); toast("Live timer reset. The rundown is unchanged.");
+      save(); pushLive(); renderMode(); tick(); toast(T("Live timer reset. The rundown is unchanged."));
     });
   }
   function jumpTo(id, btn) {
@@ -721,7 +723,7 @@
       noteStart(); lastGo = now; save(); pushLive(); renderMode(); tick();
     };
     if (state.mode === "live" && state.live.running && !btn) return doJump();
-    armed(btn, "Go?", doJump);
+    armed(btn, T("Go?"), doJump);
   }
   function scrollToCurrent() {
     const tr = $("#rows tr.current"); if (!tr) return;
@@ -737,9 +739,10 @@
   /* ---------------- hero + pop-up ---------------- */
   function driftText(pos) {
     if (pos.drift == null) return { text: "", cls: "" };
-    const d = pos.drift, ref = pos.vsSchedule ? "vs plan" : "vs start";
-    if (Math.abs(d) < 30000) return { text: "On time", cls: "ok" };
-    return d > 0 ? { text: `+${fmtDur(d)} late ${ref}`, cls: "late" } : { text: `${fmtDur(-d)} ahead ${ref}`, cls: "early" };
+    const d = pos.drift, vp = !!pos.vsSchedule;
+    if (Math.abs(d) < 30000) return { text: T("On time"), cls: "ok" };
+    return d > 0 ? { text: T(vp ? "+{d} late vs plan" : "+{d} late vs start", { d: fmtDur(d) }), cls: "late" }
+      : { text: T(vp ? "{d} ahead vs plan" : "{d} ahead vs start", { d: fmtDur(-d) }), cls: "early" };
   }
   let announced = "";
   function tick() {
@@ -752,48 +755,48 @@
     const live = pos.mode === "live";
 
     if (pos.cur) {
-      $("#nowLabel").textContent = live ? `NOW · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "NOW · BY THE PLAN";
+      $("#nowLabel").textContent = live ? (state.advance === "auto" ? T("NOW · LIVE · AUTO") : T("NOW · LIVE · MANUAL")) : T("NOW · BY THE PLAN");
       $("#nowCue").textContent = `Q${pos.idx + 1}`;
       $("#nowTitle").textContent = pos.cur.title || "—";
-      $("#nowMeta").innerHTML = `${chip(pos.cur.cat)}<span>${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min</span>${pos.cur.who ? `<span>· ${esc(pos.cur.who)}</span>` : ""}`;
+      $("#nowMeta").innerHTML = `${chip(pos.cur.cat)}<span>${hhmm(pos.off[pos.cur.id])} · ${T("{n} min", { n: pos.cur.min })}</span>${pos.cur.who ? `<span data-ni>· ${esc(pos.cur.who)}</span>` : ""}`;
       $("#nowRemain").textContent = fmtDur(pos.remain);
       const over = pos.remain < 0, last = !over && pos.remain < 60000;
       $("#nowRemain").className = "big-time" + (over ? " over" : last ? " last" : "");
       nowCard.classList.toggle("over", over); nowCard.classList.toggle("last", last);
       $("#nowProgress").style.width = Math.min(100, Math.max(0, (pos.elapsed / (pos.durMs || 1)) * 100)) + "%";
       const endAt = new Date(now.getTime() + Math.max(0, pos.remain));
-      $("#nowEnds").textContent = over ? `Over by ${fmtDur(-pos.remain)}` : `${live && state.advance === "auto" ? "Moves on at" : "Ends at"} ${pad(endAt.getHours())}:${pad(endAt.getMinutes())}`;
+      $("#nowEnds").textContent = over ? T("Over by {d}", { d: fmtDur(-pos.remain) }) : T(live && state.advance === "auto" ? "Moves on at {t}" : "Ends at {t}", { t: `${pad(endAt.getHours())}:${pad(endAt.getMinutes())}` });
       const dt = driftText(pos); const el = $("#drift");
       el.textContent = dt.text; el.className = "drift " + dt.cls;
       $("#nowTalk").textContent = pos.cur.talk || "";
       $("#miniRemain").textContent = fmtDur(pos.remain); $("#miniRemain").className = "mini-remain" + (over ? " over" : last ? " last" : "");
     } else {
       nowCard.classList.remove("over", "last");
-      $("#nowLabel").textContent = pos.mode === "pre" ? "BEFORE THE SHOW" : "SHOW ENDED";
+      $("#nowLabel").textContent = pos.mode === "pre" ? T("BEFORE THE SHOW") : T("SHOW ENDED");
       $("#nowCue").textContent = "";
-      $("#nowTitle").textContent = pos.mode === "pre" ? "Starts in" : "Thank you!";
-      const endNote = pos.ended && state.live.endedAt ? ` · ended at ${new Date(state.live.endedAt).toTimeString().slice(0, 5)}` : "";
+      $("#nowTitle").textContent = pos.mode === "pre" ? T("Starts in") : T("Thank you!");
+      const endNote = pos.ended && state.live.endedAt ? " · " + T("ended at {t}", { t: new Date(state.live.endedAt).toTimeString().slice(0, 5) }) : "";
       $("#nowMeta").innerHTML = `<span>${esc(state.show.title)} · ${esc(fmtDate())} · ${esc(state.show.start)}${endNote}</span>`;
       $("#nowRemain").textContent = pos.mode === "pre" ? fmtDur(pos.nextInMs) : "00:00";
       $("#nowRemain").className = "big-time";
       $("#nowProgress").style.width = pos.mode === "post" ? "100%" : "0%";
-      $("#nowEnds").textContent = pos.mode === "pre" ? "For a rehearsal: Go live, then Start show" : pos.ended ? "Reset the timer (■) to run it again" : "";
+      $("#nowEnds").textContent = pos.mode === "pre" ? T("For a rehearsal: Go live, then Start show") : pos.ended ? T("Reset the timer (■) to run it again") : "";
       $("#drift").textContent = ""; $("#nowTalk").textContent = "";
       $("#miniRemain").textContent = "";
     }
 
-    $("#nextState").textContent = live ? "STANDBY" : "NEXT";
+    $("#nextState").textContent = live ? T("STANDBY") : T("NEXT");
     if (pos.next) {
       $("#nextCue").textContent = `Q${segIndex(pos.next.id) + 1}`;
       $("#nextTitle").textContent = pos.next.title || "—";
-      $("#nextCat").innerHTML = `${chip(pos.next.cat)} <span class="next-len">${pos.next.min} min${pos.next.who ? " · " + esc(pos.next.who) : ""}</span>`;
+      $("#nextCat").innerHTML = `${chip(pos.next.cat)} <span class="next-len">${T("{n} min", { n: pos.next.min })}${pos.next.who ? `<span data-ni> · ${esc(pos.next.who)}</span>` : ""}</span>`;
       $("#nextTalk").textContent = pos.next.talk || "";
-      $("#nextIn").textContent = pos.nextInMs != null ? (pos.nextInMs >= 0 ? `in ${fmtDur(pos.nextInMs)}` : "due now") : "";
-      $("#afterNext").innerHTML = pos.after ? `<span>Then <b>${esc(pos.after.title)}</b> · ${pos.after.min} min</span>` : "";
+      $("#nextIn").textContent = pos.nextInMs != null ? (pos.nextInMs >= 0 ? T("in {d}", { d: fmtDur(pos.nextInMs) }) : T("due now")) : "";
+      $("#afterNext").innerHTML = pos.after ? `<span>${T("Then {t} · {n} min", { t: `<b data-ni>${esc(pos.after.title)}</b>`, n: pos.after.min })}</span>` : "";
       $(".next").classList.remove("empty");
     } else {
-      $("#nextCue").textContent = ""; $("#nextTitle").textContent = pos.mode === "post" ? "Nothing left to call" : "—";
-      $("#nextCat").innerHTML = ""; $("#nextTalk").textContent = pos.mode === "post" ? `${segs().length} segments, ${state.show.title || "the show"}.` : "";
+      $("#nextCue").textContent = ""; $("#nextTitle").textContent = pos.mode === "post" ? T("Nothing left to call") : "—";
+      $("#nextCat").innerHTML = ""; $("#nextTalk").textContent = pos.mode === "post" ? T("{n} segments, {t}.", { n: segs().length, t: state.show.title || T("the show") }) : "";
       $("#nextIn").textContent = ""; $("#afterNext").innerHTML = "";
       $(".next").classList.add("empty");
     }
@@ -802,10 +805,10 @@
     nowCard.style.setProperty("--ac", accentFor(pos));
 
     const curKey = pos.cur ? pos.cur.id : pos.mode;
-    if (lastCurKey !== null && curKey !== lastCurKey) playMorph(pos.cur ? pos.cur.title : pos.mode === "post" ? "Thank you!" : "");
+    if (lastCurKey !== null && curKey !== lastCurKey) playMorph(pos.cur ? pos.cur.title : pos.mode === "post" ? T("Thank you!") : "");
     lastCurKey = curKey;
     // cititorul de ecran aude doar schimbarea de segment, nu fiecare secundă
-    const say = pos.cur ? `Now: ${pos.cur.title}. ${pos.next ? "Next: " + pos.next.title : ""}` : $("#nowTitle").textContent;
+    const say = pos.cur ? T("Now: {t}.", { t: pos.cur.title }) + (pos.next ? " " + T("Next: {t}", { t: pos.next.title }) : "") : $("#nowTitle").textContent;
     if (say !== announced) { announced = say; $("#liveAnnounce").textContent = say; }
 
     markRows(pos);
@@ -1031,8 +1034,8 @@
     } catch (e) { w = null; }
     if (!w) {
       w = window.open("", "ta-rundown-popup", "width=440,height=760");
-      if (!w) return toast("The browser blocked the pop-up. Allow pop-ups for this page.");
-      if (!matchMedia("(max-width: 900px)").matches) toast("Pop-up open. For always-on-top, use Chrome or Edge.");
+      if (!w) return toast(T("The browser blocked the pop-up. Allow pop-ups for this page."));
+      if (!matchMedia("(max-width: 900px)").matches) toast(T("Pop-up open. For always-on-top, use Chrome or Edge."));
     }
     mountPopup(w);
   }
@@ -1041,51 +1044,51 @@
   function mountPopup(w) {
     const d = w.document;
     const screen = d.body.classList.contains("screen");
-    d.title = "KAIROS · Now";
-    d.documentElement.lang = "en";
+    d.title = "KAIROS · " + T("Now");
+    d.documentElement.lang = window.KI18N ? window.KI18N.lang : "en";
     const fonts = `<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">`;
     d.head.innerHTML = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#05070d">${fonts}<style>${screen ? SCREEN_CSS : POPUP_CSS}</style>`;
     if (screen) {
       // ecranul de broadcast: același aspect ca până acum, doar textele în engleză și marca KAIROS corectă
       d.body.innerHTML = `<div class="aur" id="paur"></div>
       <div class="main">
-        <div class="k">${MARK_SVG.replace('class="mk"', 'width="14" height="14" style="flex:none"')}<span class="dot"></span><span id="pl">NOW</span><span class="sp"></span><button class="tg" id="ptg" title="Prompter (T)">PROMPTER</button><span class="clock" id="pc"></span></div>
+        <div class="k">${MARK_SVG.replace('class="mk"', 'width="14" height="14" style="flex:none"')}<span class="dot"></span><span id="pl">${T("NOW")}</span><span class="sp"></span><button class="tg" id="ptg" title="${T("Prompter (T)")}">${T("PROMPTER")}</button><span class="clock" id="pc"></span></div>
         <div><div class="t" id="pt">—</div><div class="meta" id="pm"></div></div>
         <div class="time" id="pr">--:--</div>
         <div class="bar"><i id="pb"></i></div>
-        <div class="tw"><div class="talk" id="pk"><div class="lbl">WHAT’S SAID</div><p id="pkt"></p></div><div class="guide"></div></div>
+        <div class="tw"><div class="talk" id="pk"><div class="lbl">${T("WHAT’S SAID")}</div><p id="pkt"></p></div><div class="guide"></div></div>
         <div class="ctl">
-          <button class="play" id="pp" title="Start / pause (Space)">▶ Start</button>
-          <button id="ps-" title="Slower (↓)">−</button><span class="v" id="pv"></span><button id="ps+" title="Faster (↑)">+</button>
-          <button id="pa-" title="Smaller text (-)">A−</button><button id="pa+" title="Bigger text (+)">A+</button>
-          <button id="pz" title="Back to the top (R)">↺</button><button id="pmr" title="Mirrored, for a glass prompter (M)">⇋</button>
+          <button class="play" id="pp" title="${T("Start / pause (Space)")}">▶ ${T("Start@@prompter")}</button>
+          <button id="ps-" title="${T("Slower (↓)")}">−</button><span class="v" id="pv"></span><button id="ps+" title="${T("Faster (↑)")}">+</button>
+          <button id="pa-" title="${T("Smaller text (-)")}">A−</button><button id="pa+" title="${T("Bigger text (+)")}">A+</button>
+          <button id="pz" title="${T("Back to the top (R)")}">↺</button><button id="pmr" title="${T("Mirrored, for a glass prompter (M)")}">⇋</button>
         </div>
       </div>
-      <div class="next"><span class="nd"></span><span class="nl">NEXT</span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
-      <div class="next after" id="pafter"><span class="nd"></span><span class="nl">THEN</span><span class="nt" id="nt2">—</span><span class="ni" id="pi2"></span></div>`;
+      <div class="next"><span class="nd"></span><span class="nl">${T("NEXT")}</span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
+      <div class="next after" id="pafter"><span class="nd"></span><span class="nl">${T("THEN")}</span><span class="nt" id="nt2">—</span><span class="ni" id="pi2"></span></div>`;
       buildAurora(d.getElementById("paur"), 911);
     } else {
       d.body.innerHTML = `<div class="aur" id="paur"></div>
       <div class="k">${MARK_SVG}<span class="sp"></span><span class="clock" id="pc"></span></div>
       <div class="main">
-        <div><div class="trow"><span class="cue" id="pq"></span><h1 class="t" id="pt">—</h1></div><div class="meta"><span class="st"><span class="dot"></span><span id="pl">Now</span></span><span class="mrest" id="pm"></span></div></div>
-        <div class="time" id="pr" role="timer" aria-label="Time left">--:--</div>
+        <div><div class="trow"><span class="cue" id="pq"></span><h1 class="t" id="pt">—</h1></div><div class="meta"><span class="st"><span class="dot"></span><span id="pl">${T("Now")}</span></span><span class="mrest" id="pm"></span></div></div>
+        <div class="time" id="pr" role="timer" aria-label="${T("Time left")}">--:--</div>
         <div class="bar"><i id="pb"></i></div>
-        <div class="tw"><div class="talk" id="pk"><div class="lbl">What’s said</div><p id="pkt"></p></div><div class="guide"></div></div>
-        <div class="ctl" aria-label="Prompter controls">
-          <button class="play" id="pp" title="Start / pause (Space)">Start</button>
+        <div class="tw"><div class="talk" id="pk"><div class="lbl">${T("What’s said")}</div><p id="pkt"></p></div><div class="guide"></div></div>
+        <div class="ctl" aria-label="${T("Prompter controls")}">
+          <button class="play" id="pp" title="${T("Start / pause (Space)")}">${T("Start@@prompter")}</button>
           <span class="v" id="pv"></span>
-          <button id="ps-" title="Slower (↓)" aria-label="Slower">Slower</button><button id="ps+" title="Faster (↑)" aria-label="Faster">Faster</button>
-          <button id="pa-" title="Smaller text (-)" aria-label="Smaller text">A−</button><button id="pa+" title="Bigger text (+)" aria-label="Bigger text">A+</button>
-          <button id="pz" title="Back to the top (R)">Top</button><button id="pmr" title="Mirrored, for a glass prompter (M)">Mirror</button>
+          <button id="ps-" title="${T("Slower (↓)")}" aria-label="${T("Slower")}">${T("Slower")}</button><button id="ps+" title="${T("Faster (↑)")}" aria-label="${T("Faster")}">${T("Faster")}</button>
+          <button id="pa-" title="${T("Smaller text (-)")}" aria-label="${T("Smaller text")}">A−</button><button id="pa+" title="${T("Bigger text (+)")}" aria-label="${T("Bigger text")}">A+</button>
+          <button id="pz" title="${T("Back to the top (R)")}">${T("Top")}</button><button id="pmr" title="${T("Mirrored, for a glass prompter (M)")}">${T("Mirror")}</button>
         </div>
       </div>
       <div class="tr">
-        <button class="back" id="pback" title="Back (B)" aria-label="Back to the previous segment">${IC.prev}Back</button>
-        <button class="go" id="pgo">Next</button>
-        <button class="ptg" id="ptg" title="Prompter (T)" aria-pressed="false">Prompter</button>
+        <button class="back" id="pback" title="${T("Back (B)")}" aria-label="${T("Back to the previous segment")}">${IC.prev}${T("Back")}</button>
+        <button class="go" id="pgo">${T("Next")}</button>
+        <button class="ptg" id="ptg" title="${T("Prompter (T)")}" aria-pressed="false">${T("Prompter")}</button>
       </div>
-      <div class="next"><span class="sb" id="psb">STANDBY</span><span class="nq" id="pnq"></span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
+      <div class="next"><span class="sb" id="psb">${T("STANDBY")}</span><span class="nq" id="pnq"></span><span class="nt" id="nt">—</span><span class="ni" id="pi"></span></div>
       <div class="next after" id="pafter"><span class="nt" id="nt2"></span><span class="ni" id="pi2"></span></div>`;
       buildAurora(d.getElementById("paur"), 911);
       d.getElementById("pgo").onclick = (e) => go(e.currentTarget);
@@ -1100,8 +1103,8 @@
       d.body.classList.toggle("prompt", prompter.on);
       d.body.classList.toggle("mirror", prompter.mirror);
       g("ptg").classList.toggle("on", prompter.on); g("ptg").setAttribute("aria-pressed", prompter.on);
-      g("pp").textContent = screen ? (prompter.playing ? "❚❚ Pause" : "▶ Start") : (prompter.playing ? "Pause" : "Start");
-      g("pv").textContent = screen ? `${prompter.speed}px/s` : `Speed ${speedStep()}`;
+      g("pp").textContent = screen ? (prompter.playing ? "❚❚ " + T("Pause") : "▶ " + T("Start@@prompter")) : (prompter.playing ? T("Pause") : T("Start@@prompter"));
+      g("pv").textContent = screen ? `${prompter.speed}px/s` : T("Speed {n}", { n: speedStep() });
       d.body.style.setProperty("--ps", prompter.size + "px");
       savePrompter();
     };
@@ -1167,23 +1170,23 @@
     d.body.classList.toggle("ro", !canEdit());
     let text = "";
     if (pos.cur) {
-      g("pl").textContent = screen ? (pos.mode === "live" ? `NOW · LIVE · ${state.advance === "auto" ? "AUTO" : "MANUAL"}` : "NOW · BY THE PLAN")
-        : (pos.mode === "live" ? `Live · ${state.advance === "auto" ? "Auto" : "Manual"}` : "Plan");
+      g("pl").textContent = screen ? (pos.mode === "live" ? (state.advance === "auto" ? T("NOW · LIVE · AUTO") : T("NOW · LIVE · MANUAL")) : T("NOW · BY THE PLAN"))
+        : (pos.mode === "live" ? T(state.advance === "auto" ? "Live · Auto" : "Live · Manual") : T("Plan"));
       if (g("pq")) g("pq").textContent = `Q${pos.idx + 1}`;
       g("pt").textContent = pos.cur.title;
-      let meta = `<span>${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min</span>${pos.cur.who ? `<span>${esc(pos.cur.who)}</span>` : ""}`;
+      let meta = `<span>${hhmm(pos.off[pos.cur.id])} · ${T("{n} min", { n: pos.cur.min })}</span>${pos.cur.who ? `<span>${esc(pos.cur.who)}</span>` : ""}`;
       const dt = driftText(pos);
       if (dt.text && (screen ? dt.cls !== "ok" : true)) meta += `<span class="drift ${dt.cls}">${esc(dt.text)}</span>`;
       if (!screen) g("pm").innerHTML = meta;
-      else g("pm").innerHTML = `${hhmm(pos.off[pos.cur.id])} · ${pos.cur.min} min${pos.cur.who ? " · " + esc(pos.cur.who) : ""}${dt.cls === "late" || dt.cls === "early" ? ` · <span class="drift ${dt.cls}">${esc(dt.text)}</span>` : ""}`;
+      else g("pm").innerHTML = `${hhmm(pos.off[pos.cur.id])} · ${T("{n} min", { n: pos.cur.min })}${pos.cur.who ? " · " + esc(pos.cur.who) : ""}${dt.cls === "late" || dt.cls === "early" ? ` · <span class="drift ${dt.cls}">${esc(dt.text)}</span>` : ""}`;
       g("pr").textContent = fmtDur(pos.remain);
       g("pr").className = "time" + (pos.remain < 0 ? " over" : pos.remain < 60000 ? " last" : "");
       g("pb").style.width = Math.min(100, Math.max(0, (pos.elapsed / (pos.durMs || 1)) * 100)) + "%";
       text = prompter.on ? ((pos.cur.script || "").trim() || pos.cur.talk || "") : (pos.cur.talk || "");
     } else {
-      g("pl").textContent = screen ? (pos.mode === "pre" ? "BEFORE THE SHOW" : "SHOW ENDED") : (pos.mode === "pre" ? "Before the show" : "Show ended");
+      g("pl").textContent = screen ? (pos.mode === "pre" ? T("BEFORE THE SHOW") : T("SHOW ENDED")) : (pos.mode === "pre" ? T("Before the show") : T("Show ended"));
       if (g("pq")) g("pq").textContent = "";
-      g("pt").textContent = pos.mode === "pre" ? "Starts in" : "Thank you!";
+      g("pt").textContent = pos.mode === "pre" ? T("Starts in") : T("Thank you!");
       g("pm").textContent = ""; g("pr").textContent = pos.mode === "pre" ? fmtDur(pos.nextInMs) : "00:00"; g("pr").className = "time";
       g("pb").style.width = pos.mode === "post" ? "100%" : "0%";
     }
@@ -1192,7 +1195,7 @@
     const pgo = g("pgo");
     if (pgo && pgo.dataset.armed !== "1") {
       const live = state.mode === "live", running = live && state.live.running && !state.live.ended, last = running && state.live.idx >= segs().length - 1;
-      pgo.textContent = !live ? "Go live" : state.live.ended ? "Show ended" : running ? (last ? "End show" : "Next") : "Start show";
+      pgo.textContent = !live ? T("Go live") : state.live.ended ? T("Show ended") : running ? (last ? T("End show") : T("Next")) : T("Start show");
       pgo.disabled = live && !!state.live.ended; pgo.classList.toggle("end", last);
       g("pback").disabled = !running || state.live.idx <= 0;
     }
@@ -1206,10 +1209,10 @@
     }
     if (popupWin.__kick) popupWin.__kick();
     if (pos.next) {
-      g("pi").textContent = pos.nextInMs != null && pos.nextInMs >= 0 ? `in ${fmtDur(pos.nextInMs)}` : "due now";
+      g("pi").textContent = pos.nextInMs != null && pos.nextInMs >= 0 ? T("in {d}", { d: fmtDur(pos.nextInMs) }) : T("due now");
       g("nt").textContent = pos.next.title;
       if (g("pnq")) g("pnq").textContent = `Q${segIndex(pos.next.id) + 1}`;
-      if (g("psb")) { g("psb").textContent = pos.mode === "live" ? "STANDBY" : "NEXT"; g("psb").hidden = false; }
+      if (g("psb")) { g("psb").textContent = pos.mode === "live" ? T("STANDBY") : T("NEXT"); g("psb").hidden = false; }
     } else { g("pi").textContent = ""; g("nt").textContent = "—"; if (g("pnq")) g("pnq").textContent = ""; if (g("psb")) g("psb").hidden = true; }
     // al doilea eveniment de după cel activ (se vede doar pe ecranul mare, cu prompterul oprit)
     const after = pos.next ? pos.after : null;
@@ -1218,7 +1221,7 @@
       d.body.style.setProperty("--nc2", hexOf(after));
       g("nt2").textContent = after.title;
       const inMs = pos.nextInMs != null ? Math.max(0, pos.nextInMs) + (pos.next.min || 0) * 60000 : null;
-      g("pi2").textContent = inMs != null ? `in ${fmtDur(inMs)}` : "";
+      g("pi2").textContent = inMs != null ? T("in {d}", { d: fmtDur(inMs) }) : "";
     }
   }
 
@@ -1248,6 +1251,16 @@
     list.hidden = true;
   }
   mqMobile.addEventListener("change", placeForViewport); placeForViewport();
+  // limba interfeței: schimbarea reîncarcă pagina (show-ul și Live-ul sunt salvate; pop-up-ul se închide)
+  if (window.KI18N && $("#langSlot")) {
+    const ls = window.KI18N.select(); $("#langSlot").append(ls);
+    ls.addEventListener("click", (e) => e.stopPropagation());
+    window.KI18N.beforeChange = () => {
+      const open = popupWin && !popupWin.closed;
+      if (!open && !(state.mode === "live" && state.live.running)) return true;
+      return confirm(T("Changing the language reloads this page. The show keeps running for everyone; the pop-up closes and you open it again. Continue?"));
+    };
+  }
   $("#menuList").addEventListener("click", (e) => {
     const b = e.target.closest("[data-act]"); if (!b) return;
     const a = b.dataset.act;
@@ -1264,9 +1277,9 @@
     if (a === "home") location.href = "./";
     if (a === "preview") window.open($("#btnPreview").href, "_blank", "noopener");
     if (a === "signout" && S) S.signOut();
-    if (a === "reset" && window.confirm(`Replace “${state.show.title || "this rundown"}” with the sample rundown${cloud() ? " for the whole team" : ""}? You can undo with Ctrl+Z right after.`)) {
+    if (a === "reset" && window.confirm(T(cloud() ? "Replace “{t}” with the sample rundown for the whole team? You can undo with Ctrl+Z right after." : "Replace “{t}” with the sample rundown? You can undo with Ctrl+Z right after.", { t: state.show.title || T("this rundown") }))) {
       snapshot(); const keep = { mode: state.mode, advance: state.advance, live: state.live }; state = { ...fromDefault(), ...keep };
-      save(); pushItems(); renderAll(); toast(cloud() ? "The default rundown is loaded for the whole team · Ctrl+Z to undo" : "The default rundown is loaded · Ctrl+Z to undo");
+      save(); pushItems(); renderAll(); toast(cloud() ? T("The default rundown is loaded for the whole team · Ctrl+Z to undo") : T("The default rundown is loaded · Ctrl+Z to undo"));
     }
   });
 
@@ -1286,8 +1299,8 @@
       snapshot();
       state.show = { ...state.show, ...(d.show || {}) };
       state.items = d.items.map((it) => ({ id: uid(), type: "segment", min: 5, cat: "platforma", title: "", video: "", gfx: "", talk: "", who: "", ...it }));
-      save(); pushItems(); renderAll(); toast(`Imported: ${segs().length} segments`);
-    } catch (err) { toast("That file isn't a KAIROS rundown (JSON export)"); }
+      save(); pushItems(); renderAll(); toast(T("Imported: {n} segments", { n: segs().length }));
+    } catch (err) { toast(T("That file isn't a KAIROS rundown (JSON export)")); }
     e.target.value = "";
   });
 
@@ -1295,18 +1308,18 @@
   // atinge doar câmpul Script, potrivit după titlu; ID-urile, comentariile și muzica rămân neatinse
   $("#scriptsFile").addEventListener("change", async (e) => {
     const f = e.target.files[0]; e.target.value = ""; if (!f) return;
-    if (!canEdit()) return toast("Only editors can change scripts");
+    if (!canEdit()) return toast(T("Only editors can change scripts"));
     let map;
     try { const d = JSON.parse(await f.text()); map = d && typeof d.scripts === "object" ? d.scripts : d; if (!map || typeof map !== "object" || Array.isArray(map)) throw 0; }
-    catch (err) { return toast("That file isn't a scripts file ({ \"scripts\": { \"Segment title\": \"text\" } })"); }
+    catch (err) { return toast(T("That file isn't a scripts file ({ \"scripts\": { \"Segment title\": \"text\" } })")); }
     const norm = (s) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
     const byTitle = new Map(segs().map((it) => [norm(it.title), it]));
     const hits = [], miss = [];
     for (const [t, v] of Object.entries(map)) { const it = byTitle.get(norm(t)); if (it && typeof v === "string") hits.push([it, v]); else miss.push(t); }
     const changed = hits.filter(([it, v]) => (it.script || "") !== v);
-    if (!changed.length) return toast(miss.length ? `No new scripts. Titles not found: ${miss.length}` : "Scripts are already up to date");
-    const msg = `Replace the script on ${changed.length} segments? The rest of the rundown stays as it is.`
-      + (miss.length ? `\n\nNot found in the rundown: ${miss.join(", ")}` : "");
+    if (!changed.length) return toast(miss.length ? T("No new scripts. Titles not found: {n}", { n: miss.length }) : T("Scripts are already up to date"));
+    const msg = T("Replace the script on {n} segments? The rest of the rundown stays as it is.", { n: changed.length })
+      + (miss.length ? "\n\n" + T("Not found in the rundown: {list}", { list: miss.join(", ") }) : "");
     if (!confirm(msg)) return;
     snapshot();
     for (const [it, v] of changed) {
@@ -1314,7 +1327,7 @@
       if (cloud()) { localDirty.set(`${it.id}.script`, v); S.field(it.id, "script", v); }
     }
     save(); renderTable(); tick();
-    toast(`Scripts updated: ${changed.length}${miss.length ? ` · not found: ${miss.length}` : ""}`);
+    toast(T("Scripts updated: {n}", { n: changed.length }) + (miss.length ? " · " + T("not found: {n}", { n: miss.length }) : ""));
   });
 
   function openSettings() {
@@ -1336,9 +1349,9 @@
   // erorile Firebase devin propoziții: ce nu a mers și ce poți face, fără coduri tehnice
   function friendlyErr(what, err) {
     const c = String((err && (err.code || err.message)) || "");
-    if (/permission|unauth/i.test(c)) return `${what}: you don't have permission for this rundown.`;
-    if (/unavailable|network|offline|deadline/i.test(c)) return `${what}: no connection. Check the internet and try again.`;
-    return `${what}. Try again.`;
+    if (/permission|unauth/i.test(c)) return T("{what}: you don't have permission for this rundown.", { what });
+    if (/unavailable|network|offline|deadline/i.test(c)) return T("{what}: no connection. Check the internet and try again.", { what });
+    return T("{what}. Try again.", { what });
   }
 
   /* ---------------- tastatură ---------------- */
@@ -1375,8 +1388,8 @@
 
   function applyRemote(data) {
     if (!data) {                       // cloud gol: primul editor urcă rundown-ul lui
-      if (LEGACY && cloud() && canEdit()) { pushItems(); toast("The rundown is now shared with the whole team"); }
-      else if (!LEGACY && cloud()) toast("This rundown doesn't exist, or you don't have access to it.");
+      if (LEGACY && cloud() && canEdit()) { pushItems(); toast(T("The rundown is now shared with the whole team")); }
+      else if (!LEGACY && cloud()) toast(T("This rundown doesn't exist, or you don't have access to it."));
       return;
     }
     const items = data.items.map((it) => {
@@ -1405,16 +1418,17 @@
     if (prevKey !== `${state.live.running}|${state.live.idx}|${state.live.itemStart}`) scrollToCurrent();
   }
 
-  const ROLE_LABEL = { owner: "Owner", editor: "Editor", viewer: "Read only", local: "" };
+  const ROLE_LABEL = { owner: T("Owner"), editor: T("Editor"), viewer: T("Read only"), local: "" };
   function renderAccount() {
     const el = $("#account"); if (!el) return;
     const st = S ? S.status : "local";
     if (!S || !S.ready) { el.innerHTML = ""; return; }
     if (!S.user) {
-      el.innerHTML = `<button class="btn" data-signin title="Sign in to work on the shared rundown">Sign in with Google</button>`;
+      el.innerHTML = `<button class="btn" data-signin title="${T("Sign in to work on the shared rundown")}">${T("Sign in with Google")}</button>`;
     } else {
       const u = S.user; const ini = esc((u.name || u.email || "?").trim().charAt(0).toUpperCase());
-      el.innerHTML = `<span class="sync-dot ${st}" role="img" aria-label="${st === "online" ? "Synced" : st === "error" ? "Sync error" : "Connecting…"}" title="${st === "online" ? "Synced" : st === "error" ? "Sync error" : "Connecting…"}"></span>
+      const stl = T(st === "online" ? "Synced" : st === "error" ? "Sync error" : "Connecting…");
+      el.innerHTML = `<span class="sync-dot ${st}" role="img" aria-label="${stl}" title="${stl}"></span>
         <span class="who-chip" title="${esc(u.email)}">${u.photo ? `<img src="${esc(u.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${ini}</i>`}<span>${esc((u.name || "").split(" ")[0])}</span><em>${ROLE_LABEL[S.role] || ""}</em></span>`;
     }
     document.body.classList.toggle("cloud", !!S.user);
@@ -1424,7 +1438,7 @@
   }
   document.addEventListener("click", async (e) => {
     if (!e.target.closest("[data-signin]") || !S) return;
-    try { await S.signIn(); } catch (err) { toast(err && /popup-closed|cancelled/.test(err.code || "") ? "Sign-in was cancelled" : "Sign-in didn't work. Check your connection and try again."); }
+    try { await S.signIn(); } catch (err) { toast(err && /popup-closed|cancelled/.test(err.code || "") ? T("Sign-in was cancelled") : T("Sign-in didn't work. Check your connection and try again.")); }
   });
 
   function openTeam() {
@@ -1434,8 +1448,8 @@
     dlg.showModal();
     dlg.onclose = async () => {
       if (dlg.returnValue !== "ok") return;
-      try { await S.setEditors(f.emails.value.split(/[\s,;]+/)); toast("Editors saved"); }
-      catch (err) { toast(friendlyErr("Couldn't save the editors", err)); }
+      try { await S.setEditors(f.emails.value.split(/[\s,;]+/)); toast(T("Editors saved")); }
+      catch (err) { toast(friendlyErr(T("Couldn't save the editors"), err)); }
     };
   }
   // linkul de invitație: îl generezi și îl trimiți, cine îl acceptă devine editor
@@ -1443,16 +1457,16 @@
     try {
       const r = await S.createInvite({ showId: S.showId, showTitle: state.show.title || "", team: $("#inviteTeam").checked });
       $("#inviteUrl").value = r.url; $("#inviteCopy").disabled = false; $("#inviteUrl").select();
-      toast("Link created, valid for 7 days");
-    } catch (err) { toast(friendlyErr("Couldn't create the link", err)); }
+      toast(T("Link created, valid for 7 days"));
+    } catch (err) { toast(friendlyErr(T("Couldn't create the link"), err)); }
   };
   $("#inviteCopy").onclick = async () => {
     const v = $("#inviteUrl").value; if (!v) return;
-    try { await navigator.clipboard.writeText(v); toast("Link copied"); } catch (e) { $("#inviteUrl").select(); toast("Selected: press Ctrl+C"); }
+    try { await navigator.clipboard.writeText(v); toast(T("Link copied")); } catch (e) { $("#inviteUrl").select(); toast(T("Selected: press Ctrl+C")); }
   };
   $("#inviteRevoke").onclick = async () => {
-    try { const n = await S.revokeInvites(S.showId); $("#inviteUrl").value = ""; $("#inviteCopy").disabled = true; toast(n ? "Your invite links are disabled" : "You had no active links"); }
-    catch (err) { toast(friendlyErr("That didn't work", err)); }
+    try { const n = await S.revokeInvites(S.showId); $("#inviteUrl").value = ""; $("#inviteCopy").disabled = true; toast(n ? T("Your invite links are disabled") : T("You had no active links")); }
+    catch (err) { toast(friendlyErr(T("That didn't work"), err)); }
   };
 
   /* ---------------- comentarii ---------------- */
@@ -1470,8 +1484,8 @@
   }
   function timeAgo(ms) {
     const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
-    if (s < 60) return "just now"; if (s < 3600) return `${Math.floor(s / 60)} min ago`;
-    if (s < 86400) return `${Math.floor(s / 3600)} h ago`;
+    if (s < 60) return T("just now"); if (s < 3600) return T("{n} min ago", { n: Math.floor(s / 60) });
+    if (s < 86400) return T("{n} h ago", { n: Math.floor(s / 3600) });
     const d = new Date(ms); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   }
   function openDrawer(segId) {
@@ -1484,8 +1498,8 @@
   function renderDrawer() {
     if ($("#drawer").hidden) return;
     const seg = drawerSeg && state.items.find((i) => i.id === drawerSeg);
-    $("#drawerTitle").textContent = seg ? (seg.title || "Segment") : "Comments";
-    $("#drawerLabel").textContent = seg ? `Comments · Q${segIndex(seg.id) + 1} · ${hhmm(plannedOffsets()[seg.id] || 0)}` : "All segments";
+    $("#drawerTitle").textContent = seg ? (seg.title || T("Segment")) : T("Comments");
+    $("#drawerLabel").textContent = seg ? `${T("Comments")} · Q${segIndex(seg.id) + 1} · ${hhmm(plannedOffsets()[seg.id] || 0)}` : T("All segments");
     $("#drawerAll").hidden = !seg;
     const showRes = $("#showResolved").checked;
     const list = (S ? S.comments : []).filter((c) => (!seg || c.segId === seg.id) && (showRes || !c.resolved));
@@ -1494,20 +1508,20 @@
       const segNow = state.items.find((i) => i.id === c.segId);
       return `<article class="cmt ${c.resolved ? "resolved" : ""}" data-id="${esc(c.id)}">
         <header>${c.photo ? `<img src="${esc(c.photo)}" alt="" referrerpolicy="no-referrer">` : `<i>${esc((c.name || "?").charAt(0).toUpperCase())}</i>`}
-          <b>${esc(c.name || "Anonymous")}</b><span>${esc(timeAgo(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">Script suggestion</span>` : ""}</header>
-        ${!seg ? `<button class="seg-link" data-goto="${esc(c.segId)}">${esc(segNow ? segNow.title : c.segTitle || "deleted segment")}</button>` : ""}
+          <b>${esc(c.name || T("Anonymous"))}</b><span>${esc(timeAgo(c.createdAt))}</span>${c.kind === "text" ? `<span class="tag">${T("Script suggestion")}</span>` : ""}</header>
+        ${!seg ? `<button class="seg-link" data-goto="${esc(c.segId)}">${esc(segNow ? segNow.title : c.segTitle || T("deleted segment"))}</button>` : ""}
         <p>${esc(c.text)}</p>
         <footer>
-          ${canEdit() && cloud() && c.kind === "text" && segNow ? `<button class="mini" data-c="apply">Use as “What’s said”</button>` : ""}
-          ${canEdit() && cloud() ? `<button class="mini" data-c="resolve">${c.resolved ? "Reopen" : "Resolve"}</button>` : ""}
-          ${cloud() && (canEdit() || c.uid === me) ? `<button class="mini del" data-c="del">Delete</button>` : ""}
+          ${canEdit() && cloud() && c.kind === "text" && segNow ? `<button class="mini" data-c="apply">${T("Use as “What’s said”")}</button>` : ""}
+          ${canEdit() && cloud() ? `<button class="mini" data-c="resolve">${c.resolved ? T("Reopen") : T("Resolve")}</button>` : ""}
+          ${cloud() && (canEdit() || c.uid === me) ? `<button class="mini del" data-c="del">${T("Delete")}</button>` : ""}
         </footer></article>`;
-    }).join("") : `<p class="empty">${seg ? "No comments on this segment yet." : "No open comments."}</p>`;
+    }).join("") : `<p class="empty">${seg ? T("No comments on this segment yet.") : T("No open comments.")}</p>`;
     const signed = !!(S && S.user);
     $("#composer").hidden = !signed || !seg;
     $("#signinBox").hidden = signed || !(S && S.ready);
-    $("#composerHint").textContent = signed && seg ? `as ${S.user.name || S.user.email}` : "";
-    if (signed && !seg) $("#cmtList").insertAdjacentHTML("beforeend", `<p class="empty">To write a comment, open it from its segment (the speech-bubble button on the row).</p>`);
+    $("#composerHint").textContent = signed && seg ? T("as {name}", { name: S.user.name || S.user.email }) : "";
+    if (signed && !seg) $("#cmtList").insertAdjacentHTML("beforeend", `<p class="empty">${T("To write a comment, open it from its segment (the speech-bubble button on the row).")}</p>`);
   }
   $("#btnComments").onclick = () => openDrawer(null);
   $("#drawerClose").onclick = closeDrawer;
@@ -1520,13 +1534,13 @@
     const id = b.closest(".cmt").dataset.id; const c = S.comments.find((x) => x.id === id); if (!c) return;
     try {
       if (b.dataset.c === "resolve") await S.resolveComment(id, !c.resolved);
-      if (b.dataset.c === "del" && window.confirm("Delete this comment?")) await S.deleteComment(id);
+      if (b.dataset.c === "del" && window.confirm(T("Delete this comment?"))) await S.deleteComment(id);
       if (b.dataset.c === "apply") {
         const it = state.items.find((i) => i.id === c.segId); if (!it) return;
         snapshot(); it.talk = c.text; save(); pushItems(); renderTable(); tick();
-        await S.resolveComment(id, true); toast("Moved into “What’s said”");
+        await S.resolveComment(id, true); toast(T("Moved into “What’s said”"));
       }
-    } catch (err) { toast(friendlyErr("That didn't work", err)); }
+    } catch (err) { toast(friendlyErr(T("That didn't work"), err)); }
   });
   $("#composer").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -1534,8 +1548,8 @@
     const seg = state.items.find((i) => i.id === drawerSeg);
     const kind = $("#composer").querySelector("input[name=kind]:checked").value;
     $("#cmtSend").disabled = true;
-    try { await S.addComment({ segId: drawerSeg, segTitle: seg ? seg.title : "", text, kind }); $("#cmtText").value = ""; toast("Comment sent"); }
-    catch (err) { toast(friendlyErr("The comment wasn't sent", err)); }
+    try { await S.addComment({ segId: drawerSeg, segTitle: seg ? seg.title : "", text, kind }); $("#cmtText").value = ""; toast(T("Comment sent")); }
+    catch (err) { toast(friendlyErr(T("The comment wasn't sent"), err)); }
     $("#cmtSend").disabled = false;
   });
   document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#drawer").hidden) closeDrawer(); });
@@ -1576,12 +1590,12 @@
   }
   async function copyScreenLink() {
     const url = screenUrl();
-    try { await navigator.clipboard.writeText(url); toast("Screen link copied. Open it on the screen computer, signed in with Google."); }
-    catch (e) { prompt("Screen link:", url); }
+    try { await navigator.clipboard.writeText(url); toast(T("Screen link copied. Open it on the screen computer, signed in with Google.")); }
+    catch (e) { prompt(T("Screen link:"), url); }
   }
   function mountScreen() {
     document.documentElement.style.overflow = "hidden";
-    const f = Object.assign(document.createElement("iframe"), { title: "KAIROS · Screen" });
+    const f = Object.assign(document.createElement("iframe"), { title: "KAIROS · " + T("Screen") });
     f.style.cssText = "position:fixed;inset:0;width:100vw;height:100vh;border:0;z-index:2147483647;background:#000";
     document.body.appendChild(f);
     const fd = f.contentDocument; fd.open(); fd.write("<!doctype html><html><head></head><body></body></html>"); fd.close();
@@ -1598,7 +1612,7 @@
     const keepAwake = async () => { try { if ("wakeLock" in navigator && document.visibilityState === "visible") wake = await navigator.wakeLock.request("screen"); } catch (e) {} };
     keepAwake(); document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") keepAwake(); });
 
-    fd.title = document.title = `KAIROS · Screen · ${state.show.title || ""}`;
+    fd.title = document.title = `KAIROS · ${T("Screen")} · ${state.show.title || ""}`;
     f.contentWindow.focus();
     // dublu-clic = ecran complet
     fd.addEventListener("dblclick", () => { const el = fd.documentElement; if (fd.fullscreenElement) fd.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen().catch(() => {}); });

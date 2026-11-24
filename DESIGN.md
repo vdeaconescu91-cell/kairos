@@ -302,4 +302,4 @@ The show timeline and the NOW / NEXT cards. Timeline blocks are category-tinted 
 - **Don't** redraw, recolour or add effects to the KAIROS wordmark.
 - **Don't** carry beams, glass, glows or gradient text beyond the aurora strip and the pop-up background.
 - **Don't** use uppercase status labels as kickers above headings on new surfaces.
-- **Don't** set interface copy in any language but English.
+- **Don't** write interface copy straight into markup or code: write it in English and route it through `KI18N` (static HTML is translated on load, generated text goes through `T()`), then add the RO/FR/ES/IT/RU lines to the dictionary. Never translate rundown content.
