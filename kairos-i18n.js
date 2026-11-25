@@ -1,11 +1,11 @@
-/* KAIROS · limba interfeței (EN, RO, FR, ES, IT, RU).
+/* KAIROS · limba interfeței (EN, RO, FR, ES, IT, RU, ZH = chineza simplificată).
    Se traduce doar interfața: butoane, meniuri, etichete, mesaje. Conținutul rundown-ului (titluri, texte, scripturi,
    nume, comentarii) rămâne exact cum a fost scris.
    - textele fixe din HTML se traduc o dată, la încărcare (KI18N.apply), înainte să apară conținutul;
    - textele generate din cod trec prin KI18N.t("Text englezesc cu {var}", { var });
    - zonele cu conținut se marchează cu data-ni și nu sunt atinse niciodată;
    - limba aleasă se ține în localStorage („kairos-lang”); schimbarea reîncarcă pagina.
-   Dicționarul e în kairos-i18n-dict.js (cheia = textul englezesc, valorile = [ro, fr, es, it, ru]). */
+   Dicționarul e în kairos-i18n-dict.js (cheia = textul englezesc, valorile = [ro, fr, es, it, ru, zh]). */
 (() => {
   "use strict";
   const LANGS = [
@@ -15,14 +15,17 @@
     { code: "es", name: "Español", short: "ES" },
     { code: "it", name: "Italiano", short: "IT" },
     { code: "ru", name: "Русский", short: "RU" },
+    { code: "zh", name: "简体中文", short: "ZH" },
   ];
-  const IDX = { ro: 0, fr: 1, es: 2, it: 3, ru: 4 };
+  const IDX = { ro: 0, fr: 1, es: 2, it: 3, ru: 4, zh: 5 };
   const KEY = "kairos-lang";
   const qs = new URLSearchParams(location.search);
   let lang = "en";
   try { lang = qs.get("lang") || localStorage.getItem(KEY) || "en"; } catch (e) { lang = qs.get("lang") || "en"; }
   if (!LANGS.some((l) => l.code === lang)) lang = "en";
   const DEBUG = qs.has("i18n-debug");
+  // eticheta HTML: chineza e cea simplificată (contează la alegerea formei caracterelor)
+  const TAG = () => (lang === "zh" ? "zh-Hans" : lang);
   const missing = new Set();
 
   const dict = () => window.KAIROS_I18N_DICT || {};
@@ -52,7 +55,7 @@
   function apply(root = document) {
     if (!root) return;
     const base = root.nodeType === 9 ? root.documentElement : root;
-    if (root.nodeType === 9) root.documentElement.lang = lang;
+    if (root.nodeType === 9) root.documentElement.lang = TAG();
     base.querySelectorAll("[data-i18n-html]").forEach((el) => {
       if (el.closest("[data-ni]")) return;
       const k = el.getAttribute("data-i18n-html") || el.innerHTML.trim().replace(/\s+/g, " ");
@@ -97,10 +100,10 @@
     return s;
   }
   // formatul local al datelor (zi, lună) în limba aleasă
-  const locale = () => ({ en: "en-GB", ro: "ro-RO", fr: "fr-FR", es: "es-ES", it: "it-IT", ru: "ru-RU" }[lang]);
+  const locale = () => ({ en: "en-GB", ro: "ro-RO", fr: "fr-FR", es: "es-ES", it: "it-IT", ru: "ru-RU", zh: "zh-CN" }[lang]);
 
   window.KI18N = { get lang() { return lang; }, langs: LANGS, t, apply, set, select, locale, missing, debug: DEBUG, beforeChange: null };
-  document.documentElement.lang = lang;
+  document.documentElement.lang = TAG();
   // scriptul stă după markup, înaintea celorlalte scripturi: textele fixe se traduc înainte să apară conținutul
   apply(document);
 })();

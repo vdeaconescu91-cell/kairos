@@ -1045,7 +1045,7 @@
     const d = w.document;
     const screen = d.body.classList.contains("screen");
     d.title = "KAIROS · " + T("Now");
-    d.documentElement.lang = window.KI18N ? window.KI18N.lang : "en";
+    d.documentElement.lang = window.KI18N ? (window.KI18N.lang === "zh" ? "zh-Hans" : window.KI18N.lang) : "en";
     const fonts = `<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@125,600;125,700&family=Inter+Tight:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">`;
     d.head.innerHTML = `<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#05070d">${fonts}<style>${screen ? SCREEN_CSS : POPUP_CSS}</style>`;
     if (screen) {

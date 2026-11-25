@@ -34,7 +34,7 @@ Tagline: "Call the moment." The live timer is server-synchronised and shared acr
 - CSS/JS links carry `?v=` cache-busting that must be bumped on every change.
 - `ADMINS` in `sync.js` and `isAdmin()` in `firestore.rules` must stay identical.
 - The screen (broadcast) version keeps its current look: next 2 events when the prompter is off, only the next one when it is on.
-- Interface language selector (EN, RO, FR, ES, IT, RU), since 25.11.2026: `kairos-i18n.js` + `kairos-i18n-dict.js`. It translates the interface only; rundown content (titles, scripts, names, comments) always stays in the language it was written in, which is the language of the stream. The choice is per browser (localStorage `kairos-lang`) and changing it reloads the page.
+- Interface language selector (EN, RO, FR, ES, IT, RU, ZH = Simplified Chinese), since 25.11.2026: `kairos-i18n.js` + `kairos-i18n-dict.js`. It translates the interface only; rundown content (titles, scripts, names, comments) always stays in the language it was written in, which is the language of the stream. The choice is per browser (localStorage `kairos-lang`) and changing it reloads the page.
 - Undecided: per-segment Auto/Manual; rundown templates.
 
 ## Brand Commitments
@@ -43,7 +43,7 @@ Tagline: "Call the moment." The live timer is server-synchronised and shared acr
 - Brand colours: control-room black #05070D, signal #3D7BFF, ink #06175A, ice #D6E4FF. Fonts in the brand guide: Archivo Expanded, Inter Tight, JetBrains Mono.
 - Red appears only in the last minute of the timer. Segment categories are never red.
 - No unproven superlatives ("first", "biggest") in copy.
-- Interface language: English by default, with a selector for RO, FR, ES, IT, RU (25.11.2026). Rundown content is never translated.
+- Interface language: English by default, with a selector for RO, FR, ES, IT, RU, ZH (25.11.2026). Rundown content is never translated.
 
 ## Evidence on Hand
 

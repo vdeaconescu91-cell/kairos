@@ -33,6 +33,6 @@ Nu există build și nici dependențe instalate: Firebase se încarcă de pe CDN
 ## Design
 - `PRODUCT.md`: cine folosește KAIROS și ce trebuie să rămână adevărat.
 - `DESIGN.md`: lumea vizuală (caietul de regie): culori, fonturi, cue-uri, reguli.
-- Interfața e în engleză implicit, cu selector de limbă (EN, RO, FR, ES, IT, RU) în meniu, pe pagina de start și pe pagina clientului. Se traduce doar interfața; conținutul rundown-ului rămâne în limba în care e scris.
-- Texte noi în interfață: scrise în engleză și trecute prin `T()` / `KI18N`, apoi adăugate în `kairos-i18n-dict.js` cu cele 5 traduceri.
+- Interfața e în engleză implicit, cu selector de limbă (EN, RO, FR, ES, IT, RU, ZH) în meniu, pe pagina de start și pe pagina clientului. Se traduce doar interfața; conținutul rundown-ului rămâne în limba în care e scris.
+- Texte noi în interfață: scrise în engleză și trecute prin `T()` / `KI18N`, apoi adăugate în `kairos-i18n-dict.js` cu cele 6 traduceri.
 - Ecranul de broadcast (`?screen=1`) are stilul lui separat (`SCREEN_CSS` în `app.js`); nu se schimbă odată cu restul.
